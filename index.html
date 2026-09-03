@@ -1,625 +1,396 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Shaikh Zaka Tabish - Portfolio</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shaikh Zaka Tabish — Diagnostics &amp; AI Engineering</title>
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #f0f2f5, #e6ecf0);
-      color: #222;
-    }
+<meta name="description" content="Shaikh Zaka Tabish builds diagnostics, monitoring and AI-assisted tooling for hardware and networks. Working student at Nokia Nuremberg, MSc Artificial Intelligence for Industrial Applications at OTH Amberg.">
+<meta name="author" content="Shaikh Zaka Tabish">
+<meta name="theme-color" content="#F5F6F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101619" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://www.zakatabish.online/">
 
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 2rem;
-    }
+<meta property="og:type" content="profile">
+<meta property="og:title" content="Shaikh Zaka Tabish — Diagnostics &amp; AI Engineering">
+<meta property="og:description" content="I build the software that tells hardware what is wrong with it. Diagnostics, network monitoring and AI-assisted tooling.">
+<meta property="og:url" content="https://www.zakatabish.online/">
+<meta name="twitter:card" content="summary_large_image">
 
-    .hero h1 {
-      font-size: 2.8rem;
-      color: #1a1a1a;
-      margin-bottom: 1rem;
-    }
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.github.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2317505C'/%3E%3Cpath d='M5 20 q4 -12 8 0 t8 0 t6 -6' fill='none' stroke='%23E0A542' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 
-    .hero h2 {
-      font-size: 1.5rem;
-      color: #4a4a4a;
-      font-weight: 400;
-      margin-bottom: 1.5rem;
-    }
-
-    .hero p {
-      max-width: 600px;
-      margin-bottom: 2rem;
-      font-size: 1rem;
-      line-height: 1.6;
-      color: #555;
-    }
-
-    .hero-buttons {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .hero-buttons button {
-      padding: 0.8rem 1.5rem;
-      border: none;
-      background: #007acc;
-      color: white;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .hero-buttons button:hover {
-      background: #005fa3;
-    }
-
-    .profile-img {
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #007acc;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    @media (max-width: 600px) {
-      .hero h1 {
-        font-size: 2rem;
-      }
-
-      .hero h2 {
-        font-size: 1.2rem;
-      }
-
-      .hero p {
-        font-size: 0.95rem;
-      }
-    }
-  </style>
-  <style>
-  .about {
-    background-color: #ffffff;
-    padding: 4rem 2rem;
-    text-align: center;
-  }
-
-  .about h2 {
-    font-size: 2.2rem;
-    color: #1a1a1a;
-    margin-bottom: 2rem;
-    position: relative;
-  }
-
-  .about-container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .about-text {
-    font-size: 1rem;
-    color: #444;
-    line-height: 1.8;
-    text-align: left;
-    padding: 0 1rem;
-  }
-
-  .about-text p {
-    margin-bottom: 1.5rem;
-  }
-
-  @media (max-width: 768px) {
-    .about-text {
-      font-size: 0.95rem;
-    }
-  }
-</style>
-<style>
-  .projects {
-    background-color: #f9f9f9;
-    padding: 4rem 2rem;
-    text-align: center;
-  }
-
-  .projects h2 {
-    font-size: 2.2rem;
-    color: #1a1a1a;
-    margin-bottom: 2.5rem;
-  }
-
-  .projects-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .project-card {
-    background-color: #fff;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    max-width: 320px;
-    flex: 1 1 280px;
-    transition: transform 0.3s ease;
-    text-align: left;
-  }
-
-  .project-card:hover {
-    transform: translateY(-5px);
-  }
-
-  .project-card h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.75rem;
-    color: #007acc;
-  }
-
-  .project-card p {
-    font-size: 0.95rem;
-    margin-bottom: 0.6rem;
-    color: #444;
-  }
-
-  .project-card a {
-    display: inline-block;
-    margin-top: 0.5rem;
-    color: #007acc;
-    font-weight: bold;
-    text-decoration: none;
-  }
-
-  .project-card a:hover {
-    text-decoration: underline;
-  }
-</style>
-<style>
-  .skills {
-    background-color: #ffffff;
-    padding: 4rem 2rem;
-    text-align: center;
-  }
-
-  .skills h2 {
-    font-size: 2.2rem;
-    color: #1a1a1a;
-    margin-bottom: 2.5rem;
-  }
-
-  .skills-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 2rem;
-    max-width: 1000px;
-    margin: 0 auto;
-    text-align: left;
-  }
-
-  .skill-category {
-    background-color: #f5f7fa;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
-  }
-
-  .skill-category:hover {
-    transform: translateY(-4px);
-  }
-
-  .skill-category h3 {
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-    color: #007acc;
-  }
-
-  .skill-category ul {
-    list-style-type: disc;
-    padding-left: 1.2rem;
-    color: #444;
-    font-size: 0.95rem;
-    line-height: 1.6;
-  }
-</style>
-<style>
-  .contact {
-    background-color: #f9f9f9;
-    padding: 4rem 2rem;
-    text-align: center;
-  }
-
-  .contact h2 {
-    font-size: 2.2rem;
-    color: #1a1a1a;
-    margin-bottom: 2rem;
-  }
-
-  .contact-content {
-    max-width: 1000px;
-    margin: 0 auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    justify-content: center;
-    align-items: flex-start;
-  }
-
-  .contact-info {
-    flex: 1 1 300px;
-    text-align: left;
-    font-size: 0.95rem;
-    color: #444;
-    line-height: 1.8;
-  }
-
-  .contact-info a {
-    color: #007acc;
-    text-decoration: none;
-  }
-
-  .contact-form {
-    flex: 1 1 320px;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .contact-form input,
-  .contact-form textarea {
-    padding: 0.75rem;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 0.95rem;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .contact-form button {
-    padding: 0.8rem;
-    background-color: #007acc;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-
-  .contact-form button:hover {
-    background-color: #005c99;
-  }
-</style>
-
-
-<style>
-  .footer {
-    background-color: #1a1a1a;
-    color: #ffffff;
-    padding: 2rem 1rem;
-    text-align: center;
-  }
-
-  .footer-content {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-
-  .footer-content p {
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
-  }
-
-  .footer-nav,
-  .footer-socials {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .footer-nav a,
-  .footer-socials a {
-    color: #ffffff;
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: color 0.3s ease;
-  }
-
-  .footer-nav a:hover,
-  .footer-socials a:hover {
-    color: #00aaff;
-  }
-</style>
-
-<script>
-  function submitForm(event) {
-    event.preventDefault();
-    alert("Thank you for your message! (Note: This is a static demo.)");
-  }
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Shaikh Zaka Tabish",
+  "jobTitle": "Working Student, Board Bring-up & Diagnostics Software",
+  "url": "https://www.zakatabish.online/",
+  "sameAs": ["https://github.com/ProgrammerTabish", "https://www.linkedin.com/in/zakatabish"],
+  "alumniOf": [
+    {"@type": "CollegeOrUniversity", "name": "OTH Amberg-Weiden"},
+    {"@type": "CollegeOrUniversity", "name": "Dr. Babasaheb Ambedkar Technological University"}
+  ],
+  "knowsLanguage": ["English", "German"],
+  "address": {"@type": "PostalAddress", "addressLocality": "Nuremberg", "addressCountry": "DE"}
+}
 </script>
 </head>
+
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
-  <section class="hero" id="home">
-     <img src="profile.png" alt="Shaikh Zaka Tabish" style="
-    display: block;
-    margin: 1rem auto;
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  ">
-    <h1>Shaikh Zaka Tabish</h1>
-    <h2>AI Enthusiast | Full Stack Developer | Engineering Innovator</h2>
-    <p>
-      Computer Science Engineer from MIT Aurangabad, now pursuing my Master's in AI for Industrial Applications at OTH Amberg, Germany. Passionate about building smart, scalable solutions that solve real-world problems.
+<!-- ══ side rail ══ -->
+<header class="rail" id="rail">
+  <a class="rail__mark" href="#top" aria-label="Back to top">
+    <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+      <rect x="0.5" y="0.5" width="39" height="39" rx="9"/>
+      <path d="M7 25 q5 -14 10 0 t10 0 t7 -7"/>
+    </svg>
+    <span class="rail__name">Zaka Tabish</span>
+  </a>
+
+  <nav class="rail__nav" aria-label="Sections">
+    <a href="#now">Now</a>
+    <a href="#work">Experience</a>
+    <a href="#projects">Projects</a>
+    <a href="#lab">Lab</a>
+    <a href="#skills">Skills</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <div class="rail__foot">
+    <button class="btn btn--ghost btn--sm" id="themeToggle" aria-pressed="false">
+      <span data-theme-label>Dark</span>
+    </button>
+    <button class="btn btn--ghost btn--sm" id="consoleOpen" aria-expanded="false" aria-controls="console">
+      Console <kbd>~</kbd>
+    </button>
+  </div>
+</header>
+
+<button class="railToggle" id="railToggle" aria-expanded="false" aria-controls="rail">
+  <span class="railToggle__bars" aria-hidden="true"><i></i><i></i></span>
+  <span class="sr-only">Open menu</span>
+</button>
+
+<main id="main">
+
+<!-- ══ hero ══ -->
+<section class="hero" id="top">
+  <div class="hero__copy">
+    <p class="hero__id">Shaikh Zaka Tabish</p>
+    <h1 class="hero__line">I build the software that tells hardware what is wrong with it.</h1>
+    <p class="hero__sub">
+      Diagnostics, board bring-up and network monitoring at Nokia Nuremberg, while finishing an
+      MSc in Artificial Intelligence for Industrial Applications at OTH Amberg. I like the part of
+      engineering where a vague symptom becomes a reproducible fault.
     </p>
-    <div class="hero-buttons">
-      <button onclick="window.open('https://www.linkedin.com/in/zakatabish', '_blank')">LinkedIn</button>
-      <button onclick="window.open('https://github.com/ProgrammerTabish', '_blank')">GitHub</button>
-      <button onclick="window.location.href='#contact'">Contact Me</button>
-    </div>
-  </section>
-  <section class="about" id="about">
-  <h2>About Me</h2>
-  <div class="about-container">
-    <div class="about-text">
-      <p>
-        I'm a Computer Science Engineering graduate from MIT Aurangabad (BATU University), currently pursuing my Master's in Artificial Intelligence for Industrial Applications at OTH Amberg, Germany.
-      </p>
-      <p>
-        I specialize in web development, AI integration, and software engineering. With experience across both academic and industrial projects—from real-time garbage tracking to automation in ice cream production—I love building systems that improve efficiency and solve real-world problems.
-      </p>
-      <p>
-        I'm fluent in English, growing in German, and always excited to learn and collaborate in international tech environments.
-      </p>
+    <div class="hero__actions">
+      <a class="btn btn--solid" href="#projects">See what I have built</a>
+      <a class="btn btn--outline" href="#contact">Get in touch</a>
     </div>
   </div>
-  </section>
-<section class="projects" id="projects">
-  <h2>Projects</h2>
-  <div class="projects-container">
 
-    <div class="project-card">
-      <h3>Industrial Automation – Cone Crimping Machine</h3>
-      <p>Automated a manual ice cream cone crimping machine using microcontrollers, sensors, and actuators—boosting output from 600 to 3,500 cones/hr.</p>
-      <p><strong>Role:</strong> Sole Developer</p>
-      <a href="https://github.com/ProgrammerTabish/IndustrialAutomation_CrimpMachine" target="_blank">🔗 View on GitHub</a>
-    </div>
-
-    <div class="project-card">
-      <h3>City Garbage Management System</h3>
-      <p>Real-time tracking of garbage vans using the MERN Stack, reducing complaint response time by 17% and optimizing routes by 25%.</p>
-      <p><strong>Role:</strong> Team Leader, Developer</p>
-      <a href="https://github.com/ProgrammerTabish/FinalYearProject" target="_blank">🔗 View on GitHub</a>
-    </div>
-
-    <div class="project-card">
-      <h3>AI-Powered Parking System</h3>
-      <p>Used OpenCV and AI for automated vehicle entry. Reduced average wait time from 13 to 6.5 minutes by enabling ANPR-based access.</p>
-      <p><strong>Role:</strong> AI Model Developer</p>
-      <a href="https://github.com/ProgrammerTabish/project_6th_sem" target="_blank">🔗 View on GitHub</a>
-    </div>
-
-  </div>
-</section>
-<section class="skills" id="skills">
-  <h2>Skills</h2>
-  <div class="skills-grid">
-
-    <div class="skill-category">
-      <h3>Programming Languages</h3>
-      <ul>
-        <li>Python</li>
-        <li>C++</li>
-        <li>Java</li>
-        <li>JavaScript</li>
-      </ul>
-    </div>
-
-    <div class="skill-category">
-      <h3>Web Development</h3>
-      <ul>
-        <li>HTML5 & CSS3</li>
-        <li>React.js</li>
-        <li>Node.js</li>
-        <li>MERN Stack</li>
-      </ul>
-    </div>
-
-    <div class="skill-category">
-      <h3>Tools & Platforms</h3>
-      <ul>
-        <li>Git & GitHub</li>
-        <li>Microsoft Office</li>
-        <li>OpenCV</li>
-        <li>VS Code</li>
-      </ul>
-    </div>
-
-    <div class="skill-category">
-      <h3>Soft Skills & Languages</h3>
-      <ul>
-        <li>English – Proficient (C1)</li>
-        <li>German – Basic (A2)</li>
-        <li>Team Leadership</li>
-        <li>Problem Solving</li>
-      </ul>
-    </div>
-
-  </div>
-</section>
-<section class="certificates" id="certificates" style="padding: 3rem 1rem; background-color: #f5f5f5;">
-  <h2 style="text-align: center; margin-bottom: 2rem; font-size: 2rem;">Certificates & Documents</h2>
-
-  <div style="max-width: 900px; margin: 0 auto; display: grid; gap: 2rem;">
-    
-    <div style="border: 1px solid #ccc; border-radius: 10px; padding: 1rem; background: white;">
-      <h3 style="text-align: center;">Goethe Speaking Certificate</h3>
-      <iframe src="goethe.pdf" width="100%" height="500px" style="border: none;"></iframe>
-    </div>
-
-    <div style="border: 1px solid #ccc; border-radius: 10px; padding: 1rem; background: white;">
-      <h3 style="text-align: center;">IELTS Certificate</h3>
-      <iframe src="ielts.pdf" width="100%" height="500px" style="border: none;"></iframe>
-    </div>
-
-    <div style="border: 1px solid #ccc; border-radius: 10px; padding: 1rem; background: white;">
-      <h3 style="text-align: center;">Python</h3>
-      <iframe src="python.pdf" width="100%" height="500px" style="border: none;"></iframe>
-    </div>
-    <div style="border: 1px solid #ccc; border-radius: 10px; padding: 1rem; background: white;">
-      <h3 style="text-align: center;">Web Developer Bootcamp</h3>
-      <iframe src="webdev.pdf" width="100%" height="500px" style="border: none;"></iframe>
-    </div>
-    <div style="border: 1px solid #ccc; border-radius: 10px; padding: 1rem; background: white;">
-      <h3 style="text-align: center;">Data Structures And Algorithms</h3>
-      <iframe src="dsa.pdf" width="100%" height="500px" style="border: none;"></iframe>
-    </div>
-
-  </div>
+  <figure class="scope" aria-labelledby="scopeCap">
+    <canvas id="scope" width="640" height="360" role="img"
+            aria-label="Animated oscilloscope trace that responds to pointer movement."></canvas>
+    <figcaption class="scope__readout" id="scopeCap">
+      <span class="rd"><b>ch1</b><data id="rdAmp">—</data></span>
+      <span class="rd"><b>freq</b><data id="rdFreq">—</data></span>
+      <span class="rd"><b>noise</b><data id="rdNoise">—</data></span>
+      <span class="rd rd--state"><i class="led" data-state="boot"></i><data id="rdState">booting</data></span>
+    </figcaption>
+    <p class="scope__hint">Move across the trace to drive it.</p>
+  </figure>
 </section>
 
-<section class="experience" id="experience">
-  <h2>Experience</h2>
-  <div class="experience-item">
-    <h3>Software Developer Intern – Integrated Computer Solutions</h3>
-    <p><strong>Duration:</strong> Oct 2021 – Nov 2021, Aurangabad, India</p>
+<!-- ══ now ══ -->
+<section class="band" id="now" aria-labelledby="nowH">
+  <h2 class="sr-only" id="nowH">Current status</h2>
+  <dl class="status">
+    <div><dt>Role</dt><dd>Working student, board bring-up &amp; diagnostics software — Nokia, Nuremberg</dd></div>
+    <div><dt>Studying</dt><dd>MSc Artificial Intelligence for Industrial Applications, OTH Amberg</dd></div>
+    <div><dt>Based in</dt><dd>Nuremberg, Bavaria — open to roles across Germany and remote</dd></div>
+    <div><dt>Languages</dt><dd>English C1 (IELTS) · German B1 (Goethe), improving weekly</dd></div>
+  </dl>
+</section>
+
+<!-- ══ experience ══ -->
+<section class="section" id="work" aria-labelledby="workH">
+  <div class="section__head">
+    <h2 id="workH">Experience</h2>
+    <p>Two years of shipping software that other engineers depend on to do their own work.</p>
+  </div>
+
+  <ol class="track">
+    <li class="track__item">
+      <div class="track__when">
+        <time datetime="2025-08">Aug 2025</time>
+        <span class="track__dash" aria-hidden="true"></span>
+        <time datetime="2026-09">Sep 2026</time>
+        <em>1 year</em>
+      </div>
+      <div class="track__what">
+        <h3>Working student — Board bring-up &amp; diagnostics software</h3>
+        <p class="track__org">Nokia · Nuremberg, Germany</p>
+        <ul>
+          <li>Refactored legacy Python diagnostics code into an object-oriented structure and brought it up to current internal standards.</li>
+          <li>Built a streamable HTTP <abbr title="Model Context Protocol">MCP</abbr> server on a gateway machine so that LLM tooling in Cursor can reach Jira and the diagnostics suite — running test pipelines against real hardware and investigating failures from a prompt.</li>
+          <li>Specified and implemented a lab network monitoring system from scratch: anomaly detection with email alerting for the diagnostics lab.</li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="track__item">
+      <div class="track__when">
+        <time datetime="2024-03">Mar 2024</time>
+        <span class="track__dash" aria-hidden="true"></span>
+        <time datetime="2025-04">Apr 2025</time>
+        <em>1 year</em>
+      </div>
+      <div class="track__what">
+        <h3>Software developer</h3>
+        <p class="track__org">Integrated Computer Solutions · Aurangabad, India</p>
+        <ul>
+          <li>Wrote data-processing, automation and backend scripts, and handled data analysis and integration between systems.</li>
+          <li>Worked on cross-platform systems in an agile team, including regular code review.</li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="track__item track__item--edu">
+      <div class="track__when">
+        <time datetime="2025">2025</time>
+        <span class="track__dash" aria-hidden="true"></span>
+        <span>present</span>
+      </div>
+      <div class="track__what">
+        <h3>MSc Artificial Intelligence for Industrial Applications</h3>
+        <p class="track__org">OTH Amberg-Weiden · Bavaria, Germany</p>
+      </div>
+    </li>
+
+    <li class="track__item track__item--edu">
+      <div class="track__when">
+        <time datetime="2020">2020</time>
+        <span class="track__dash" aria-hidden="true"></span>
+        <time datetime="2024">2024</time>
+      </div>
+      <div class="track__what">
+        <h3>BEng Computer Science &amp; Engineering</h3>
+        <p class="track__org">DBATU University, Lonere · Maharashtra, India</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<!-- ══ projects ══ -->
+<section class="section" id="projects" aria-labelledby="projH">
+  <div class="section__head">
+    <h2 id="projH">Projects</h2>
+    <p>Three pieces of work I would happily walk you through, then everything public on my GitHub — pulled live, so this list is never out of date.</p>
+  </div>
+
+  <div class="feature">
+    <article class="feature__item">
+      <h3>An MCP server for hardware diagnostics</h3>
+      <p class="feature__meta">Nokia Nuremberg · Python, HTTP streaming, MCP, Jira API</p>
+      <p>A streamable HTTP MCP server running on a lab gateway that connects language models in Cursor to both Jira and the diagnostics software. An engineer can ask a question in plain language and the server runs the matching test pipeline on the physical board, reads back results and correlates them with existing tickets.</p>
+      <p class="feature__note">Internal work — code stays with Nokia, but I can talk through the architecture.</p>
+    </article>
+
+    <article class="feature__item">
+      <h3>Lab network monitoring &amp; anomaly alerting</h3>
+      <p class="feature__meta">Nokia Nuremberg · Python, network diagnostics, SMTP alerting</p>
+      <p>The diagnostics lab had no way of knowing a link had degraded until a test run failed hours later. I specified the requirements from scratch and built continuous monitoring with anomaly detection and email notification, so the failure announces itself instead of being discovered.</p>
+      <p class="feature__note">Internal work — architecture and approach available on request.</p>
+    </article>
+
+    <article class="feature__item feature__item--open">
+      <h3>City waste management with real-time GPS tracking</h3>
+      <p class="feature__meta">Bachelor thesis · IoT, GPS, OpenStreetMap, React Leaflet</p>
+      <p>An IoT application that tracks municipal waste collection vehicles in real time, giving the city administration a live map and citizens a way to see where a complaint stands. In evaluation it cut citizen complaint handling time by 17% and improved route efficiency by 25%.</p>
+      <p class="feature__stats">
+        <span><b>17%</b> faster complaint handling</span>
+        <span><b>25%</b> better route efficiency</span>
+      </p>
+      <p class="feature__links">
+        <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish/FinalYearProject" rel="noopener">View the code</a>
+      </p>
+    </article>
+  </div>
+
+  <div class="repos" id="repos">
+    <div class="repos__bar">
+      <div class="repos__search">
+        <label class="sr-only" for="repoQ">Filter repositories</label>
+        <input id="repoQ" type="search" placeholder="Filter by name, language or topic" autocomplete="off">
+      </div>
+      <div class="repos__langs" id="repoLangs" role="group" aria-label="Filter by language"></div>
+      <p class="repos__count" id="repoCount" role="status" aria-live="polite">Loading repositories…</p>
+    </div>
+
+    <div class="repos__grid" id="repoGrid">
+      <div class="repo repo--skeleton" aria-hidden="true"></div>
+      <div class="repo repo--skeleton" aria-hidden="true"></div>
+      <div class="repo repo--skeleton" aria-hidden="true"></div>
+    </div>
+
+    <p class="repos__all">
+      <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish" rel="noopener">All repositories on GitHub</a>
+    </p>
+  </div>
+</section>
+
+<!-- ══ lab ══ -->
+<section class="section section--lab" id="lab" aria-labelledby="labH">
+  <div class="section__head">
+    <h2 id="labH">The lab bench</h2>
+    <p>Locking onto an unknown signal is most of what diagnostics work feels like. Here is a small version of it. Match the ghost trace with the three controls — five rounds, and the clock is running.</p>
+  </div>
+
+  <div class="game" id="game">
+    <div class="game__screen">
+      <canvas id="gameCanvas" width="720" height="330" role="img"
+              aria-label="Two waveforms: a target trace to match and your adjustable trace."></canvas>
+      <div class="game__overlay" id="gameOverlay">
+        <p class="game__overlayTitle" id="gameOverlayTitle">Signal Lock</p>
+        <p class="game__overlayText" id="gameOverlayText">Five signals. Match each one before the trace drifts away.</p>
+        <button class="btn btn--solid" id="gameStart">Start</button>
+        <p class="game__best" id="gameBest"></p>
+      </div>
+    </div>
+
+    <div class="game__panel">
+      <div class="game__meters">
+        <div class="meter">
+          <span class="meter__label">Lock</span>
+          <div class="meter__bar"><i id="meterFill" style="width:0%"></i></div>
+          <data class="meter__val" id="meterVal">0%</data>
+        </div>
+        <div class="game__stats">
+          <span><b id="gameRound">1</b><small>round</small></span>
+          <span><b id="gameTime">0.0s</b><small>elapsed</small></span>
+          <span><b id="gameScore">0</b><small>score</small></span>
+        </div>
+      </div>
+
+      <div class="ctrls">
+        <div class="ctrl">
+          <label for="ctlAmp">Amplitude</label>
+          <input type="range" id="ctlAmp" min="10" max="100" value="55" step="1" disabled>
+          <data id="valAmp">55</data>
+        </div>
+        <div class="ctrl">
+          <label for="ctlFreq">Frequency</label>
+          <input type="range" id="ctlFreq" min="50" max="400" value="180" step="1" disabled>
+          <data id="valFreq">1.80</data>
+        </div>
+        <div class="ctrl">
+          <label for="ctlPhase">Phase</label>
+          <input type="range" id="ctlPhase" min="0" max="628" value="0" step="1" disabled>
+          <data id="valPhase">0.00</data>
+        </div>
+      </div>
+
+      <p class="game__hint" id="gameHint">Press start, then drag the sliders until the lock meter fills.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ skills ══ -->
+<section class="section" id="skills" aria-labelledby="skillsH">
+  <div class="section__head">
+    <h2 id="skillsH">What I work with</h2>
+    <p>Listed by how I actually use them, not by how impressive the logo looks.</p>
+  </div>
+
+  <div class="kit">
+    <section class="kit__group">
+      <h3>Languages</h3>
+      <ul><li>Python</li><li>JavaScript</li><li>C++</li><li>C#</li></ul>
+    </section>
+    <section class="kit__group">
+      <h3>Systems &amp; protocols</h3>
+      <ul><li>REST APIs</li><li>HTTP</li><li>WebSockets</li><li>MCP</li><li>Network diagnostics</li><li>Monitoring &amp; alerting</li></ul>
+    </section>
+    <section class="kit__group">
+      <h3>Data &amp; geo</h3>
+      <ul><li>Data analysis</li><li>Automation</li><li>GPS &amp; geodata</li><li>OpenStreetMap</li><li>React Leaflet</li></ul>
+    </section>
+    <section class="kit__group">
+      <h3>How I work</h3>
+      <ul><li>Agile</li><li>Jira</li><li>Confluence</li><li>Git · GitLab · GitHub</li><li>Jenkins</li><li>Cursor &amp; Copilot</li></ul>
+    </section>
+  </div>
+
+  <div class="strengths">
+    <h3>Beyond the tooling</h3>
     <ul>
-      <li>Developed a Client Master software for a local transport business.</li>
-      <li>Worked with C++ and Java to build secure, efficient modules.</li>
-      <li>Gained hands-on experience in real-world software engineering and client requirements.</li>
+      <li><b>Problem solving.</b> I am comfortable sitting with a fault until it is reproducible.</li>
+      <li><b>Critical thinking.</b> I would rather question the assumption than patch the symptom.</li>
+      <li><b>Adaptability.</b> Agile teams, changing hardware, unfamiliar codebases.</li>
+      <li><b>Work ethic.</b> Studying full time and working alongside it has needed one.</li>
     </ul>
   </div>
 </section>
 
-<style>
-  .experience {
-    padding: 4rem 2rem;
-    background-color: #fff;
-    text-align: center;
-  }
+<!-- ══ contact ══ -->
+<section class="section section--contact" id="contact" aria-labelledby="contactH">
+  <div class="section__head">
+    <h2 id="contactH">Get in touch</h2>
+    <p>I am open to working student roles, internships and graduate positions in diagnostics, backend, or applied AI. The fastest way to reach me is email.</p>
+  </div>
 
-  .experience h2 {
-    font-size: 2.2rem;
-    margin-bottom: 2rem;
-    color: #1a1a1a;
-  }
-
-  .experience-item {
-    max-width: 800px;
-    margin: 0 auto;
-    background: #f5f7fa;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    text-align: left;
-  }
-
-  .experience-item h3 {
-    color: #007acc;
-    margin-bottom: 0.5rem;
-  }
-
-  .experience-item p {
-    font-size: 0.95rem;
-    margin-bottom: 1rem;
-  }
-
-  .experience-item ul {
-    padding-left: 1.2rem;
-    font-size: 0.95rem;
-    color: #444;
-  }
-</style>
-<section class="resume" id="resume">
-  <h2>Resume</h2>
-  <p>You can download my resume using the button below:</p>
-  <a href="resume.pdf" download class="resume-button">Download Resume (PDF)</a>
-</section>
-
-<style>
-  .resume {
-    padding: 4rem 2rem;
-    background-color: #f9f9f9;
-    text-align: center;
-  }
-
-  .resume h2 {
-    font-size: 2.2rem;
-    margin-bottom: 1rem;
-    color: #1a1a1a;
-  }
-
-  .resume-button {
-    display: inline-block;
-    background-color: #007acc;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 1rem;
-    margin-top: 1rem;
-    transition: background 0.3s ease;
-  }
-
-  .resume-button:hover {
-    background-color: #005c99;
-  }
-</style>
-
-
-
-
-<section class="contact" id="contact">
-  <h2>Contact</h2>
-  <div class="contact-info" style="text-align:center; max-width: 500px; margin: 0 auto; font-size: 1.1rem; line-height: 1.6;">
-    <p><strong>Email:</strong> <a href="mailto:zakatabish@gmail.com" style="color:#007acc; text-decoration:none;">zakatabish@gmail.com</a></p>
-    <p><strong>LinkedIn:</strong> <a href="https://linkedin.com/in/zakatabish" target="_blank" style="color:#007acc; text-decoration:none;">linkedin.com/in/zakatabish</a></p>
-    <p><strong>GitHub:</strong> <a href="https://github.com/ProgrammerTabish" target="_blank" style="color:#007acc; text-decoration:none;">github.com/ProgrammerTabish</a></p>
-    <p style="margin-top: 1.5rem;">Feel free to reach out for collaboration, questions, or opportunities. I’d love to connect!</p>
+  <div class="contact">
+    <a class="contact__card" id="mailLink" href="#" data-u="zakatabish" data-d="gmail.com">
+      <span class="contact__label">Email</span>
+      <span class="contact__val" id="mailText">click to reveal</span>
+    </a>
+    <a class="contact__card" href="https://github.com/ProgrammerTabish" rel="noopener">
+      <span class="contact__label">GitHub</span>
+      <span class="contact__val">ProgrammerTabish</span>
+    </a>
+    <a class="contact__card" href="https://www.linkedin.com/in/zakatabish" rel="noopener">
+      <span class="contact__label">LinkedIn</span>
+      <span class="contact__val">in/zakatabish</span>
+    </a>
+    <a class="contact__card" href="assets/cv-shaikh-zaka-tabish.pdf" download>
+      <span class="contact__label">CV</span>
+      <span class="contact__val">Download PDF</span>
+    </a>
   </div>
 </section>
 
-<footer class="footer">
-  <div class="footer-content">
-    <p>&copy; 2025 Shaikh Zaka Tabish. All rights reserved.</p>
-
-    <nav class="footer-nav">
-      <a href="#home">Home</a>
-      <a href="#about">About</a>
-      <a href="#projects">Projects</a>
-      <a href="#skills">Skills</a>
-      <a href="#contact">Contact</a>
-    </nav>
-
-    <div class="footer-socials">
-      <a href="mailto:zakatabish@gmail.com">Email</a>
-      <a href="https://linkedin.com/in/zakatabish" target="_blank">LinkedIn</a>
-      <a href="https://github.com/ProgrammerTabish" target="_blank">GitHub</a>
-    </div>
-  </div>
+<footer class="foot">
+  <p>Nuremberg, Germany</p>
+  <p>Built by hand. <button class="linkbtn" id="consoleOpen2">Open the console</button> if you prefer typing.</p>
 </footer>
+</main>
+
+<!-- ══ console ══ -->
+<div class="console" id="console" hidden>
+  <div class="console__sheet" role="dialog" aria-modal="true" aria-label="Terminal">
+    <div class="console__head">
+      <span class="console__title">diag — zakatabish</span>
+      <button class="console__close" id="consoleClose" aria-label="Close terminal">×</button>
+    </div>
+    <div class="console__out" id="consoleOut" tabindex="0" aria-live="polite"></div>
+    <div class="console__chips" id="consoleChips"></div>
+    <form class="console__form" id="consoleForm">
+      <label class="sr-only" for="consoleIn">Command</label>
+      <span class="console__prompt" aria-hidden="true">diag&nbsp;&gt;</span>
+      <input id="consoleIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="type help">
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/main.js" defer></script>
 </body>
 </html>
