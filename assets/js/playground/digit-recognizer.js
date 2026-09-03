@@ -463,12 +463,12 @@
     requestAnimationFrame(() => { predictQueued = false; predict(); });
   }
 
-  // Sample the stroke path at roughly the training grid's own resolution
-  // (8x8) instead of on every raw pointermove. The model is tiny and was
-  // trained on coarse 8x8 images; feeding it a path built from far more
-  // waypoints than that (which slow, careful drawing produces) works
-  // against it rather than helping, so waypoints are capped to match.
-  const GRID = 8;
+  // Sample the stroke path at a fixed spacing instead of on every raw
+  // pointermove, so slow/careful drawing doesn't oversample relative to
+  // a fast stroke. GRID is a resolution divisor, not the literal 8x8
+  // training grid: too coarse (e.g. 8) made strokes visibly chunky, so
+  // this sits well above that while still capping waypoint density.
+  const GRID = 24;
   function start(e) { e.preventDefault(); drawing = true; const p = pos(e); lastX = p.x; lastY = p.y; strokeTo(p.x + 0.01, p.y + 0.01); }
   function move(e) {
     if (!drawing) return;
