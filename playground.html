@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Playground · Shaikh Zaka Tabish</title>
+
+<meta name="description" content="Live AI demos running in the browser: a neural network that learns to read handwriting, a live trained decision boundary visualizer, an animated explainer of how MCP connects AI models to real software, and a reinforcement learning agent that learns to play Pong.">
+<meta name="author" content="Shaikh Zaka Tabish">
+<meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://www.zakatabish.online/playground.html">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Playground · Shaikh Zaka Tabish">
+<meta property="og:description" content="Four small, real AI systems running live in your browser. Not screenshots.">
+<meta property="og:url" content="https://www.zakatabish.online/playground.html">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235645D6'/%3E%3Cpath d='M5 20 q4 -12 8 0 t8 0 t6 -6' fill='none' stroke='%233FE0D0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="rail" id="rail">
+  <a class="rail__mark" href="index.html" aria-label="Home">
+    <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+      <rect x="0.5" y="0.5" width="39" height="39" rx="9"/>
+      <path d="M7 25 q5 -14 10 0 t10 0 t7 -7"/>
+    </svg>
+    <span class="rail__name">Zaka Tabish</span>
+  </a>
+
+  <nav class="rail__nav" aria-label="Pages">
+    <a href="index.html">Home</a>
+    <a href="experience.html">Experience</a>
+    <a href="projects.html">Projects</a>
+    <a href="playground.html" aria-current="page">Playground</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <div class="rail__foot">
+    <button class="btn btn--ghost btn--sm" id="themeToggle" aria-pressed="false">
+      <span data-theme-label>Dark</span>
+    </button>
+    <button class="btn btn--ghost btn--sm" id="consoleOpen" aria-expanded="false" aria-controls="console">
+      Console <kbd>~</kbd>
+    </button>
+  </div>
+</header>
+
+<button class="railToggle" id="railToggle" aria-expanded="false" aria-controls="rail">
+  <span class="railToggle__bars" aria-hidden="true"><i></i><i></i></span>
+  <span class="sr-only">Open menu</span>
+</button>
+
+<main id="main">
+
+<section class="section section--playground" id="playground" aria-labelledby="playH" style="padding-top:clamp(5.5rem,10vw,7rem)">
+  <div class="section__head">
+    <span class="section__eyebrow">Playground</span>
+    <h2 id="playH">Watch the models think</h2>
+    <p>Four small, real systems running live in your browser right now. Not screenshots. This is the same instinct I bring to the job: don't just ship the black box, show the people who rely on it how it actually works.</p>
+  </div>
+
+  <div class="demos">
+
+    <!-- digit recognizer -->
+    <article class="demo" id="demo-digits" aria-labelledby="demoDigitsH">
+      <div class="demo__head">
+        <span class="demo__tag">Draw &amp; predict</span>
+        <h3 id="demoDigitsH">A neural network that learns to read your handwriting while you watch</h3>
+        <p>This trains a small neural network on 1,797 real handwritten digits, live, in your browser, using <b>ConvNetJS</b>, the same library behind Adam Harley's well known MNIST visualizer. Watch the layers light up on every forward pass, then watch the gradient sweep back through them on every backward pass. The hidden layers are editable: add or remove perceptrons and the network rebuilds and retrains from scratch.</p>
+      </div>
+
+      <div class="digitpad">
+        <div class="digitpad__canvas-wrap">
+          <canvas id="digitCanvas" width="240" height="240" role="img" aria-label="Drawing pad. Draw a digit from 0 to 9 with your mouse or finger."></canvas>
+          <div class="digitpad__acts">
+            <button class="btn btn--outline btn--sm" id="digitClear">Clear</button>
+          </div>
+          <div class="netctrl" aria-label="Edit the hidden layers">
+            <div class="netctrl__row">
+              <span>Hidden layer 1</span>
+              <button type="button" class="netctrl__btn" id="h1Minus" aria-label="Remove a perceptron from hidden layer 1">−</button>
+              <b id="h1Count">32</b>
+              <button type="button" class="netctrl__btn" id="h1Plus" aria-label="Add a perceptron to hidden layer 1">+</button>
+            </div>
+            <div class="netctrl__row">
+              <span>Hidden layer 2</span>
+              <button type="button" class="netctrl__btn" id="h2Minus" aria-label="Remove a perceptron from hidden layer 2">−</button>
+              <b id="h2Count">16</b>
+              <button type="button" class="netctrl__btn" id="h2Plus" aria-label="Add a perceptron to hidden layer 2">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="digitpad__result">
+          <p class="digitpad__status" id="digitStatus">Training on 1,797 handwritten digits…</p>
+          <div class="trainbar">
+            <div class="trainbar__track"><i class="trainbar__fill" id="trainFill"></i></div>
+            <span class="trainbar__val" id="trainVal">0% · loss …</span>
+          </div>
+          <div class="digitbars" id="digitBars" aria-label="Prediction confidence for each digit 0 to 9"></div>
+          <div class="netviz" id="digitNetviz" aria-label="Diagram of the hidden layers and their connection weights"></div>
+        </div>
+      </div>
+
+      <blockquote class="demo__quote">
+        This is how I'd bring a black box model into a form your team can actually inspect. I show it thinking, not just its answer.
+        <cite>On interpretability and trust</cite>
+      </blockquote>
+    </article>
+
+    <!-- decision boundary -->
+    <article class="demo" id="demo-boundary" aria-labelledby="demoBoundaryH">
+      <div class="demo__head">
+        <span class="demo__tag">Live training</span>
+        <h3 id="demoBoundaryH">How a neural network actually learns</h3>
+        <p>Pick a dataset, then press train and watch a tiny network reshape its decision boundary in real time. Gradient descent, visualized on a problem simple enough to see all of it at once.</p>
+      </div>
+
+      <div class="dbplay">
+        <canvas id="dbCanvas" width="360" height="360" role="img" aria-label="Decision boundary of a neural network training live on points you place."></canvas>
+        <div class="dbplay__side">
+          <div class="dbplay__row" role="group" aria-label="Dataset preset">
+            <button class="chip" type="button" data-ds="blobs" aria-pressed="true">Two blobs</button>
+            <button class="chip" type="button" data-ds="spiral" aria-pressed="false">Spiral</button>
+            <button class="chip" type="button" data-ds="xor" aria-pressed="false">XOR</button>
+          </div>
+          <div class="dbplay__row" role="group" aria-label="Class to place on click">
+            <button class="chip" type="button" id="dbClassA" aria-pressed="true">● Class A</button>
+            <button class="chip" type="button" id="dbClassB" aria-pressed="false">● Class B</button>
+          </div>
+          <div class="dbplay__row">
+            <button class="btn btn--solid btn--sm" id="dbTrain">Train</button>
+            <button class="btn btn--outline btn--sm" id="dbReset">Reset</button>
+          </div>
+          <p class="dbplay__stat">Epoch <b id="dbEpoch">0</b> · Loss <b id="dbLoss">…</b></p>
+          <p style="font-size:.82rem;color:var(--mute);margin:0;">Click the canvas to drop a point of the selected class, then train again.</p>
+        </div>
+      </div>
+
+      <blockquote class="demo__quote">
+        That's how I'd approach optimizing your workflows too, one measured update at a time, watching the fit improve until the boundary is right.
+        <cite>On iterative optimization</cite>
+      </blockquote>
+    </article>
+
+    <!-- MCP explainer -->
+    <article class="demo" id="demo-mcp" aria-labelledby="demoMcpH">
+      <div class="demo__head">
+        <span class="demo__tag">How it works</span>
+        <h3 id="demoMcpH">What MCP actually does with your existing software</h3>
+        <p>I built one of these for Nokia's diagnostics lab. See the full case study on the Projects page. Press play to see how a Model Context Protocol server lets an AI model call your real tools (Jira, test pipelines, a database) without you rewriting any of them.</p>
+      </div>
+
+      <div class="mcpviz">
+        <div class="mcpviz__stage" id="mcpStage" role="img" aria-label="Animated diagram: a request flowing from a user through an AI model, an MCP server, and connected tools, and a result flowing back.">
+          <div class="mcpnode" id="mcpUser" style="top:6%;left:2%;"><b>You</b><span>ask a question</span></div>
+          <div class="mcpnode" id="mcpModel" style="top:6%;left:36%;"><b>AI model</b><span>Claude in Cursor</span></div>
+          <div class="mcpnode" id="mcpResult" style="top:6%;left:70%;"><b>Answer</b><span>grounded in real data</span></div>
+          <div class="mcpnode" id="mcpServer" style="top:46%;left:36%;"><b>MCP server</b><span>translates the call</span></div>
+          <div class="mcpnode" id="mcpJira" style="top:78%;left:2%;"><b>Jira</b><span>existing ticket system</span></div>
+          <div class="mcpnode" id="mcpDiag" style="top:78%;left:70%;"><b>Diagnostics suite</b><span>runs on real hardware</span></div>
+          <div class="mcppacket" id="mcpPacket"></div>
+        </div>
+        <div class="mcpviz__ctrl">
+          <button class="btn btn--solid btn--sm" id="mcpPlay">Play the flow</button>
+          <button class="btn btn--outline btn--sm" id="mcpReset">Reset</button>
+        </div>
+        <ol class="mcpviz__log" id="mcpLog"></ol>
+      </div>
+
+      <blockquote class="demo__quote">
+        This is exactly the pattern I'd use to wire your team's AI tools into the systems you already run. No rebuild required.
+        <cite>On integrating AI into existing software</cite>
+      </blockquote>
+    </article>
+
+    <!-- RL pong -->
+    <article class="demo" id="demo-pong" aria-labelledby="demoPongH">
+      <div class="demo__head">
+        <span class="demo__tag">Reinforcement learning</span>
+        <h3 id="demoPongH">From flailing to winning: reinforcement learning, checkpoint by checkpoint</h3>
+        <p>A tiny policy network learned to play Pong from nothing but a win/lose signal, trained offline with policy gradient RL (REINFORCE) over 30,000 rallies. These are genuine saved checkpoints from that training run, not a scripted animation. Pick one and watch the same network at different points in its training.</p>
+      </div>
+
+      <div class="pong">
+        <canvas id="pongCanvas" width="500" height="300" role="img" aria-label="Pong, controlled by a reinforcement-learning policy at the selected training checkpoint."></canvas>
+        <div class="pong__side">
+          <div class="pong__stages" id="pongStages" role="group" aria-label="Training checkpoint"></div>
+          <div class="pong__score">
+            <span><b id="pongWin">…</b><small>win rate</small></span>
+            <span><b id="pongEp">…</b><small>rallies trained</small></span>
+          </div>
+          <div class="pong__curve"><canvas id="pongCurve" role="img" aria-label="Win rate over the course of training"></canvas></div>
+          <p class="pong__readout" id="pongReadout">Pick a checkpoint to watch the trained policy play.</p>
+          <button class="btn btn--outline btn--sm" id="pongToggle">Pause</button>
+        </div>
+      </div>
+
+      <blockquote class="demo__quote">
+        That's the same arc I'd want for your process, rough and manual on day one, measurably better on every iteration after.
+        <cite>On continuous improvement</cite>
+      </blockquote>
+    </article>
+
+  </div>
+</section>
+
+<footer class="foot">
+  <p>Nuremberg, Germany</p>
+  <p>Built by hand. <button class="linkbtn" id="consoleOpen2">Open the console</button> if you prefer typing.</p>
+</footer>
+</main>
+
+<!-- ══ console ══ -->
+<div class="console" id="console" hidden>
+  <div class="console__sheet" role="dialog" aria-modal="true" aria-label="Terminal">
+    <div class="console__head">
+      <span class="console__title">diag · zakatabish</span>
+      <button class="console__close" id="consoleClose" aria-label="Close terminal">×</button>
+    </div>
+    <div class="console__out" id="consoleOut" tabindex="0" aria-live="polite"></div>
+    <div class="console__chips" id="consoleChips"></div>
+    <form class="console__form" id="consoleForm">
+      <label class="sr-only" for="consoleIn">Command</label>
+      <span class="console__prompt" aria-hidden="true">diag&nbsp;&gt;</span>
+      <input id="consoleIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="type help">
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/vendor/convnet.js" defer></script>
+<script src="assets/js/vendor/chart.umd.js" defer></script>
+<script src="assets/data/digits8x8.js" defer></script>
+<script src="assets/data/pong-checkpoints.js" defer></script>
+<script src="assets/js/main.js" defer></script>
+<script src="assets/js/playground/digit-recognizer.js" defer></script>
+<script src="assets/js/playground/nn-decision-boundary.js" defer></script>
+<script src="assets/js/playground/mcp-explainer.js" defer></script>
+<script src="assets/js/playground/rl-pong.js" defer></script>
+</body>
+</html>

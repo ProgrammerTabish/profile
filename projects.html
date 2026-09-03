@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Projects · Shaikh Zaka Tabish</title>
+
+<meta name="description" content="Case studies: an MCP server connecting AI models to Jira and hardware diagnostics at Nokia, a lab network anomaly detection system, and a real time IoT waste collection tracker with a live simulated dashboard.">
+<meta name="author" content="Shaikh Zaka Tabish">
+<meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://www.zakatabish.online/projects.html">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Projects · Shaikh Zaka Tabish">
+<meta property="og:description" content="Real case studies covering architecture, decisions and trade offs, including a live simulated dashboard for a real time IoT waste collection tracker.">
+<meta property="og:url" content="https://www.zakatabish.online/projects.html">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/js/vendor/leaflet.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235645D6'/%3E%3Cpath d='M5 20 q4 -12 8 0 t8 0 t6 -6' fill='none' stroke='%233FE0D0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="rail" id="rail">
+  <a class="rail__mark" href="index.html" aria-label="Home">
+    <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+      <rect x="0.5" y="0.5" width="39" height="39" rx="9"/>
+      <path d="M7 25 q5 -14 10 0 t10 0 t7 -7"/>
+    </svg>
+    <span class="rail__name">Zaka Tabish</span>
+  </a>
+
+  <nav class="rail__nav" aria-label="Pages">
+    <a href="index.html">Home</a>
+    <a href="experience.html">Experience</a>
+    <a href="projects.html" aria-current="page">Projects</a>
+    <a href="playground.html">Playground</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <div class="rail__foot">
+    <button class="btn btn--ghost btn--sm" id="themeToggle" aria-pressed="false">
+      <span data-theme-label>Dark</span>
+    </button>
+    <button class="btn btn--ghost btn--sm" id="consoleOpen" aria-expanded="false" aria-controls="console">
+      Console <kbd>~</kbd>
+    </button>
+  </div>
+</header>
+
+<button class="railToggle" id="railToggle" aria-expanded="false" aria-controls="rail">
+  <span class="railToggle__bars" aria-hidden="true"><i></i><i></i></span>
+  <span class="sr-only">Open menu</span>
+</button>
+
+<main id="main">
+
+<section class="section" id="projects" aria-labelledby="projH" style="padding-top:clamp(5.5rem,10vw,7rem)">
+  <div class="section__head">
+    <span class="section__eyebrow">Selected work</span>
+    <h2 id="projH">Projects</h2>
+    <p>Pieces of work I'd most want to walk you through: the problem, what I actually built, the trade offs, and what it took to get there. Several have a live simulation running in the browser below them.</p>
+  </div>
+
+  <!-- ══ MCP server ══ -->
+  <article class="feature__item" id="proj-mcp" style="margin-bottom:2.4rem;">
+    <h3>An MCP server for hardware diagnostics</h3>
+    <p class="feature__meta">Nokia Nuremberg · Python, HTTP streaming, MCP, Jira API</p>
+
+    <div class="case">
+      <div class="case__block">
+        <span class="case__label">The problem</span>
+        <p>Engineers investigating a failing board had to manually run the right test pipeline, then separately dig through Jira for related history. Two disconnected tools, no shortcut from a symptom to its context.</p>
+      </div>
+      <div class="case__block">
+        <span class="case__label">What I built</span>
+        <p>A streamable HTTP MCP server running on a lab gateway machine. It exposes the diagnostics suite and Jira as callable tools an AI model can use, so an engineer can ask a question in plain language inside Cursor and get back real results from the physical hardware.</p>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">Architecture</span>
+        <div class="flow">
+          <div class="flow__node"><b>Engineer</b><span>asks in Cursor</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>MCP server</b><span>lab gateway machine</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__group">
+            <div class="flow__node"><b>Diagnostics suite</b><span>runs on real hardware</span></div>
+            <div class="flow__node"><b>Jira API</b><span>ticket history</span></div>
+          </div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>Grounded answer</b><span>back in the conversation</span></div>
+        </div>
+        <p style="margin:0;"><a class="linkbtn" href="playground.html#demo-mcp">See this exact request/response flow animated in the Playground →</a></p>
+      </div>
+
+      <div class="case__block">
+        <span class="case__label">Key decisions</span>
+        <ul>
+          <li>Streamable HTTP over stdio, since engineers needed to reach the server from their own machines rather than running it locally next to the model.</li>
+          <li>Tool calls scoped narrowly to specific tests and ticket lookups, not open shell access, so a wrong guess from the model can't do anything destructive to the hardware it's diagnosing.</li>
+        </ul>
+      </div>
+      <div class="case__block">
+        <span class="case__label">Challenges</span>
+        <ul>
+          <li>Test pipelines can run for minutes against physical hardware, so the server had to handle long running calls without blocking the conversation.</li>
+          <li>Results needed enough structure that the model could reason over them reliably, instead of just echoing raw logs back.</li>
+        </ul>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">Result</span>
+        <p>An engineer can go from "board B3 failed overnight" to a grounded answer, real test results correlated with matching tickets, without leaving the conversation.</p>
+        <p class="feature__note" style="margin-top:.6rem;">Internal work. Code stays with Nokia, but I can talk through the architecture in detail.</p>
+      </div>
+    </div>
+  </article>
+
+  <!-- ══ lab monitoring ══ -->
+  <article class="feature__item" id="proj-monitoring" style="margin-bottom:2.4rem;">
+    <h3>Lab network monitoring &amp; anomaly alerting</h3>
+    <p class="feature__meta">Nokia Nuremberg · Python, anomaly detection, SMTP alerting</p>
+
+    <div class="case">
+      <div class="case__block">
+        <span class="case__label">The problem</span>
+        <p>The diagnostics lab had no visibility into a degrading network link until a test run failed hours later, with no clear reason why. By the time anyone noticed, the trail was cold.</p>
+      </div>
+      <div class="case__block">
+        <span class="case__label">What I built</span>
+        <p>A continuous monitoring system I specified from scratch: periodic health checks across lab network links, anomaly detection against each link's normal behaviour, and email alerts the moment something looks wrong.</p>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">Architecture</span>
+        <div class="flow">
+          <div class="flow__node"><b>Lab network links</b><span>periodic health checks</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>Anomaly detection</b><span>deviation from baseline</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__group">
+            <div class="flow__node"><b>Within range</b><span>logged, silent</span></div>
+            <div class="flow__node"><b>Anomaly</b><span>SMTP alert sent</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="case__block">
+        <span class="case__label">Key decisions</span>
+        <ul>
+          <li>Lightweight polling over standing up new monitoring infrastructure, since the lab already had enough moving parts.</li>
+          <li>Tuned toward fewer, trustworthy alerts: too strict and every routine blip pages someone for nothing, too loose and it misses what it exists to catch.</li>
+        </ul>
+      </div>
+      <div class="case__block">
+        <span class="case__label">Challenges</span>
+        <ul>
+          <li>A lab network has bursty, unpredictable usage: test runs, firmware flashes, hardware being plugged and unplugged. So "normal" isn't a fixed number.</li>
+          <li>Building a baseline that adapted to that without drowning in false positives was most of the actual work.</li>
+        </ul>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">Result</span>
+        <p>Degradation gets caught and reported before it silently costs someone a day of debugging a test failure that was never really about their code.</p>
+        <p class="feature__note" style="margin-top:.6rem;">Internal work. Architecture and approach available on request.</p>
+      </div>
+    </div>
+  </article>
+
+  <!-- ══ waste management ══ -->
+  <article class="feature__item feature__item--open" id="proj-waste">
+    <h3>City waste management with real time GPS tracking</h3>
+    <p class="feature__meta">Bachelor thesis · IoT, GPS, OpenStreetMap, React Leaflet, Node.js, MongoDB</p>
+
+    <div class="case">
+      <div class="case__block">
+        <span class="case__label">The problem</span>
+        <p>Municipal waste collection in the case study city ran on fixed routes with no real time visibility. Administrators couldn't tell if a vehicle was on schedule, and citizens filing a complaint had no way to see whether it had been acted on.</p>
+      </div>
+      <div class="case__block">
+        <span class="case__label">What I built</span>
+        <p>An IoT application that tracks collection vehicles in real time: GPS devices feed a Node/Express backend, MongoDB stores position and route history, and a React + Leaflet dashboard gives administrators a live map and citizens a way to check status.</p>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">Architecture</span>
+        <div class="flow">
+          <div class="flow__node"><b>GPS device</b><span>on each vehicle</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>Node / Express API</b><span>ingest &amp; routing logic</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>MongoDB</b><span>position &amp; route history</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>React + Leaflet</b><span>admin map &amp; citizen status</span></div>
+        </div>
+      </div>
+
+      <div class="case__block">
+        <span class="case__label">Key decisions</span>
+        <ul>
+          <li>OpenStreetMap and Leaflet over a paid maps API, since this needed to be viable on a municipal budget, not just a thesis demo.</li>
+          <li>Built to run convincingly on simulated GPS data during development, since hardware wasn't always available. That's the same approach the dashboard below uses, for the same reason.</li>
+        </ul>
+      </div>
+      <div class="case__block">
+        <span class="case__label">Challenges</span>
+        <ul>
+          <li>Turning raw position pings into "route efficiency" meant defining a sensible baseline for an efficient route per collection zone, then measuring deviation from it.</li>
+          <li>Keeping the citizen facing status view simple while the admin side stayed dense with information.</li>
+        </ul>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">Result</span>
+        <p class="feature__stats" style="margin-top:.4rem;">
+          <span><b>17%</b> faster complaint handling</span>
+          <span><b>25%</b> better route efficiency</span>
+        </p>
+        <p class="feature__links">
+          <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish/FinalYearProject" rel="noopener">View the code</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="dash" id="wasteDash" aria-label="Live simulated dashboard for the city waste management project">
+      <div class="dash__bar">
+        <p class="dash__title">Live simulation <b>City Waste Collection: Fleet View</b></p>
+        <p class="dash__live"><i></i> simulated data, updating now</p>
+        <p class="dash__note">This portfolio is static (GitHub Pages, no backend) so this is a self contained front end rebuild of the real dashboard's UI and logic, driven by simulated GPS and sensor data: same map, same charts, same route optimization idea, no server required. The real system additionally needs Node/Express, MongoDB and physical GPS hardware.</p>
+      </div>
+      <div class="dash__body">
+        <div class="dash__map" id="wasteMap" aria-label="Interactive map of simulated collection vans moving along routes, with bin fill level markers. Pannable and zoomable."></div>
+        <div class="dash__side">
+          <div class="dash__stats">
+            <div class="dash__stat"><b id="statVans">4</b><span>Vans active</span></div>
+            <div class="dash__stat"><b id="statBins">…</b><span>Bins over 80% full</span></div>
+            <div class="dash__stat"><b id="statEff">25%</b><span>Route efficiency gain</span></div>
+            <div class="dash__stat"><b id="statComplaints">17%</b><span>Complaint time saved</span></div>
+          </div>
+          <div class="dash__chart"><canvas id="wasteChart" role="img" aria-label="Chart of average bin fill level over time"></canvas></div>
+          <ul class="dash__log" id="wasteLog" aria-live="polite"></ul>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <p class="projects__more"><a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish" rel="noopener">More code on GitHub</a></p>
+</section>
+
+<footer class="foot">
+  <p>Nuremberg, Germany</p>
+  <p>Built by hand. <button class="linkbtn" id="consoleOpen2">Open the console</button> if you prefer typing.</p>
+</footer>
+</main>
+
+<!-- ══ console ══ -->
+<div class="console" id="console" hidden>
+  <div class="console__sheet" role="dialog" aria-modal="true" aria-label="Terminal">
+    <div class="console__head">
+      <span class="console__title">diag · zakatabish</span>
+      <button class="console__close" id="consoleClose" aria-label="Close terminal">×</button>
+    </div>
+    <div class="console__out" id="consoleOut" tabindex="0" aria-live="polite"></div>
+    <div class="console__chips" id="consoleChips"></div>
+    <form class="console__form" id="consoleForm">
+      <label class="sr-only" for="consoleIn">Command</label>
+      <span class="console__prompt" aria-hidden="true">diag&nbsp;&gt;</span>
+      <input id="consoleIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="type help">
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/vendor/leaflet.js" defer></script>
+<script src="assets/js/vendor/chart.umd.js" defer></script>
+<script src="assets/js/main.js" defer></script>
+<script src="assets/js/waste-dashboard.js" defer></script>
+</body>
+</html>

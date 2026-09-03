@@ -3,39 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Shaikh Zaka Tabish — Diagnostics &amp; AI Engineering</title>
+<title>Shaikh Zaka Tabish · AI Engineering for Industrial Systems</title>
 
-<meta name="description" content="Shaikh Zaka Tabish builds diagnostics, monitoring and AI-assisted tooling for hardware and networks. Working student at Nokia Nuremberg, MSc Artificial Intelligence for Industrial Applications at OTH Amberg.">
+<meta name="description" content="Shaikh Zaka Tabish builds AI assisted tooling, anomaly detection and automation for industrial and hardware systems. MSc Artificial Intelligence for Industrial Applications at OTH Amberg; one year at Nokia Nuremberg, now looking for the next role. Includes live demos running in the browser: a neural network that learns to read handwriting, a reinforcement-learning agent that learns Pong, and how MCP connects AI models to real software.">
 <meta name="author" content="Shaikh Zaka Tabish">
-<meta name="theme-color" content="#F5F6F4" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#101619" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
 <link rel="canonical" href="https://www.zakatabish.online/">
 
 <meta property="og:type" content="profile">
-<meta property="og:title" content="Shaikh Zaka Tabish — Diagnostics &amp; AI Engineering">
-<meta property="og:description" content="I build the software that tells hardware what is wrong with it. Diagnostics, network monitoring and AI-assisted tooling.">
+<meta property="og:title" content="Shaikh Zaka Tabish · AI Engineering for Industrial Systems">
+<meta property="og:description" content="MSc student in AI for Industrial Applications, building neural networks, MCP tooling and anomaly detection. See live demos running in the browser of how they actually work.">
 <meta property="og:url" content="https://www.zakatabish.online/">
 <meta name="twitter:card" content="summary_large_image">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://api.github.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2317505C'/%3E%3Cpath d='M5 20 q4 -12 8 0 t8 0 t6 -6' fill='none' stroke='%23E0A542' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235645D6'/%3E%3Cpath d='M5 20 q4 -12 8 0 t8 0 t6 -6' fill='none' stroke='%233FE0D0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Person",
   "name": "Shaikh Zaka Tabish",
-  "jobTitle": "Working Student, Board Bring-up & Diagnostics Software",
+  "jobTitle": "MSc Student, Artificial Intelligence for Industrial Applications",
   "url": "https://www.zakatabish.online/",
   "sameAs": ["https://github.com/ProgrammerTabish", "https://www.linkedin.com/in/zakatabish"],
   "alumniOf": [
     {"@type": "CollegeOrUniversity", "name": "OTH Amberg-Weiden"},
     {"@type": "CollegeOrUniversity", "name": "Dr. Babasaheb Ambedkar Technological University"}
   ],
+  "knowsAbout": ["Machine Learning", "Neural Networks", "Reinforcement Learning", "Model Context Protocol", "Industrial AI Applications", "Anomaly Detection"],
   "knowsLanguage": ["English", "German"],
   "address": {"@type": "PostalAddress", "addressLocality": "Nuremberg", "addressCountry": "DE"}
 }
@@ -47,7 +47,7 @@
 
 <!-- ══ side rail ══ -->
 <header class="rail" id="rail">
-  <a class="rail__mark" href="#top" aria-label="Back to top">
+  <a class="rail__mark" href="index.html" aria-label="Home">
     <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
       <rect x="0.5" y="0.5" width="39" height="39" rx="9"/>
       <path d="M7 25 q5 -14 10 0 t10 0 t7 -7"/>
@@ -55,13 +55,12 @@
     <span class="rail__name">Zaka Tabish</span>
   </a>
 
-  <nav class="rail__nav" aria-label="Sections">
-    <a href="#now">Now</a>
-    <a href="#work">Experience</a>
-    <a href="#projects">Projects</a>
-    <a href="#lab">Lab</a>
-    <a href="#skills">Skills</a>
-    <a href="#contact">Contact</a>
+  <nav class="rail__nav" aria-label="Pages">
+    <a href="index.html" aria-current="page">Home</a>
+    <a href="experience.html">Experience</a>
+    <a href="projects.html">Projects</a>
+    <a href="playground.html">Playground</a>
+    <a href="contact.html">Contact</a>
   </nav>
 
   <div class="rail__foot">
@@ -85,28 +84,29 @@
 <section class="hero" id="top">
   <div class="hero__copy">
     <p class="hero__id">Shaikh Zaka Tabish</p>
-    <h1 class="hero__line">I build the software that tells hardware what is wrong with it.</h1>
+    <h1 class="hero__line">I build the <em>intelligence layer</em> between industrial systems and the people who run them.</h1>
     <p class="hero__sub">
-      Diagnostics, board bring-up and network monitoring at Nokia Nuremberg, while finishing an
-      MSc in Artificial Intelligence for Industrial Applications at OTH Amberg. I like the part of
-      engineering where a vague symptom becomes a reproducible fault.
+      MSc student in Artificial Intelligence for Industrial Applications at OTH Amberg. I spent the
+      past year applying that toward AI assisted tooling and anomaly detection at Nokia Nuremberg,
+      and I'm now looking for what's next. Below: a live neural network, three engineering case
+      studies, and four small AI systems you can actually play with.
     </p>
     <div class="hero__actions">
-      <a class="btn btn--solid" href="#projects">See what I have built</a>
-      <a class="btn btn--outline" href="#contact">Get in touch</a>
+      <a class="btn btn--solid" href="playground.html">Explore the playground</a>
+      <a class="btn btn--outline" href="contact.html">Get in touch</a>
     </div>
   </div>
 
-  <figure class="scope" aria-labelledby="scopeCap">
-    <canvas id="scope" width="640" height="360" role="img"
-            aria-label="Animated oscilloscope trace that responds to pointer movement."></canvas>
-    <figcaption class="scope__readout" id="scopeCap">
-      <span class="rd"><b>ch1</b><data id="rdAmp">—</data></span>
-      <span class="rd"><b>freq</b><data id="rdFreq">—</data></span>
-      <span class="rd"><b>noise</b><data id="rdNoise">—</data></span>
+  <figure class="net" aria-labelledby="netCap">
+    <canvas id="heroNet" width="640" height="360" role="img"
+            aria-label="Animated neural network diagram that reacts to pointer movement."></canvas>
+    <figcaption class="net__readout" id="netCap">
+      <span class="rd"><b>layers</b><data id="rdLayers">…</data></span>
+      <span class="rd"><b>activation</b><data id="rdAct">…</data></span>
+      <span class="rd"><b>confidence</b><data id="rdConf">…</data></span>
       <span class="rd rd--state"><i class="led" data-state="boot"></i><data id="rdState">booting</data></span>
     </figcaption>
-    <p class="scope__hint">Move across the trace to drive it.</p>
+    <p class="net__hint">Move across the network to drive it.</p>
   </figure>
 </section>
 
@@ -114,256 +114,36 @@
 <section class="band" id="now" aria-labelledby="nowH">
   <h2 class="sr-only" id="nowH">Current status</h2>
   <dl class="status">
-    <div><dt>Role</dt><dd>Working student, board bring-up &amp; diagnostics software — Nokia, Nuremberg</dd></div>
+    <div><dt>Looking for</dt><dd class="is-target">AI/ML working student, internship and graduate roles in industrial applications</dd></div>
     <div><dt>Studying</dt><dd>MSc Artificial Intelligence for Industrial Applications, OTH Amberg</dd></div>
-    <div><dt>Based in</dt><dd>Nuremberg, Bavaria — open to roles across Germany and remote</dd></div>
+    <div><dt>Most recent role</dt><dd>Working student, board bring up and diagnostics software, Nokia Nuremberg (Aug 2025 to Jul 2026)</dd></div>
     <div><dt>Languages</dt><dd>English C1 (IELTS) · German B1 (Goethe), improving weekly</dd></div>
   </dl>
 </section>
 
-<!-- ══ experience ══ -->
-<section class="section" id="work" aria-labelledby="workH">
+<!-- ══ hub ══ -->
+<section class="section" id="hub" aria-labelledby="hubH">
   <div class="section__head">
-    <h2 id="workH">Experience</h2>
-    <p>Two years of shipping software that other engineers depend on to do their own work.</p>
+    <span class="section__eyebrow">Start here</span>
+    <h2 id="hubH">Three ways to get to know the work</h2>
+    <p>Pick a path: the detailed work history, the engineering behind real projects, or small AI systems running live in your browser right now.</p>
   </div>
 
-  <ol class="track">
-    <li class="track__item">
-      <div class="track__when">
-        <time datetime="2025-08">Aug 2025</time>
-        <span class="track__dash" aria-hidden="true"></span>
-        <time datetime="2026-09">Sep 2026</time>
-        <em>1 year</em>
-      </div>
-      <div class="track__what">
-        <h3>Working student — Board bring-up &amp; diagnostics software</h3>
-        <p class="track__org">Nokia · Nuremberg, Germany</p>
-        <ul>
-          <li>Refactored legacy Python diagnostics code into an object-oriented structure and brought it up to current internal standards.</li>
-          <li>Built a streamable HTTP <abbr title="Model Context Protocol">MCP</abbr> server on a gateway machine so that LLM tooling in Cursor can reach Jira and the diagnostics suite — running test pipelines against real hardware and investigating failures from a prompt.</li>
-          <li>Specified and implemented a lab network monitoring system from scratch: anomaly detection with email alerting for the diagnostics lab.</li>
-        </ul>
-      </div>
-    </li>
-
-    <li class="track__item">
-      <div class="track__when">
-        <time datetime="2024-03">Mar 2024</time>
-        <span class="track__dash" aria-hidden="true"></span>
-        <time datetime="2025-04">Apr 2025</time>
-        <em>1 year</em>
-      </div>
-      <div class="track__what">
-        <h3>Software developer</h3>
-        <p class="track__org">Integrated Computer Solutions · Aurangabad, India</p>
-        <ul>
-          <li>Wrote data-processing, automation and backend scripts, and handled data analysis and integration between systems.</li>
-          <li>Worked on cross-platform systems in an agile team, including regular code review.</li>
-        </ul>
-      </div>
-    </li>
-
-    <li class="track__item track__item--edu">
-      <div class="track__when">
-        <time datetime="2025">2025</time>
-        <span class="track__dash" aria-hidden="true"></span>
-        <span>present</span>
-      </div>
-      <div class="track__what">
-        <h3>MSc Artificial Intelligence for Industrial Applications</h3>
-        <p class="track__org">OTH Amberg-Weiden · Bavaria, Germany</p>
-      </div>
-    </li>
-
-    <li class="track__item track__item--edu">
-      <div class="track__when">
-        <time datetime="2020">2020</time>
-        <span class="track__dash" aria-hidden="true"></span>
-        <time datetime="2024">2024</time>
-      </div>
-      <div class="track__what">
-        <h3>BEng Computer Science &amp; Engineering</h3>
-        <p class="track__org">DBATU University, Lonere · Maharashtra, India</p>
-      </div>
-    </li>
-  </ol>
-</section>
-
-<!-- ══ projects ══ -->
-<section class="section" id="projects" aria-labelledby="projH">
-  <div class="section__head">
-    <h2 id="projH">Projects</h2>
-    <p>Three pieces of work I would happily walk you through, then everything public on my GitHub — pulled live, so this list is never out of date.</p>
-  </div>
-
-  <div class="feature">
-    <article class="feature__item">
-      <h3>An MCP server for hardware diagnostics</h3>
-      <p class="feature__meta">Nokia Nuremberg · Python, HTTP streaming, MCP, Jira API</p>
-      <p>A streamable HTTP MCP server running on a lab gateway that connects language models in Cursor to both Jira and the diagnostics software. An engineer can ask a question in plain language and the server runs the matching test pipeline on the physical board, reads back results and correlates them with existing tickets.</p>
-      <p class="feature__note">Internal work — code stays with Nokia, but I can talk through the architecture.</p>
-    </article>
-
-    <article class="feature__item">
-      <h3>Lab network monitoring &amp; anomaly alerting</h3>
-      <p class="feature__meta">Nokia Nuremberg · Python, network diagnostics, SMTP alerting</p>
-      <p>The diagnostics lab had no way of knowing a link had degraded until a test run failed hours later. I specified the requirements from scratch and built continuous monitoring with anomaly detection and email notification, so the failure announces itself instead of being discovered.</p>
-      <p class="feature__note">Internal work — architecture and approach available on request.</p>
-    </article>
-
-    <article class="feature__item feature__item--open">
-      <h3>City waste management with real-time GPS tracking</h3>
-      <p class="feature__meta">Bachelor thesis · IoT, GPS, OpenStreetMap, React Leaflet</p>
-      <p>An IoT application that tracks municipal waste collection vehicles in real time, giving the city administration a live map and citizens a way to see where a complaint stands. In evaluation it cut citizen complaint handling time by 17% and improved route efficiency by 25%.</p>
-      <p class="feature__stats">
-        <span><b>17%</b> faster complaint handling</span>
-        <span><b>25%</b> better route efficiency</span>
-      </p>
-      <p class="feature__links">
-        <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish/FinalYearProject" rel="noopener">View the code</a>
-      </p>
-    </article>
-  </div>
-
-  <div class="repos" id="repos">
-    <div class="repos__bar">
-      <div class="repos__search">
-        <label class="sr-only" for="repoQ">Filter repositories</label>
-        <input id="repoQ" type="search" placeholder="Filter by name, language or topic" autocomplete="off">
-      </div>
-      <div class="repos__langs" id="repoLangs" role="group" aria-label="Filter by language"></div>
-      <p class="repos__count" id="repoCount" role="status" aria-live="polite">Loading repositories…</p>
-    </div>
-
-    <div class="repos__grid" id="repoGrid">
-      <div class="repo repo--skeleton" aria-hidden="true"></div>
-      <div class="repo repo--skeleton" aria-hidden="true"></div>
-      <div class="repo repo--skeleton" aria-hidden="true"></div>
-    </div>
-
-    <p class="repos__all">
-      <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish" rel="noopener">All repositories on GitHub</a>
-    </p>
-  </div>
-</section>
-
-<!-- ══ lab ══ -->
-<section class="section section--lab" id="lab" aria-labelledby="labH">
-  <div class="section__head">
-    <h2 id="labH">The lab bench</h2>
-    <p>Locking onto an unknown signal is most of what diagnostics work feels like. Here is a small version of it. Match the ghost trace with the three controls — five rounds, and the clock is running.</p>
-  </div>
-
-  <div class="game" id="game">
-    <div class="game__screen">
-      <canvas id="gameCanvas" width="720" height="330" role="img"
-              aria-label="Two waveforms: a target trace to match and your adjustable trace."></canvas>
-      <div class="game__overlay" id="gameOverlay">
-        <p class="game__overlayTitle" id="gameOverlayTitle">Signal Lock</p>
-        <p class="game__overlayText" id="gameOverlayText">Five signals. Match each one before the trace drifts away.</p>
-        <button class="btn btn--solid" id="gameStart">Start</button>
-        <p class="game__best" id="gameBest"></p>
-      </div>
-    </div>
-
-    <div class="game__panel">
-      <div class="game__meters">
-        <div class="meter">
-          <span class="meter__label">Lock</span>
-          <div class="meter__bar"><i id="meterFill" style="width:0%"></i></div>
-          <data class="meter__val" id="meterVal">0%</data>
-        </div>
-        <div class="game__stats">
-          <span><b id="gameRound">1</b><small>round</small></span>
-          <span><b id="gameTime">0.0s</b><small>elapsed</small></span>
-          <span><b id="gameScore">0</b><small>score</small></span>
-        </div>
-      </div>
-
-      <div class="ctrls">
-        <div class="ctrl">
-          <label for="ctlAmp">Amplitude</label>
-          <input type="range" id="ctlAmp" min="10" max="100" value="55" step="1" disabled>
-          <data id="valAmp">55</data>
-        </div>
-        <div class="ctrl">
-          <label for="ctlFreq">Frequency</label>
-          <input type="range" id="ctlFreq" min="50" max="400" value="180" step="1" disabled>
-          <data id="valFreq">1.80</data>
-        </div>
-        <div class="ctrl">
-          <label for="ctlPhase">Phase</label>
-          <input type="range" id="ctlPhase" min="0" max="628" value="0" step="1" disabled>
-          <data id="valPhase">0.00</data>
-        </div>
-      </div>
-
-      <p class="game__hint" id="gameHint">Press start, then drag the sliders until the lock meter fills.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ══ skills ══ -->
-<section class="section" id="skills" aria-labelledby="skillsH">
-  <div class="section__head">
-    <h2 id="skillsH">What I work with</h2>
-    <p>Listed by how I actually use them, not by how impressive the logo looks.</p>
-  </div>
-
-  <div class="kit">
-    <section class="kit__group">
-      <h3>Languages</h3>
-      <ul><li>Python</li><li>JavaScript</li><li>C++</li><li>C#</li></ul>
-    </section>
-    <section class="kit__group">
-      <h3>Systems &amp; protocols</h3>
-      <ul><li>REST APIs</li><li>HTTP</li><li>WebSockets</li><li>MCP</li><li>Network diagnostics</li><li>Monitoring &amp; alerting</li></ul>
-    </section>
-    <section class="kit__group">
-      <h3>Data &amp; geo</h3>
-      <ul><li>Data analysis</li><li>Automation</li><li>GPS &amp; geodata</li><li>OpenStreetMap</li><li>React Leaflet</li></ul>
-    </section>
-    <section class="kit__group">
-      <h3>How I work</h3>
-      <ul><li>Agile</li><li>Jira</li><li>Confluence</li><li>Git · GitLab · GitHub</li><li>Jenkins</li><li>Cursor &amp; Copilot</li></ul>
-    </section>
-  </div>
-
-  <div class="strengths">
-    <h3>Beyond the tooling</h3>
-    <ul>
-      <li><b>Problem solving.</b> I am comfortable sitting with a fault until it is reproducible.</li>
-      <li><b>Critical thinking.</b> I would rather question the assumption than patch the symptom.</li>
-      <li><b>Adaptability.</b> Agile teams, changing hardware, unfamiliar codebases.</li>
-      <li><b>Work ethic.</b> Studying full time and working alongside it has needed one.</li>
-    </ul>
-  </div>
-</section>
-
-<!-- ══ contact ══ -->
-<section class="section section--contact" id="contact" aria-labelledby="contactH">
-  <div class="section__head">
-    <h2 id="contactH">Get in touch</h2>
-    <p>I am open to working student roles, internships and graduate positions in diagnostics, backend, or applied AI. The fastest way to reach me is email.</p>
-  </div>
-
-  <div class="contact">
-    <a class="contact__card" id="mailLink" href="#" data-u="zakatabish" data-d="gmail.com">
-      <span class="contact__label">Email</span>
-      <span class="contact__val" id="mailText">click to reveal</span>
+  <div class="hub">
+    <a class="hub__card" href="experience.html">
+      <h3>Experience</h3>
+      <p>Two years shipping AI assisted tooling and automation at Nokia, plus the education behind it and the full toolkit.</p>
+      <span>See the timeline →</span>
     </a>
-    <a class="contact__card" href="https://github.com/ProgrammerTabish" rel="noopener">
-      <span class="contact__label">GitHub</span>
-      <span class="contact__val">ProgrammerTabish</span>
+    <a class="hub__card" href="projects.html">
+      <h3>Projects</h3>
+      <p>Real case studies covering the problem, the architecture and the trade offs, including a live simulated dashboard.</p>
+      <span>Read the case studies →</span>
     </a>
-    <a class="contact__card" href="https://www.linkedin.com/in/zakatabish" rel="noopener">
-      <span class="contact__label">LinkedIn</span>
-      <span class="contact__val">in/zakatabish</span>
-    </a>
-    <a class="contact__card" href="assets/cv-shaikh-zaka-tabish.pdf" download>
-      <span class="contact__label">CV</span>
-      <span class="contact__val">Download PDF</span>
+    <a class="hub__card" href="playground.html">
+      <h3>Playground</h3>
+      <p>A neural net that learns your handwriting, live gradient descent, an MCP flow, and reinforcement learning at Pong.</p>
+      <span>Try the demos →</span>
     </a>
   </div>
 </section>
@@ -378,7 +158,7 @@
 <div class="console" id="console" hidden>
   <div class="console__sheet" role="dialog" aria-modal="true" aria-label="Terminal">
     <div class="console__head">
-      <span class="console__title">diag — zakatabish</span>
+      <span class="console__title">diag · zakatabish</span>
       <button class="console__close" id="consoleClose" aria-label="Close terminal">×</button>
     </div>
     <div class="console__out" id="consoleOut" tabindex="0" aria-live="polite"></div>
