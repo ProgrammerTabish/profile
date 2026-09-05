@@ -2,3 +2,8 @@
 # but are not part of the published site — several are their own git repos
 # and together they are well over a hundred megabytes.
 my_projects/
+
+# The CV is deliberately not published. Both files stay on disk here as the
+# working copies, but the site offers no download and they are not deployed.
+documents/cv-shaikh-zaka-tabish.pdf
+documents/cv_shaikh_zaka_tabish.docx

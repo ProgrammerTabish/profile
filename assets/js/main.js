@@ -635,7 +635,6 @@ function token(name) {
         '<span class="cmd">open</span> &lt;n&gt;   open project number n',
         '<span class="cmd">playground</span>  jump to the live AI demos',
         '<span class="cmd">contact</span>     how to reach me',
-        '<span class="cmd">cv</span>          download the CV',
         '<span class="cmd">certs</span>       certificates and references',
         '<span class="cmd">theme</span>       switch light and dark',
         '<span class="cmd">clear</span>       wipe the screen'
@@ -670,7 +669,6 @@ function token(name) {
       write(`email     <a href="mailto:${EMAIL}">${EMAIL}</a>\ngithub    <a href="https://github.com/ProgrammerTabish" rel="noopener">ProgrammerTabish</a>\nlinkedin  <a href="https://www.linkedin.com/in/zakatabish" rel="noopener">in/zakatabish</a>`);
       write('Full contact page: <span class="cmd">contact.html</span>', 'dim');
     },
-    cv() { write('Downloading the CV.', 'ok'); window.location.href = 'documents/cv-shaikh-zaka-tabish.pdf'; },
     certs() {
       write([
         'Werkstudentenzeugnis   Nokia Solutions and Networks, Jul 2026',
