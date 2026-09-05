@@ -88,12 +88,14 @@
     <p class="hero__sub">
       MSc student in Artificial Intelligence for Industrial Applications at OTH Amberg. I spent the
       past year applying that toward AI assisted tooling and anomaly detection at Nokia Nuremberg,
-      and I'm now looking for what's next. Below: a live neural network, three engineering case
-      studies, and four small AI systems you can actually play with.
+      and I'm now looking for what's next. Below: a live neural network that is genuinely training
+      as you read this, three engineering case studies, and four small AI systems you can actually
+      play with.
     </p>
     <div class="hero__actions">
       <a class="btn btn--solid" href="playground.html">Explore the playground</a>
       <a class="btn btn--outline" href="contact.html">Get in touch</a>
+      <a class="btn btn--outline" href="documents/cv-shaikh-zaka-tabish.pdf" download>Download CV</a>
     </div>
   </div>
 
@@ -101,12 +103,21 @@
     <canvas id="heroNet" width="640" height="360" role="img"
             aria-label="Animated neural network diagram that reacts to pointer movement."></canvas>
     <figcaption class="net__readout" id="netCap">
-      <span class="rd"><b>layers</b><data id="rdLayers">…</data></span>
+      <span class="rd"><b>shape</b><data id="rdLayers">…</data></span>
       <span class="rd"><b>activation</b><data id="rdAct">…</data></span>
+      <span class="rd"><b>loss</b><data id="rdLoss">…</data></span>
       <span class="rd"><b>confidence</b><data id="rdConf">…</data></span>
       <span class="rd rd--state"><i class="led" data-state="boot"></i><data id="rdState">booting</data></span>
     </figcaption>
-    <p class="net__hint">Move across the network to drive it.</p>
+    <p class="net__hint">
+      Move across the network to drive it — your pointer is the input vector.
+      <span>Five inputs, two dense hidden layers, a softmax output. It is really training
+      as you watch: forward pass, cross entropy against a rotating target class, gradients
+      back through the same layers, one weight update per cycle. The curve above each hidden
+      layer is its activation function, plotted from its own definition; it swaps every few
+      cycles and the weights start over, because they were fitted under the old one.</span>
+    </p>
+    <p class="net__quote" id="netQuote" aria-live="polite"></p>
   </figure>
 </section>
 
@@ -116,8 +127,9 @@
   <dl class="status">
     <div><dt>Looking for</dt><dd class="is-target">AI/ML working student, internship and graduate roles in industrial applications</dd></div>
     <div><dt>Studying</dt><dd>MSc Artificial Intelligence for Industrial Applications, OTH Amberg</dd></div>
-    <div><dt>Most recent role</dt><dd>Working student, board bring up and diagnostics software, Nokia Nuremberg (Aug 2025 to Jul 2026)</dd></div>
-    <div><dt>Languages</dt><dd>English C1 (IELTS) · German B1 (Goethe), improving weekly</dd></div>
+    <div><dt>Most recent role</dt><dd>Working student, board bring up and diagnostics software, Nokia Nuremberg, Network Infrastructure / Optical Networks (Aug 2025 to Jul 2026)</dd></div>
+    <div><dt>Languages</dt><dd>English C1 (IELTS Academic 7.5) · German A2 certified (Goethe) plus the B1 Sprechen module, improving weekly</dd></div>
+    <div><dt>Paperwork</dt><dd><a href="experience.html#credentials">Every certificate and reference</a> behind those claims is readable in full</dd></div>
   </dl>
 </section>
 

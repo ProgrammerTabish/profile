@@ -252,7 +252,23 @@ main { margin-left: var(--rail-w); }
 .led[data-state="lock"]  { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 22%, transparent); }
 @keyframes blink { 50% { opacity: .25; } }
 
-.net__hint { font-size: .82rem; color: var(--mute); margin: .7rem 0 0; }
+.net__hint { font-size: .82rem; color: var(--mute); margin: .7rem 0 0; max-width: 62ch; }
+.net__hint span { display: block; margin-top: .35rem; opacity: .82; }
+
+/* the rotating line under the hero net — changes on every training cycle,
+   so it needs to hold its own height or the section below it jumps */
+.net__quote {
+  margin: .85rem 0 0;
+  padding-left: .9rem;
+  border-left: 2px solid var(--accent2);
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: .95rem;
+  line-height: 1.5;
+  color: var(--ink);
+  min-height: 2.9em;
+  max-width: 46ch;
+}
 
 /* ── status band ─────────────────────────────────────── */
 .band {
@@ -318,12 +334,42 @@ main { margin-left: var(--rail-w); }
 .feature__item p { color: var(--mute); max-width: 62ch; }
 .feature__note { font-size: .87rem; color: var(--mute); font-style: italic; margin-bottom: 0; }
 
+/* the standfirst line under a project's tech stack — who, where, when */
+.feature__sub {
+  font-size: .93rem; line-height: 1.6;
+  color: var(--mute); max-width: 66ch;
+  margin: -.4rem 0 0;
+  padding-left: .85rem;
+  border-left: 2px solid var(--rule);
+}
+
+/* the three user-role columns in the waste-management case study */
+.portals { display: grid; gap: .8rem; grid-template-columns: 1fr; margin-top: .3rem; }
+.portal {
+  background: var(--paper-2); border: 1px solid var(--rule);
+  border-radius: 10px; padding: .85rem 1rem;
+}
+.portal h4 {
+  font: 500 .74rem/1 var(--f-mono); letter-spacing: .09em; text-transform: uppercase;
+  color: var(--accent2); margin: 0 0 .45rem;
+}
+.portal p { font-size: .89rem; line-height: 1.6; margin: 0; color: var(--mute); }
+@media (min-width: 720px) { .portals { grid-template-columns: repeat(3, 1fr); } }
+
+.case__block li b, .case__block p b { color: var(--ink); font-weight: 500; }
+.case__block code {
+  font: 400 .84em/1 var(--f-mono);
+  background: var(--paper-2); border: 1px solid var(--rule);
+  border-radius: 4px; padding: .1em .35em;
+  color: var(--ink);
+}
+.feature__links { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; }
+
 .feature__item--open { border-left: 3px solid var(--accent2); }
 
 .feature__stats { display: flex; flex-wrap: wrap; gap: 1.6rem; margin-bottom: 1rem; }
 .feature__stats span { font-size: .87rem; color: var(--mute); }
 .feature__stats b { display: block; font: 500 1.5rem/1.2 var(--f-serif); color: var(--ink); }
-.feature__links { margin: 0; }
 
 /* ── waste-management live dashboard ─────────────────── */
 .dash {
@@ -433,6 +479,15 @@ main { margin-left: var(--rail-w); }
 }
 .demo__head h3 { font-size: 1.4rem; margin-bottom: .4rem; }
 .demo__head p { color: var(--mute); max-width: 58ch; margin: 0; }
+.demo__head p + p { margin-top: .75rem; }
+.demo__head p b { color: var(--ink); font-weight: 500; }
+.demo__head p em { font-style: italic; }
+
+.demo__note {
+  margin: 1rem 0 0; font-size: .87rem; line-height: 1.6;
+  color: var(--mute); max-width: 62ch;
+}
+.demo__note b { color: var(--ink); font-weight: 500; }
 
 .demo__quote {
   margin: 1.2rem 0 0; padding: .9rem 1.1rem;
@@ -556,6 +611,90 @@ main { margin-left: var(--rail-w); }
 .pong__score span { display: flex; flex-direction: column; }
 .pong__score b { font: 500 1.4rem/1.2 var(--f-serif); }
 .pong__score small { font: 400 .7rem/1.4 var(--f-mono); color: var(--mute); letter-spacing: .06em; text-transform: uppercase; }
+
+/* ── a pulled quote from a written reference, inside a timeline entry ── */
+.track__quote {
+  margin: .9rem 0 0;
+  padding: .75rem .95rem;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent2);
+  border-radius: 0 9px 9px 0;
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: .95rem;
+  line-height: 1.55;
+  color: var(--ink);
+  max-width: 62ch;
+}
+.track__quote span {
+  display: block; margin-top: .45rem;
+  font: 400 normal .72rem/1.5 var(--f-mono);
+  font-style: normal;
+  color: var(--mute);
+}
+.track__quote a { color: var(--accent); }
+
+/* ── credentials grid ────────────────────────────────── */
+.creds { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 760px)  { .creds { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1360px) { .creds { grid-template-columns: repeat(3, 1fr); } }
+
+.cred {
+  display: flex; flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--rule);
+  border-radius: 12px;
+  padding: 1.15rem 1.25rem 1.05rem;
+  transition: border-color var(--t);
+}
+.cred:hover { border-color: var(--accent); }
+.cred--ref  { border-top-color: var(--accent); }
+.cred--edu  { border-top-color: var(--accent2); }
+.cred--lang { border-top-color: var(--ok); }
+
+.cred__top {
+  display: flex; align-items: baseline; justify-content: space-between; gap: .8rem;
+  margin-bottom: .6rem;
+}
+.cred__kind {
+  font: 500 .68rem/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent);
+}
+.cred--edu  .cred__kind { color: var(--accent2); }
+.cred--lang .cred__kind { color: var(--ok); }
+.cred__date { font: 400 .72rem/1 var(--f-mono); color: var(--mute); white-space: nowrap; }
+
+.cred h3 { font-size: 1.06rem; line-height: 1.35; margin: 0 0 .3rem; }
+.cred__issuer {
+  font: 400 .76rem/1.5 var(--f-mono);
+  color: var(--mute); margin: 0 0 .7rem;
+}
+.cred__body { font-size: .9rem; line-height: 1.6; color: var(--mute); margin: 0 0 .8rem; }
+.cred__grade {
+  margin: 0 0 .9rem; padding: .5rem .7rem;
+  background: var(--paper-2); border: 1px solid var(--rule); border-radius: 8px;
+  font-size: .86rem; color: var(--mute);
+}
+.cred__grade b { color: var(--ink); font-weight: 500; }
+
+/* the link row sits at the card's foot so cards of different text
+   lengths still line their actions up with each other */
+.cred__link {
+  display: block; margin-top: auto;
+  font: 500 .8rem/1.8 var(--f-mono);
+  color: var(--accent); text-decoration: none;
+}
+.cred__link + .cred__link { margin-top: 0; }
+.cred__link:hover { text-decoration: underline; }
+
+.creds__actions { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1.4rem 0 0; }
+
+.creds__foot {
+  margin: 1.4rem 0 0; max-width: 66ch;
+  font-size: .89rem; color: var(--mute); font-style: italic;
+}
 
 /* ── skills ──────────────────────────────────────────── */
 .kit { display: grid; gap: 1.6rem 2.5rem; grid-template-columns: 1fr; }

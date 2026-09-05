@@ -1,0 +1,4 @@
+# Local working copies of coursework repos. These live here for convenience
+# but are not part of the published site — several are their own git repos
+# and together they are well over a hundred megabytes.
+my_projects/

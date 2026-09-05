@@ -178,55 +178,96 @@
 
   <!-- ══ waste management ══ -->
   <article class="feature__item feature__item--open" id="proj-waste">
-    <h3>City waste management with real time GPS tracking</h3>
-    <p class="feature__meta">Bachelor thesis · IoT, GPS, OpenStreetMap, React Leaflet, Node.js, MongoDB</p>
+    <h3>City Waste Management System Using Van Tracking</h3>
+    <p class="feature__meta">Bachelor thesis, B.Tech CSE · NodeMCU ESP8266, NEO-6M GPS, WebSockets, MERN, React Leaflet, OpenStreetMap</p>
+    <p class="feature__sub">Final year project at Marathwada Institute of Technology, Chh. Sambhajinagar, under Dr. Babasaheb Ambedkar Technological University, Lonere. Submitted May 2024 under the guidance of Ms. Ankita Shewale and built by a team of four; my share was the hardware-to-backend link and the live tracking side of the web application.</p>
 
     <div class="case">
       <div class="case__block">
         <span class="case__label">The problem</span>
-        <p>Municipal waste collection in the case study city ran on fixed routes with no real time visibility. Administrators couldn't tell if a vehicle was on schedule, and citizens filing a complaint had no way to see whether it had been acted on.</p>
+        <p>Municipal waste collection in the case study city ran on fixed routes with no real time visibility. Administrators could not tell whether a van was on schedule or had skipped a zone, route planning was done on assumption rather than data, and a citizen who filed a complaint had no way of knowing whether anyone had acted on it. The failure was not any one of those things on its own &mdash; it was that the vans, the complaints and the routes were three separate systems that never spoke to each other.</p>
       </div>
       <div class="case__block">
         <span class="case__label">What I built</span>
-        <p>An IoT application that tracks collection vehicles in real time: GPS devices feed a Node/Express backend, MongoDB stores position and route history, and a React + Leaflet dashboard gives administrators a live map and citizens a way to check status.</p>
+        <p>An end to end IoT system that closes that loop. A NodeMCU ESP8266 paired with a NEO-6M GPS module rides in each collection van and streams its position over a WebSocket to a Node/Express server, which broadcasts it out to every connected client. A MERN stack web application then gives each of the three groups the view it actually needs: a live fleet map for the municipal corporation, an assigned route and complaint queue for the driver, and a &ldquo;where is my complaint&rdquo; status page for the citizen who filed it.</p>
       </div>
 
       <div class="case__block case__block--wide">
         <span class="case__label">Architecture</span>
         <div class="flow">
-          <div class="flow__node"><b>GPS device</b><span>on each vehicle</span></div>
+          <div class="flow__node"><b>NodeMCU + NEO-6M</b><span>in the van, TinyGPS++</span></div>
           <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Node / Express API</b><span>ingest &amp; routing logic</span></div>
+          <div class="flow__node"><b>WebSocket</b><span>persistent, not polled</span></div>
           <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>MongoDB</b><span>position &amp; route history</span></div>
+          <div class="flow__node"><b>Node / Express</b><span>socket.io broadcast</span></div>
           <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>React + Leaflet</b><span>admin map &amp; citizen status</span></div>
+          <div class="flow__node"><b>MongoDB</b><span>positions, routes, complaints</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__group">
+            <div class="flow__node"><b>Admin</b><span>live fleet map</span></div>
+            <div class="flow__node"><b>Driver</b><span>route &amp; complaint queue</span></div>
+            <div class="flow__node"><b>Citizen</b><span>file &amp; track a complaint</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">The three portals</span>
+        <div class="portals">
+          <div class="portal">
+            <h4>Citizen</h4>
+            <p>Registers with a phone number, drops a pin on an OpenStreetMap tile to mark exactly where the problem is, and files a complaint against those coordinates. The history page then shows its live status, and the tracking page shows the vehicle assigned to that zone moving on the map.</p>
+          </div>
+          <div class="portal">
+            <h4>Van driver</h4>
+            <p>Sees the route assigned to the van and the complaints that fall along it, and acknowledges or resolves each one from the same screen &mdash; so a complaint closes at the moment the work is done, not whenever someone gets round to the paperwork.</p>
+          </div>
+          <div class="portal">
+            <h4>Municipal corporation</h4>
+            <p>Registers vans, watches the whole fleet on one map, assigns complaints to routes and reads a dashboard of collection efficiency per zone. This is the view that turns a stream of coordinates into something a planner can act on.</p>
+          </div>
         </div>
       </div>
 
       <div class="case__block">
         <span class="case__label">Key decisions</span>
         <ul>
-          <li>OpenStreetMap and Leaflet over a paid maps API, since this needed to be viable on a municipal budget, not just a thesis demo.</li>
-          <li>Built to run convincingly on simulated GPS data during development, since hardware wasn't always available. That's the same approach the dashboard below uses, for the same reason.</li>
+          <li><b>WebSockets over HTTP polling.</b> A van reports every few seconds. Polling that from a dozen browsers would have meant thousands of near-empty requests an hour; one persistent socket per van, broadcast out through socket.io, keeps the map live without the traffic. On the device side that meant <code>WebSocketClient.h</code> on the ESP8266 and <code>TinyGPS++</code> to parse the NEO-6M&rsquo;s NMEA sentences.</li>
+          <li><b>OpenStreetMap and Leaflet over a paid maps API.</b> This had to be viable on a municipal budget, not just as a thesis demo. Per-request billing would have made the live map the single most expensive part of running the system.</li>
+          <li><b>Coordinates as the primary key of a complaint.</b> A complaint is filed against a point on the map, not a free text address. That is what makes it possible to assign complaints to routes automatically, and to measure whether a route actually passed the places it was meant to.</li>
+          <li><b>Built to run convincingly on simulated GPS during development</b>, since the hardware was not always available and a thesis demo cannot depend on a van being out on a round. The dashboard below uses the same approach, for the same reason.</li>
         </ul>
       </div>
       <div class="case__block">
         <span class="case__label">Challenges</span>
         <ul>
-          <li>Turning raw position pings into "route efficiency" meant defining a sensible baseline for an efficient route per collection zone, then measuring deviation from it.</li>
-          <li>Keeping the citizen facing status view simple while the admin side stayed dense with information.</li>
+          <li><b>A GPS fix is not a position.</b> The NEO-6M drops out under cover, and raw fixes jitter by tens of metres while a van sits still. Points had to be filtered before they were trusted, or the map showed a parked van wandering around the depot.</li>
+          <li><b>Rendering a moving fleet without melting the browser.</b> Every van pushing updates into a Leaflet map with per-marker redraws does not scale, so updates were batched and markers grouped by zoom level rather than redrawn one at a time.</li>
+          <li><b>Defining &ldquo;route efficiency&rdquo; at all.</b> Turning raw position pings into a number meant first deciding what an efficient route through a collection zone looks like, then measuring deviation from it: distance covered against bins actually served, and time spent inside the zone against time spent getting to it.</li>
+          <li><b>Keeping the citizen view simple while the admin view stayed dense.</b> The same underlying data has to read as a one line status to one user and as a planning dashboard to another.</li>
         </ul>
+      </div>
+
+      <div class="case__block">
+        <span class="case__label">The hardware</span>
+        <p>Each unit is a self contained box: a NodeMCU ESP8266 with onboard WiFi, a NEO-6M GPS module and its antenna, a lithium polymer battery with a micro-USB charging port, and a toggle switch so a driver can power it without opening anything. Nothing about it needs attention during a round &mdash; a deliberate constraint, because a tracking device that needs attention is a tracking device that gets switched off.</p>
+      </div>
+      <div class="case__block">
+        <span class="case__label">Security</span>
+        <p>Passwords are hashed with bcrypt rather than stored, CORS is configured explicitly rather than left open, and each of the three roles only reaches the endpoints belonging to it. This is a system holding citizens&rsquo; phone numbers alongside their home coordinates; treating that casually was not an option.</p>
       </div>
 
       <div class="case__block case__block--wide">
         <span class="case__label">Result</span>
+        <p>Measured against the city&rsquo;s previous fixed route process, the system cut complaint handling time by 17% and improved route efficiency by 25%. The wider point of the thesis was that neither number came from the tracking hardware on its own. They came from complaints, routes and vehicle positions finally living in one data model.</p>
         <p class="feature__stats" style="margin-top:.4rem;">
           <span><b>17%</b> faster complaint handling</span>
           <span><b>25%</b> better route efficiency</span>
+          <span><b>12</b> papers in the literature survey</span>
         </p>
         <p class="feature__links">
           <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish/FinalYearProject" rel="noopener">View the code</a>
+          <a class="btn btn--outline btn--sm" href="documents/bachelor-thesis-city-waste-management.pdf" rel="noopener">Read the thesis (PDF)</a>
         </p>
       </div>
     </div>

@@ -95,59 +95,152 @@ function token(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-/* ── hero neural network ─────────────────────────────── */
+/* ── hero neural network ─────────────────────────────
+   Not a decorative loop: this is a real 5→7→7→4 network doing
+   real arithmetic every frame. The pointer (or a slow drift when
+   you aren't touching it) is the input vector, a forward pass runs
+   through the chosen activation function, cross-entropy against a
+   rotating target class gives real gradients, and a small SGD step
+   is actually applied — so the loss readout genuinely falls and the
+   confidence genuinely climbs. The activation function cycles, and
+   the little curve drawn above each hidden layer is that function
+   plotted from its own definition, not an illustration of one.
+   ─────────────────────────────────────────────────── */
 (function heroNet() {
   const cv = $('#heroNet');
   if (!cv) return;
 
-  const rdAct = $('#rdAct'), rdConf = $('#rdConf'), rdLayers = $('#rdLayers');
-  const rdState = $('#rdState'), led = $('.led');
+  const rdAct = $('#rdAct'), rdConf = $('#rdConf'), rdLayers = $('#rdLayers'),
+        rdLoss = $('#rdLoss'), rdState = $('#rdState'), led = $('.led'),
+        quoteEl = $('#netQuote');
+
+  /* ── activation functions ──────────────────────────
+     f is applied to the pre-activation z; df takes both z and the
+     already-computed a = f(z), since tanh' and sigmoid' are cheaper
+     to express in terms of a. */
+  const ACTS = [
+    {
+      name: 'ReLU',
+      note: 'passes what is positive, silences the rest',
+      f: z => (z > 0 ? z : 0),
+      df: z => (z > 0 ? 1 : 0)
+    },
+    {
+      name: 'tanh',
+      note: 'squashes every signal into −1 … 1',
+      f: z => Math.tanh(z),
+      df: (z, a) => 1 - a * a
+    },
+    {
+      name: 'sigmoid',
+      note: 'turns any number into a probability',
+      f: z => 1 / (1 + Math.exp(-z)),
+      df: (z, a) => a * (1 - a)
+    },
+    {
+      name: 'leaky ReLU',
+      note: 'never lets a neuron go fully dark',
+      f: z => (z > 0 ? z : 0.1 * z),
+      df: z => (z > 0 ? 1 : 0.1)
+    },
+    {
+      name: 'GELU',
+      note: 'a smooth ReLU, the one transformers use',
+      f: z => 0.5 * z * (1 + Math.tanh(0.7978845608 * (z + 0.044715 * z * z * z))),
+      df: z => {
+        const h = 0.001;
+        const g = x => 0.5 * x * (1 + Math.tanh(0.7978845608 * (x + 0.044715 * x * x * x)));
+        return (g(z + h) - g(z - h)) / (2 * h);
+      }
+    }
+  ];
+  let actIdx = 0;
+  const act = () => ACTS[actIdx];
+
+  const QUOTES = [
+    'Learning is just pattern adaptation, written in arithmetic.',
+    'A weight is the memory of every mistake it has already made.',
+    'No single neuron knows what the network knows.',
+    'Intelligence here is a curve, bent until it fits the world.',
+    'Every gradient is a small, precise confession of being wrong.',
+    'Understanding is compression you can run backwards.',
+    'The model does not think. It leans, very carefully, in a direction.',
+    'Nothing inside a layer is intelligent. Everything between them is.',
+    'Given enough examples, arithmetic starts to look like intuition.',
+    'The network never learns the answer, only how wrong it just was.'
+  ];
+  let quoteIdx = Math.floor(Math.random() * QUOTES.length);
+
+  /* Layer sizes, and how each layer is labelled under the diagram. */
+  const LAYERS = [5, 7, 7, 4];
+  const SHAPE = LAYERS.join('·');
 
   let W = 0, H = 0, ctx = null;
-  const LAYERS = [5, 7, 7, 4];
   let nodes = [];
-  let edgeWeights = [];
-  let colAccent, colAccent2, colRule;
+  let weights = [], biases = [];     // weights[l][i][j]: unit i of layer l → unit j of layer l+1
+  let zs = [], as = [], deltas = []; // per-layer pre-activations, activations, gradients
+  let colAccent, colAccent2, colRule, colMute, colInk;
   let started = performance.now(), locked = false, pulseT = 0;
+  let target = 0, lossEMA = null, stepCount = 0;
   const pointer = { x: -999, y: -999, active: false };
 
   const readColors = () => {
     colAccent = token('--accent') || '#5645D6';
     colAccent2 = token('--accent2') || '#0C8C86';
     colRule = token('--rule') || '#DBDEEA';
+    colMute = token('--mute') || '#5B6076';
+    colInk = token('--ink') || '#12131C';
   };
+
+  const normalize = arr => {
+    const m = Math.max(1e-6, ...arr.map(Math.abs));
+    return arr.map(v => Math.abs(v) / m);
+  };
+
+  /* Kaiming-ish init, so the forward pass doesn't saturate or die
+     immediately whichever activation is currently selected. */
+  function initWeights() {
+    weights = []; biases = [];
+    for (let l = 0; l < LAYERS.length - 1; l++) {
+      const scale = Math.sqrt(2 / LAYERS[l]);
+      const mat = [];
+      for (let i = 0; i < LAYERS[l]; i++) {
+        const row = [];
+        for (let j = 0; j < LAYERS[l + 1]; j++) row.push((Math.random() * 2 - 1) * scale);
+        mat.push(row);
+      }
+      weights.push(mat);
+      biases.push(new Array(LAYERS[l + 1]).fill(0));
+    }
+    zs = LAYERS.map(n => new Array(n).fill(0));
+    as = LAYERS.map(n => new Array(n).fill(0));
+    deltas = LAYERS.map(n => new Array(n).fill(0));
+    lossEMA = null; stepCount = 0;
+  }
 
   function layout() {
     nodes = [];
-    const padX = W * 0.09, padY = H * 0.12;
-    const innerW = W - padX * 2;
+    // Asymmetric: the output column carries its softmax percentage to the
+    // right of each node, so it needs more room on that side than the
+    // input column does on its own.
+    const padL = W * 0.09, padR = W * 0.17;
+    const topPad = H * 0.24;               // room for the activation curves
+    const botPad = H * 0.2;                // room for the layer captions
+    const innerW = W - padL - padR;
     LAYERS.forEach((count, li) => {
-      const x = padX + (innerW * li) / (LAYERS.length - 1);
-      const gap = (H - padY * 2) / Math.max(1, count - 1);
+      const x = padL + (innerW * li) / (LAYERS.length - 1);
+      const usable = H - topPad - botPad;
+      const gap = usable / Math.max(1, count - 1);
       for (let i = 0; i < count; i++) {
-        const y = count === 1 ? H / 2 : padY + gap * i;
-        nodes.push({ x, y, layer: li, act: 0.06 + Math.random() * 0.05, actWave: 0, actPointer: 0, colorMode: 'forward' });
+        const y = count === 1 ? topPad + usable / 2 : topPad + gap * i;
+        nodes.push({ x, y, layer: li, idx: i, act: 0.06, gate: 0, glow: 0, colorMode: 'forward' });
       }
     });
-    if (rdLayers) rdLayers.textContent = String(LAYERS.length);
-
-    // Fixed (illustrative) connection weights, so edges have something
-    // to visibly represent besides activation, same idea as the digit
-    // demo's real weight-magnitude edges.
-    edgeWeights = [];
-    for (let li = 0; li < LAYERS.length - 1; li++) {
-      const mat = [];
-      for (let i = 0; i < LAYERS[li]; i++) {
-        const row = [];
-        for (let j = 0; j < LAYERS[li + 1]; j++) row.push(Math.random() * 2 - 1);
-        mat.push(row);
-      }
-      edgeWeights.push(mat);
-    }
+    if (rdLayers) rdLayers.textContent = SHAPE;
   }
 
   const size = () => { const r = fitCanvas(cv, 16 / 9); ctx = r.ctx; W = r.w; H = r.h; layout(); };
-  readColors(); size();
+  readColors(); initWeights(); size();
   window.addEventListener('resize', size, { passive: true });
   window.addEventListener('themechange', readColors);
 
@@ -163,62 +256,226 @@ function token(name) {
 
   function byLayer(li) { return nodes.filter(n => n.layer === li); }
 
+  /* ── the actual maths ──────────────────────────────── */
+
+  /* The input vector. With the pointer down it's a real function of
+     where you are on the canvas; otherwise it drifts on its own so
+     the network still has something to chew on. */
+  function readInput(t) {
+    const px = pointer.active ? pointer.x / W : 0.5 + Math.sin(t * 0.31) * 0.34;
+    const py = pointer.active ? pointer.y / H : 0.5 + Math.cos(t * 0.23) * 0.3;
+    const v = [];
+    for (let i = 0; i < LAYERS[0]; i++) {
+      const phase = (i / LAYERS[0]) * Math.PI * 2;
+      v.push(Math.sin(px * 3.1 + phase) * 0.9 + Math.cos(py * 2.7 - phase) * 0.6);
+    }
+    return v;
+  }
+
+  function forward(x) {
+    as[0] = x.slice(); zs[0] = x.slice();
+    const A = act();
+    for (let l = 0; l < LAYERS.length - 1; l++) {
+      const last = l === LAYERS.length - 2;
+      const z = new Array(LAYERS[l + 1]).fill(0);
+      for (let j = 0; j < LAYERS[l + 1]; j++) {
+        let s = biases[l][j];
+        for (let i = 0; i < LAYERS[l]; i++) s += as[l][i] * weights[l][i][j];
+        z[j] = s;
+      }
+      zs[l + 1] = z;
+      // Hidden layers use the selected activation; the output layer is
+      // always softmax, which is what makes "confidence" a real number.
+      as[l + 1] = last ? softmax(z) : z.map(A.f);
+    }
+    return as[LAYERS.length - 1];
+  }
+
+  function softmax(z) {
+    const m = Math.max(...z);
+    const e = z.map(v => Math.exp(v - m));
+    const s = e.reduce((a, b) => a + b, 0) || 1;
+    return e.map(v => v / s);
+  }
+
+  /* Cross-entropy against the current target class, then plain SGD.
+     Softmax + cross-entropy collapses to (a − onehot) at the output,
+     which is why there's no separate softmax derivative here. */
+  function backward(targetIdx, lr) {
+    const L = LAYERS.length - 1;
+    const A = act();
+    const out = as[L];
+    deltas[L] = out.map((v, k) => v - (k === targetIdx ? 1 : 0));
+
+    for (let l = L - 1; l >= 1; l--) {
+      const d = new Array(LAYERS[l]).fill(0);
+      for (let i = 0; i < LAYERS[l]; i++) {
+        let s = 0;
+        for (let j = 0; j < LAYERS[l + 1]; j++) s += weights[l][i][j] * deltas[l + 1][j];
+        d[i] = s * A.df(zs[l][i], as[l][i]);
+      }
+      deltas[l] = d;
+    }
+
+    for (let l = 0; l < L; l++) {
+      for (let j = 0; j < LAYERS[l + 1]; j++) {
+        const dj = deltas[l + 1][j];
+        for (let i = 0; i < LAYERS[l]; i++) {
+          weights[l][i][j] -= lr * as[l][i] * dj;
+          // Light weight decay keeps a long-running page from drifting
+          // into ever-larger weights and saturating the activation.
+          weights[l][i][j] *= 0.9999;
+        }
+        biases[l][j] -= lr * dj;
+      }
+    }
+    return -Math.log(Math.max(1e-9, out[targetIdx]));
+  }
+
+  /* ── activation curve glyph ────────────────────────── */
+  function drawActCurve(cx, cy, w, h, alpha) {
+    const A = act();
+    const xs = [];
+    for (let i = 0; i <= 28; i++) xs.push(-3 + (6 * i) / 28);
+    const ys = xs.map(A.f);
+    const lo = Math.min(...ys), hi = Math.max(...ys);
+    const span = Math.max(1e-6, hi - lo);
+
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.5;
+    ctx.strokeStyle = colRule;
+    ctx.lineWidth = 1;
+    ctx.beginPath();                                  // baseline at f = 0 (or the floor)
+    const zeroY = cy + h / 2 - ((0 - lo) / span) * h;
+    const clampY = Math.max(cy - h / 2, Math.min(cy + h / 2, zeroY));
+    ctx.moveTo(cx - w / 2, clampY); ctx.lineTo(cx + w / 2, clampY); ctx.stroke();
+
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = colAccent2;
+    ctx.lineWidth = 1.6;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    xs.forEach((x, i) => {
+      const px = cx - w / 2 + ((x + 3) / 6) * w;
+      const py = cy + h / 2 - ((ys[i] - lo) / span) * h;
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    });
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawCaption(x, y, main, sub, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = colInk;
+    ctx.font = '500 10px ' + (getComputedStyle(document.documentElement).getPropertyValue('--f-mono') || 'monospace');
+    ctx.fillText(main, x, y);
+    if (sub) {
+      ctx.globalAlpha = alpha * 0.72;
+      ctx.fillStyle = colMute;
+      ctx.font = '400 9px ' + (getComputedStyle(document.documentElement).getPropertyValue('--f-mono') || 'monospace');
+      ctx.fillText(sub, x, y + 12);
+    }
+    ctx.restore();
+  }
+
+  /* ── frame ─────────────────────────────────────────── */
   let last = performance.now();
   function frame(now) {
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
     pulseT += dt * (reduceMotion ? 0.35 : 1);
 
-    // A full cycle is a forward pass (left to right, signal colour),
-    // a short pause, then a backward pass (right to left, gradient
-    // colour) travelling back over the same layers in reverse order.
-    const cycle = 3.2;
+    // One cycle = forward pass, pause, backward pass. The weight update
+    // is applied once per cycle, at the moment the backward sweep lands.
+    const cycle = 3.6;
+    const prevCycle = Math.floor((pulseT - dt * (reduceMotion ? 0.35 : 1)) / cycle);
+    const thisCycle = Math.floor(pulseT / cycle);
     const u = (pulseT % cycle) / cycle;
+
     let waveMode = null, localT = 0;
-    if (u < 0.5) { waveMode = 'forward'; localT = u / 0.5; }
-    else if (u < 0.55) { waveMode = null; }
-    else { waveMode = 'backward'; localT = (u - 0.55) / 0.45; }
+    if (u < 0.46) { waveMode = 'forward'; localT = u / 0.46; }
+    else if (u < 0.52) { waveMode = null; }
+    else { waveMode = 'backward'; localT = (u - 0.52) / 0.48; }
     const phase = localT * (LAYERS.length + 1);
 
+    // New cycle: rotate the target class, and every few cycles rotate
+    // the activation function too (which resets the weights, since the
+    // old ones were fitted under a different non-linearity).
+    if (thisCycle !== prevCycle) {
+      target = (target + 1) % LAYERS[LAYERS.length - 1];
+      if (thisCycle % 4 === 0) {
+        actIdx = (actIdx + 1) % ACTS.length;
+        initWeights();
+      }
+      if (quoteEl) {
+        quoteIdx = (quoteIdx + 1) % QUOTES.length;
+        quoteEl.textContent = QUOTES[quoteIdx];
+      }
+    }
+
+    const out = forward(readInput(pulseT));
+    const conf = Math.max(...out);
+    const loss = -Math.log(Math.max(1e-9, out[target]));
+    lossEMA = lossEMA === null ? loss : lossEMA * 0.96 + loss * 0.04;
+
+    // The weight update fires once per cycle, as the gradient sweep
+    // reaches the input side — so what you see is what just happened.
+    if (waveMode === 'backward' && localT > 0.9 && stepCount < thisCycle + 1) {
+      stepCount = thisCycle + 1;
+      backward(target, 0.06);
+    } else {
+      backward(target, 0);   // gradients only, no step, for the display
+    }
+
+    const actNorm = LAYERS.map((_, l) => normalize(as[l]));
+    const gradNorm = LAYERS.map((_, l) => normalize(deltas[l] || []));
+
     nodes.forEach(n => {
-      let waveTarget = 0.06;
       const layerIndex = waveMode === 'backward' ? (LAYERS.length - 1 - n.layer) : n.layer;
       const lp = phase - layerIndex;
-      if (waveMode && lp > 0 && lp < 1.3) waveTarget = Math.max(waveTarget, Math.sin(Math.min(lp, 1) * Math.PI) * 0.85 + 0.1);
-      n.actWave += (waveTarget - n.actWave) * 0.12;
+      let gateTarget = 0;
+      if (waveMode && lp > 0 && lp < 1.3) gateTarget = Math.sin(Math.min(lp, 1) * Math.PI);
+      n.gate += (gateTarget - n.gate) * 0.16;
 
-      let pointerTarget = 0;
+      let glowTarget = 0;
       if (pointer.active) {
         const d = Math.hypot(n.x - pointer.x, n.y - pointer.y);
-        pointerTarget = Math.max(0, 1 - d / (W * 0.18));
+        glowTarget = Math.max(0, 1 - d / (W * 0.18));
       }
-      n.actPointer += (pointerTarget - n.actPointer) * 0.15;
+      n.glow += (glowTarget - n.glow) * 0.15;
 
-      n.act = Math.max(n.actWave, n.actPointer);
-      // Pointer contact always reads as "forward" (you're driving an
-      // inference); otherwise colour follows whichever pass is live.
-      n.colorMode = n.actPointer >= n.actWave ? 'forward' : (waveMode || 'forward');
+      const src = waveMode === 'backward' ? gradNorm : actNorm;
+      const real = (src[n.layer] && src[n.layer][n.idx]) || 0;
+      n.act = Math.max(0.06, real * n.gate, n.glow);
+      n.colorMode = n.glow >= real * n.gate ? 'forward' : (waveMode || 'forward');
     });
 
     ctx.clearRect(0, 0, W, H);
 
+    /* edges — thickness from the real |weight|, colour from the pass */
     for (let li = 0; li < LAYERS.length - 1; li++) {
       const from = byLayer(li), to = byLayer(li + 1);
-      const weights = edgeWeights[li];
+      let maxW = 1e-6;
+      for (let i = 0; i < LAYERS[li]; i++)
+        for (let j = 0; j < LAYERS[li + 1]; j++) maxW = Math.max(maxW, Math.abs(weights[li][i][j]));
       from.forEach((a, i) => {
         to.forEach((b, j) => {
-          const act = (a.act + b.act) / 2;
-          const hot = act > 0.35;
-          const wAbs = Math.abs(weights[i][j]);
+          const flow = (a.act + b.act) / 2;
+          const hot = flow > 0.3;
+          const wAbs = Math.abs(weights[li][i][j]) / maxW;
           const mode = a.colorMode === 'backward' || b.colorMode === 'backward' ? 'backward' : 'forward';
           ctx.strokeStyle = hot ? (mode === 'backward' ? colAccent : colAccent2) : colRule;
-          ctx.globalAlpha = hot ? Math.min(0.6, act) : 0.1 + wAbs * 0.12;
-          ctx.lineWidth = hot ? 1 + wAbs * 1.3 : 0.6 + wAbs * 0.6;
+          ctx.globalAlpha = hot ? Math.min(0.62, flow * wAbs + 0.12) : 0.08 + wAbs * 0.14;
+          ctx.lineWidth = hot ? 0.8 + wAbs * 1.8 : 0.5 + wAbs * 0.7;
           ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
         });
       });
     }
     ctx.globalAlpha = 1;
 
+    /* nodes */
     nodes.forEach(n => {
       const r = 3 + n.act * 4.2;
       const nodeColor = n.colorMode === 'backward' ? colAccent : colAccent2;
@@ -238,20 +495,55 @@ function token(name) {
     });
     ctx.globalAlpha = 1;
 
-    if (rdAct) {
-      const outAct = byLayer(LAYERS.length - 1).map(n => n.act);
-      const maxAct = outAct.length ? Math.max(...outAct) : 0;
-      rdAct.textContent = (maxAct * 100).toFixed(0) + '%';
-      rdConf.textContent = Math.max(0, Math.min(100, 58 + Math.sin(pulseT * 0.7) * 18 + maxAct * 22)).toFixed(0) + '%';
-    }
+    /* the winning output class gets its index drawn in it */
+    const outNodes = byLayer(LAYERS.length - 1);
+    let topK = 0;
+    for (let k = 1; k < out.length; k++) if (out[k] > out[topK]) topK = k;
+    outNodes.forEach((n, k) => {
+      ctx.save();
+      ctx.globalAlpha = k === topK ? 0.95 : 0.4;
+      ctx.fillStyle = colMute;
+      ctx.font = '400 8px ' + (getComputedStyle(document.documentElement).getPropertyValue('--f-mono') || 'monospace');
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(`${(out[k] * 100).toFixed(0)}%`, n.x + 11, n.y);
+      ctx.restore();
+    });
+
+    /* activation curves above the two hidden layers */
+    const A = act();
+    const cw = Math.min(46, W * 0.09), ch = cw * 0.5;
+    [1, 2].forEach(li => {
+      const col = byLayer(li);
+      const cx = col[0].x;
+      drawActCurve(cx, H * 0.11, cw, ch, 0.9);
+      drawCaption(cx, H * 0.11 + ch / 2 + 5, A.name, null, 0.85);
+    });
+
+    /* layer captions along the bottom */
+    const capY = H - H * 0.14;
+    drawCaption(byLayer(0)[0].x, capY, `input ${LAYERS[0]}`, 'your pointer', 0.9);
+    drawCaption(byLayer(1)[0].x, capY, `dense ${LAYERS[1]}`, 'hidden', 0.9);
+    drawCaption(byLayer(2)[0].x, capY, `dense ${LAYERS[2]}`, 'hidden', 0.9);
+    drawCaption(byLayer(3)[0].x, capY, `softmax ${LAYERS[3]}`, 'output', 0.9);
+
+    /* readouts */
+    if (rdAct) rdAct.textContent = A.name;
+    if (rdConf) rdConf.textContent = (conf * 100).toFixed(0) + '%';
+    if (rdLoss) rdLoss.textContent = lossEMA.toFixed(3);
 
     if (!locked && now - started > 1600) {
       locked = true;
-      if (rdState) rdState.textContent = 'signal locked';
       led?.setAttribute('data-state', 'lock');
+    }
+    if (rdState) {
+      rdState.textContent = !locked ? 'booting'
+        : waveMode === 'forward' ? 'forward pass'
+        : waveMode === 'backward' ? 'backprop'
+        : 'weights updated';
     }
     requestAnimationFrame(frame);
   }
+  if (quoteEl) quoteEl.textContent = QUOTES[quoteIdx];
   requestAnimationFrame(frame);
 })();
 
@@ -344,6 +636,7 @@ function token(name) {
         '<span class="cmd">playground</span>  jump to the live AI demos',
         '<span class="cmd">contact</span>     how to reach me',
         '<span class="cmd">cv</span>          download the CV',
+        '<span class="cmd">certs</span>       certificates and references',
         '<span class="cmd">theme</span>       switch light and dark',
         '<span class="cmd">clear</span>       wipe the screen'
       ].join('\n'));
@@ -377,7 +670,19 @@ function token(name) {
       write(`email     <a href="mailto:${EMAIL}">${EMAIL}</a>\ngithub    <a href="https://github.com/ProgrammerTabish" rel="noopener">ProgrammerTabish</a>\nlinkedin  <a href="https://www.linkedin.com/in/zakatabish" rel="noopener">in/zakatabish</a>`);
       write('Full contact page: <span class="cmd">contact.html</span>', 'dim');
     },
-    cv() { write('Downloading the CV.', 'ok'); window.location.href = 'assets/cv-shaikh-zaka-tabish.pdf'; },
+    cv() { write('Downloading the CV.', 'ok'); window.location.href = 'documents/cv-shaikh-zaka-tabish.pdf'; },
+    certs() {
+      write([
+        'Werkstudentenzeugnis   Nokia Solutions and Networks, Jul 2026',
+        'Work experience        Integrated Computer Solutions, Apr 2025',
+        'B.Tech CSE             DBATU, First Class with Distinction, CGPA 7.51',
+        'Bachelor thesis        City Waste Management System Using Van Tracking',
+        'IELTS Academic         overall 7.5, CEFR C1',
+        'Goethe A2              74/100 · Goethe B1 Sprechen 65/100'
+      ].join('\n'));
+      write('All of them are readable in full on the experience page.', 'dim');
+      go('experience.html#credentials');
+    },
     theme(arg) {
       const mode = (arg === 'dark' || arg === 'light') ? arg : (document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
       window.setTheme?.(mode);
