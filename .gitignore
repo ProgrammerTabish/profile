@@ -1,0 +1,8 @@
+# Local working copies of coursework repos. These live here for convenience
+# but are not part of the published site — several are their own git repos
+# and together they are well over a hundred megabytes.
+my_projects/
+
+# Personal documents (CV, certificates, references, transcripts, thesis) are
+# never published. They stay on disk here as working copies only.
+documents/

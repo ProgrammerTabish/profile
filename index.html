@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shaikh Zaka Tabish · AI Engineering for Industrial Systems</title>
+
+<meta name="description" content="Shaikh Zaka Tabish builds AI assisted tooling, anomaly detection and automation for industrial and hardware systems. MSc Artificial Intelligence for Industrial Applications at OTH Amberg; one year at Nokia Nuremberg, now looking for the next role. Includes live demos running in the browser: a neural network that learns to read handwriting, a reinforcement-learning agent that learns Pong, and how MCP connects AI models to real software.">
+<meta name="author" content="Shaikh Zaka Tabish">
+<meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://www.zakatabish.online/">
+
+<meta property="og:type" content="profile">
+<meta property="og:title" content="Shaikh Zaka Tabish · AI Engineering for Industrial Systems">
+<meta property="og:description" content="MSc student in AI for Industrial Applications, building neural networks, MCP tooling and anomaly detection. See live demos running in the browser of how they actually work.">
+<meta property="og:url" content="https://www.zakatabish.online/">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235645D6'/%3E%3Cpath d='M5 20 q4 -12 8 0 t8 0 t6 -6' fill='none' stroke='%233FE0D0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Shaikh Zaka Tabish",
+  "jobTitle": "MSc Student, Artificial Intelligence for Industrial Applications",
+  "url": "https://www.zakatabish.online/",
+  "sameAs": ["https://github.com/ProgrammerTabish", "https://www.linkedin.com/in/zakatabish"],
+  "alumniOf": [
+    {"@type": "CollegeOrUniversity", "name": "OTH Amberg-Weiden"},
+    {"@type": "CollegeOrUniversity", "name": "Dr. Babasaheb Ambedkar Technological University"}
+  ],
+  "knowsAbout": ["Machine Learning", "Neural Networks", "Reinforcement Learning", "Model Context Protocol", "Industrial AI Applications", "Anomaly Detection"],
+  "knowsLanguage": ["English", "German"],
+  "address": {"@type": "PostalAddress", "addressLocality": "Nuremberg", "addressCountry": "DE"}
+}
+</script>
+</head>
+
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ══ side rail ══ -->
+<header class="rail" id="rail">
+  <a class="rail__mark" href="index.html" aria-label="Home">
+    <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+      <rect x="0.5" y="0.5" width="39" height="39" rx="9"/>
+      <path d="M7 25 q5 -14 10 0 t10 0 t7 -7"/>
+    </svg>
+    <span class="rail__name">Zaka Tabish</span>
+  </a>
+
+  <nav class="rail__nav" aria-label="Pages">
+    <a href="index.html" aria-current="page">Home</a>
+    <a href="experience.html">Experience</a>
+    <a href="projects.html">Projects</a>
+    <a href="playground.html">Playground</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <div class="rail__foot">
+    <button class="btn btn--ghost btn--sm" id="themeToggle" aria-pressed="false">
+      <span data-theme-label>Dark</span>
+    </button>
+    <button class="btn btn--ghost btn--sm" id="consoleOpen" aria-expanded="false" aria-controls="console">
+      Console <kbd>~</kbd>
+    </button>
+  </div>
+</header>
+
+<button class="railToggle" id="railToggle" aria-expanded="false" aria-controls="rail">
+  <span class="railToggle__bars" aria-hidden="true"><i></i><i></i></span>
+  <span class="sr-only">Open menu</span>
+</button>
+
+<main id="main">
+
+<!-- ══ hero ══ -->
+<section class="hero" id="top">
+  <div class="hero__copy">
+    <p class="hero__id">Shaikh Zaka Tabish</p>
+    <h1 class="hero__line">I build the <em>intelligence layer</em> between industrial systems and the people who run them.</h1>
+    <p class="hero__sub">
+      MSc student in Artificial Intelligence for Industrial Applications at OTH Amberg. I spent the
+      past year applying that toward AI assisted tooling and anomaly detection at Nokia Nuremberg,
+      and I'm now looking for what's next. Below: a live neural network that is genuinely training
+      as you read this, three engineering case studies, and four small AI systems you can actually
+      play with.
+    </p>
+    <div class="hero__actions">
+      <a class="btn btn--solid" href="playground.html">Explore the playground</a>
+      <a class="btn btn--outline" href="contact.html">Get in touch</a>
+    </div>
+  </div>
+
+  <figure class="net" aria-labelledby="netCap">
+    <canvas id="heroNet" width="640" height="360" role="img"
+            aria-label="Animated neural network diagram that reacts to pointer movement."></canvas>
+    <figcaption class="net__readout" id="netCap">
+      <span class="rd"><b>shape</b><data id="rdLayers">…</data></span>
+      <span class="rd"><b>activation</b><data id="rdAct">…</data></span>
+      <span class="rd"><b>loss</b><data id="rdLoss">…</data></span>
+      <span class="rd"><b>confidence</b><data id="rdConf">…</data></span>
+      <span class="rd rd--state"><i class="led" data-state="boot"></i><data id="rdState">booting</data></span>
+    </figcaption>
+    <p class="net__hint">
+      Move across the network to drive it — your pointer is the input vector.
+      <span>Five inputs, two dense hidden layers, a softmax output. It is really training
+      as you watch: forward pass, cross entropy against a rotating target class, gradients
+      back through the same layers, one weight update per cycle. The curve above each hidden
+      layer is its activation function, plotted from its own definition; it swaps every few
+      cycles and the weights start over, because they were fitted under the old one.</span>
+    </p>
+    <p class="net__quote" id="netQuote" aria-live="polite"></p>
+  </figure>
+</section>
+
+<!-- ══ now ══ -->
+<section class="band" id="now" aria-labelledby="nowH">
+  <h2 class="sr-only" id="nowH">Current status</h2>
+  <dl class="status">
+    <div><dt>Looking for</dt><dd class="is-target">AI/ML working student, internship and graduate roles in industrial applications</dd></div>
+    <div><dt>Studying</dt><dd>MSc Artificial Intelligence for Industrial Applications, OTH Amberg</dd></div>
+    <div><dt>Most recent role</dt><dd>Working student, board bring up and diagnostics software, Nokia Nuremberg, Network Infrastructure / Optical Networks (Aug 2025 to Jul 2026)</dd></div>
+    <div><dt>Languages</dt><dd>English C1 (IELTS Academic 7.5) · German A2 certified (Goethe) plus the B1 Sprechen module, improving weekly</dd></div>
+  </dl>
+</section>
+
+<!-- ══ hub ══ -->
+<section class="section" id="hub" aria-labelledby="hubH">
+  <div class="section__head">
+    <span class="section__eyebrow">Start here</span>
+    <h2 id="hubH">Three ways to get to know the work</h2>
+    <p>Pick a path: the detailed work history, the engineering behind real projects, or small AI systems running live in your browser right now.</p>
+  </div>
+
+  <div class="hub">
+    <a class="hub__card" href="experience.html">
+      <h3>Experience</h3>
+      <p>Two years shipping AI assisted tooling and automation at Nokia, plus the education behind it and the full toolkit.</p>
+      <span>See the timeline →</span>
+    </a>
+    <a class="hub__card" href="projects.html">
+      <h3>Projects</h3>
+      <p>Real case studies covering the problem, the architecture and the trade offs, including a live simulated dashboard.</p>
+      <span>Read the case studies →</span>
+    </a>
+    <a class="hub__card" href="playground.html">
+      <h3>Playground</h3>
+      <p>A neural net that learns your handwriting, live gradient descent, an MCP flow, and reinforcement learning at Pong.</p>
+      <span>Try the demos →</span>
+    </a>
+  </div>
+</section>
+
+<footer class="foot">
+  <p>Nuremberg, Germany</p>
+  <p>Built by hand. <button class="linkbtn" id="consoleOpen2">Open the console</button> if you prefer typing.</p>
+</footer>
+</main>
+
+<!-- ══ console ══ -->
+<div class="console" id="console" hidden>
+  <div class="console__sheet" role="dialog" aria-modal="true" aria-label="Terminal">
+    <div class="console__head">
+      <span class="console__title">diag · zakatabish</span>
+      <button class="console__close" id="consoleClose" aria-label="Close terminal">×</button>
+    </div>
+    <div class="console__out" id="consoleOut" tabindex="0" aria-live="polite"></div>
+    <div class="console__chips" id="consoleChips"></div>
+    <form class="console__form" id="consoleForm">
+      <label class="sr-only" for="consoleIn">Command</label>
+      <span class="console__prompt" aria-hidden="true">diag&nbsp;&gt;</span>
+      <input id="consoleIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="type help">
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>
