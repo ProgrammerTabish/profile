@@ -621,7 +621,8 @@ function token(name) {
   const PROJECTS = [
     { name: 'mcp-diagnostics-server', label: 'MCP server for hardware diagnostics', page: 'projects.html#proj-mcp' },
     { name: 'lab-network-monitor', label: 'Lab network monitoring & anomaly alerting', page: 'projects.html#proj-monitoring' },
-    { name: 'finalyearproject', label: 'City waste management (GPS tracking)', page: 'projects.html#proj-waste', url: 'https://github.com/ProgrammerTabish/FinalYearProject' }
+    { name: 'finalyearproject', label: 'City waste management (GPS tracking)', page: 'projects.html#proj-waste', url: 'https://github.com/ProgrammerTabish/FinalYearProject' },
+    { name: 'grossry', label: 'Großry: student collective purchasing prototype', page: 'projects.html#proj-grossry' }
   ];
 
   const CMD = {

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Projects · Shaikh Zaka Tabish</title>
 
-<meta name="description" content="Case studies: an MCP server connecting AI models to Jira and hardware diagnostics at Nokia, a lab network anomaly detection system, and a real time IoT waste collection tracker with a live simulated dashboard.">
+<meta name="description" content="Case studies: an MCP server connecting AI models to Jira and hardware diagnostics at Nokia, a lab network anomaly detection system, a real time IoT waste collection tracker with a live simulated dashboard, and Großry, a clickable prototype of a student collective purchasing app.">
 <meta name="author" content="Shaikh Zaka Tabish">
 <meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
@@ -289,6 +289,64 @@
           <div class="dash__chart"><canvas id="wasteChart" role="img" aria-label="Chart of average bin fill level over time"></canvas></div>
           <ul class="dash__log" id="wasteLog" aria-live="polite"></ul>
         </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ══ Großry ══ -->
+  <article class="feature__item" id="proj-grossry" style="margin-top:2.4rem;">
+    <h3>Großry: a student collective purchasing app</h3>
+    <p class="feature__meta">University project · Clickable prototype · HTML, CSS, vanilla JavaScript</p>
+    <p class="feature__sub">Get wholesale prices without having to buy wholesale quantities. Students enter their expected monthly groceries, Großry pools the demand to unlock bulk price tiers, buys once, and a student Order Runner brings the order to campus for slot-based QR pickup.</p>
+
+    <div class="case">
+      <div class="case__block">
+        <span class="case__label">The problem</span>
+        <p>Wholesale prices are far below supermarket shelf prices, but no student needs a 20 kg sack of rice or a case of twelve bottles of oil. The saving exists, but no single student can reach it.</p>
+      </div>
+      <div class="case__block">
+        <span class="case__label">What the prototype shows</span>
+        <p>The whole monthly cycle, clickable end to end: verified sign-up, a shop where every product shows its bulk-price progress bar, a transparent cost breakdown, demand lock at the cutoff, an Order Runner flow with a backup runner, automatic pickup slots, QR handover, and an admin dashboard.</p>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">The model</span>
+        <div class="flow">
+          <div class="flow__node"><b>Student demand</b><span>monthly basket</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>Aggregation</b><span>price tiers unlock</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>Bulk procurement</b><span>one supplier order</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>Order Runner</b><span>primary + backup</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>Slot + QR pickup</b><span>12 people / 15 min</span></div>
+        </div>
+      </div>
+
+      <div class="case__block">
+        <span class="case__label">Key decisions</span>
+        <ul>
+          <li><b>Savings defined, not asserted.</b> Saving = reference retail basket price − actual landed cost. Großry takes 20% of that verified saving, and the cart shows every line of it.</li>
+          <li><b>No single point of failure.</b> Every run has a backup runner who is paid a small reservation credit and takes over automatically if the primary cancels.</li>
+          <li><b>Aggregated insights, not data selling.</b> The admin view previews exactly what a partner would see: totals only, with any product bought by fewer than 10 students suppressed.</li>
+        </ul>
+      </div>
+      <div class="case__block">
+        <span class="case__label">Constraints taken seriously</span>
+        <ul>
+          <li>GDPR data minimisation: no photo required, data export and deletion in the profile.</li>
+          <li>Food hygiene: chilled and frozen goods stay out of student-run distribution, and splitting sacks into portions is never done by runners.</li>
+          <li>Terms and Privacy ship as clearly marked drafts, not as legal text.</li>
+        </ul>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">Try it</span>
+        <p>Runs entirely in the browser. Use the demo account, then press <b>Advance</b> to move the month forward from shopping to distribution day. All people, prices and suppliers are fictional.</p>
+        <p class="feature__links">
+          <a class="btn btn--outline btn--sm" href="grossy/">Open the prototype</a>
+        </p>
       </div>
     </div>
   </article>

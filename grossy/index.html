@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Großry Prototype</title>
+<meta name="description" content="Clickable prototype of Großry, a student collective purchasing platform: wholesale prices without wholesale quantities. Fictional demo data, runs entirely in the browser.">
+<meta name="author" content="Shaikh Zaka Tabish">
+<link rel="canonical" href="https://www.zakatabish.online/grossy/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Großry Prototype">
+<meta property="og:description" content="Get wholesale prices without having to buy wholesale quantities. A clickable prototype of a student collective purchasing app.">
+<meta property="og:url" content="https://www.zakatabish.online/grossy/">
+<meta name="theme-color" content="#18794E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318794E'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='17' fill='white' text-anchor='middle'%3EG%3C/text%3E%3C/svg%3E">
+<script>
+  // Apply the saved theme before paint (shared with the main portfolio site).
+  try { var t = localStorage.getItem('zt.theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+
+<header class="proto" id="chrome">
+  <a class="proto__brand" href="../projects.html#proj-grossry" title="Back to the portfolio">
+    <span class="proto__logo" aria-hidden="true">G</span>
+    <span class="proto__name"><b>Großry</b> <small>prototype · ← portfolio</small></span>
+  </a>
+  <div class="proto__group" role="group" aria-label="View">
+    <div class="seg">
+      <button type="button" data-act="view" data-v="app" aria-pressed="true">Student app</button>
+      <button type="button" data-act="view" data-v="admin" aria-pressed="false">Admin</button>
+    </div>
+  </div>
+  <div class="proto__group" role="group" aria-label="Simulation controls">
+    <span class="proto__label proto__wide">Cycle</span>
+    <span class="stagepill" id="stagePill">Shopping open</span>
+    <button type="button" class="chipbtn" data-act="stage-prev" aria-label="Previous cycle stage">◀</button>
+    <button type="button" class="chipbtn" data-act="stage-next">Advance ▶</button>
+    <button type="button" class="chipbtn" data-act="theme" id="themeBtn">Dark</button>
+    <button type="button" class="chipbtn" data-act="reset">Reset demo</button>
+  </div>
+</header>
+<p class="disclaimer"><span class="proto__wide">Prototype for a university project. </span>All people, prices, stats and suppliers are <b>fictional demo data</b>. <span class="proto__wide">No real orders, payments or partners, and n</span><span class="proto__narrow">N</span>othing you type leaves this browser.</p>
+
+<div id="appView">
+  <div class="stage">
+    <aside class="notes" aria-label="About this prototype">
+      <h1>Großry</h1>
+      <p class="lead">Get wholesale prices without having to buy wholesale quantities. Students pool their monthly grocery demand, Großry buys in bulk once, and a student Order Runner brings it to campus.</p>
+
+      <h2>Try this path</h2>
+      <ol>
+        <li>Register with a student email (the code is shown on screen) or use the demo account.</li>
+        <li><b>Shop</b>: open a product, watch the bulk-price progress bar move as you add packs.</li>
+        <li><b>Orders</b>: check the cost breakdown and savings ledger, then submit.</li>
+        <li>Press <b>Advance ▶</b> above to move through the monthly cycle: demand lock, procurement, arrival, sorting, distribution.</li>
+        <li><b>Run</b>: volunteer as Order Runner or backup, then scan handovers on distribution day.</li>
+        <li>Switch to <b>Admin</b> for procurement, inventory, finance and the anonymised insights preview.</li>
+      </ol>
+
+      <h2>The model</h2>
+      <div class="flowline">
+        <span>Student demand</span><i>→</i><span>Aggregation</span><i>→</i><span>Bulk threshold</span><i>→</i><span>Procurement</span><i>→</i><span>Order Runner</span><i>→</i><span>Sorting</span><i>→</i><span>Slot allocation</span><i>→</i><span>QR handover</span><i>→</i><span>Transparent savings</span>
+      </div>
+
+      <h2>Design principles</h2>
+      <ul>
+        <li>Savings are measured against a stated reference basket, never an arbitrary price.</li>
+        <li>Großry takes 20% of the <i>verified</i> saving, and the cart shows it.</li>
+        <li>No single point of failure: every run has a backup runner.</li>
+        <li>Data minimisation: no photo needed, no individual data sold. Only aggregated, thresholded statistics.</li>
+        <li>Chilled and frozen goods stay out of student-run distribution until food-hygiene handling is reviewed.</li>
+      </ul>
+      <p class="small mute" style="margin-top:1rem">Terms and Privacy inside the app are project-stage drafts, not legally reviewed.</p>
+    </aside>
+
+    <div class="phone" id="phone">
+      <div class="appbar" id="appbar"></div>
+      <main class="screen" id="screen" tabindex="-1"></main>
+      <nav class="tabbar" id="tabbar" aria-label="App sections"></nav>
+      <div class="sheet" id="sheet" hidden><div class="sheet__panel" id="sheetPanel" role="dialog" aria-modal="true"></div></div>
+      <div class="toast" id="toast" role="status" hidden></div>
+    </div>
+  </div>
+</div>
+
+<div id="adminView" hidden></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
