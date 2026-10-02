@@ -17,7 +17,6 @@
   });
   const OTHERS = BASE_LOADS.reduce((a, b) => a + b, 0);
   const LEDGER = [['Bulk purchasing', .59], ['Collective transportation', .25], ['Reduced supplier markup', .09], ['Consolidated packaging', .07]];
-  const LAST = { participants: 118, lines: 702, items: 1488, value: 2140, savings: 486, completed: 114, trips: 236 };
   const REWARDS = [
     { id: 'd2', name: '€2 grocery discount', cost: 200, credit: 2 },
     { id: 'prio', name: 'Priority pickup (any slot, even full)', cost: 150 },
@@ -241,115 +240,107 @@
       <p style="text-align:center;margin-top:.6rem"><button class="linkbtn small" data-act="ob" data-step="form">Change details</button></p>`;
   }
 
+  /* ── savings helpers ─────────────────────────────────── */
+  // What a student pays per item (landed price + Großry's 20% of the saving) and what they keep.
+  const yourPrice = (p, price) => price + (p.ref - price) * FEE;
+  const itemSave = (p, price) => p.ref - yourPrice(p, price);
+  const pctSave = (p, price) => Math.round(itemSave(p, price) / p.ref * 100);
+  const pastSaved = () => D.history.reduce((a, h) => a + h.saved, 0);
+
+  function hstep(cur) {
+    return `<div class="hstep" aria-label="Cycle progress: ${esc(STAGES[cur].label)}">${STAGES.map((s, i) => `<span class="${i < cur ? 'done' : i === cur ? 'now' : ''}" title="${esc(s.text)} · ${esc(s.when)}"></span>`).join('')}</div>`;
+  }
+  function savingsHero(t, title) {
+    const pct = t.ref ? Math.round(t.net / t.ref * 100) : 0;
+    return `<div class="card hero-save">
+      <span class="eyebrow">${title}</span>
+      <div class="big save">${eur(t.net)}</div>
+      <p class="small" style="margin:.1rem 0 .6rem"><b>${pct}% less</b> than the supermarket</p>
+      <div class="cmp">
+        <span>Supermarket</span><span class="cmp__bar"><i style="width:100%;background:var(--mute);opacity:.35"></i></span><b class="strike">${eur(t.ref)}</b>
+        <span>Großry</span><span class="cmp__bar"><i style="width:${t.ref ? (t.pay + t.credit) / t.ref * 100 : 0}%"></i></span><b>${eur(t.pay + t.credit)}</b>
+      </div>
+    </div>`;
+  }
+
   /* ── home ────────────────────────────────────────────── */
   function screenHome() {
-    const h = today.getHours();
-    const greet = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-    const t = totals(), c = community();
-    const pct = Math.round(S.stage / (STAGES.length - 1) * 100);
-    const hasCart = lines().length > 0;
+    const t = totals(), c = community(), hasCart = lines().length > 0;
+    const thisMonth = S.submitted ? t.net : 0;
+    const status = S.stage === 0
+      ? (S.submitted ? `Submitted · editable until 10 ${cycle.mon}` : hasCart ? 'Basket not submitted yet' : `Shopping open until 10 ${cycle.mon}`)
+      : !S.submitted ? `${cycle.next} opens on the 1st` : S.collected ? 'Collected' : STAGES[S.stage].text;
 
-    let status;
-    if (S.stage === 0) status = S.submitted ? `Submitted. You can still change it for ${cycle.daysLeft} more day${cycle.daysLeft === 1 ? '' : 's'}.` : hasCart ? 'Basket started but not submitted yet.' : `Shopping is open until 10 ${cycle.mon}, 23:59.`;
-    else if (!S.submitted) status = `You didn't order this cycle. ${cycle.next} opens on the 1st.`;
-    else if (S.collected) status = 'Collected. Enjoy, and see what you saved below.';
-    else status = STAGES[S.stage].text + '.';
+    const nudge = S.stage === 0 && D.products.filter(p => !p.excluded).map(p => ({ p, ti: tierInfo(p) })).filter(x => x.ti.next)
+      .sort((a, b) => b.ti.pct - a.ti.pct)[0];
+    const months = D.history.slice().reverse().map(h => [h.month.split(' ')[0].slice(0, 3), h.saved]).concat([[cycle.mon, thisMonth]]);
+    const maxM = Math.max(...months.map(m => m[1]), 1);
 
-    // the product closest to its next tier (for the referral nudge)
-    const nudge = D.products.filter(p => !p.excluded).map(p => ({ p, ti: tierInfo(p) })).filter(x => x.ti.next)
-      .sort((a, b) => (b.ti.pct) - (a.ti.pct))[0];
+    return `<h2 style="font-size:1.3rem;margin-bottom:.8rem">Hi ${esc(first())} 👋</h2>
 
-    return `<p class="mute small" style="margin:0">${greet},</p>
-      <h2 style="font-size:1.35rem;margin-bottom:.8rem">${esc(first())}</h2>
-
-      <div class="card card--brand">
-        <span class="eyebrow mute">${cycle.month} ${cycle.year} order</span>
-        <p style="font-weight:600;margin-bottom:.5rem">Your ${cycle.month} grocery cycle is ${pct}% complete.</p>
-        <div class="bar" style="background:rgba(255,255,255,.25);border-color:transparent"><i style="width:${pct}%;background:currentColor"></i></div>
-        <p class="small mute" style="margin:.5rem 0 0">${esc(status)}</p>
-      </div>
-
-      ${hasCart ? `<div class="card">
-        <span class="eyebrow">Savings meter</span>
-        <div class="grid2">
-          <div><span class="small mute">Supermarket equivalent</span><div class="strike" style="font-size:1.15rem">${eur(t.ref)}</div></div>
-          <div><span class="small mute">Your Großry price</span><div style="font-size:1.15rem;font-weight:700">${eur(t.ref - t.net)}</div></div>
-        </div>
-        <div style="margin-top:.6rem"><span class="small mute">You save</span><div class="big save">${eur(t.net)}</div></div>
-        <p class="tiny mute" style="margin:.4rem 0 0">After Großry's 20% share of the saving. ${S.stage < 2 ? 'Estimated until procurement.' : 'Confirmed at procurement.'}</p>
-      </div>` : `<div class="card"><span class="eyebrow">Savings meter</span><p class="small" style="margin:0">Add products to see your saving against the supermarket reference basket. <button class="linkbtn" data-act="tab" data-tab="shop">Start shopping</button></p></div>`}
+      ${hasCart ? savingsHero(t, `Your ${cycle.month} saving`) : `<div class="card hero-save"><span class="eyebrow">Your ${cycle.month} saving</span>
+        <div class="big save">€0.00</div><p class="small">Students save about <b>20%</b> on their monthly groceries. Add yours to see your number.</p>
+        <button class="btn btn--block" data-act="tab" data-tab="shop">Start my basket</button></div>`}
 
       <div class="card">
-        <h3>Cycle timetable</h3>
-        <ul class="tl">${STAGES.map((s, i) => `<li class="${i < S.stage ? 'done' : i === S.stage ? 'now' : ''}"><i></i><b>${s.text}</b><small>${s.when}</small></li>`).join('')}</ul>
+        <div class="card__head"><h3>Cycle timetable</h3><span class="badge badge--save">${esc(status)}</span></div>
+        ${hstep(S.stage)}
+        <div class="hstep__l"><span>Shop<br>1–10 ${cycle.mon}</span><span>Buy<br>12 ${cycle.mon}</span><span>Pick up<br>16 ${cycle.mon}</span></div>
       </div>
 
-      <button class="card" style="display:block;width:100%;text-align:left;cursor:pointer" data-act="sub" data-name="bulk">
-        <span class="eyebrow">This month's complete bulk order</span>
-        <span style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem"><b style="font-size:1.05rem">${num(c.units)} items · ${eur0(c.value)}</b><span class="linkbtn small">See all ›</span></span>
-        <span class="small mute">${D.products.filter(p => !p.excluded && tierInfo(p).unlocked).length} of ${D.products.length} products past their bulk minimum · ${num(c.participants)} students</span>
-      </button>
-
-      <div class="card card--save"><span class="eyebrow">Community savings this month</span><div class="big save">${eur0(c.savings)}</div><p class="tiny mute" style="margin:0">Estimated: students' net saving across all orders this cycle.</p></div>
-
-      ${nudge && S.stage === 0 ? `<div class="card">
-        <span class="eyebrow">Help unlock a lower price</span>
-        <p class="small" style="margin-bottom:.4rem"><b>${esc(nudge.p.name)}</b>: ${fq(nudge.ti.need, nudge.p.unit)} more unlocks <b>${eur(nudge.ti.next[1])}${per(nudge.p)}</b>.</p>
+      ${nudge ? `<div class="card">
+        <span class="eyebrow">Save more together</span>
+        <p class="small" style="margin-bottom:.4rem"><b>${fq(nudge.ti.need, nudge.p.unit)}</b> more ${esc(nudge.p.name.toLowerCase())} and everyone saves <b class="save">${eur(itemSave(nudge.p, nudge.ti.next[1]) - itemSave(nudge.p, nudge.ti.price))} more</b> per ${nudge.p.unit}.</p>
         <div class="bar bar--save"><i style="width:${nudge.ti.pct}%"></i></div>
-        <div class="btnrow"><button class="btn btn--ghost btn--sm" data-act="product" data-id="${nudge.p.id}">View product</button><button class="btn btn--sm" data-act="share-product" data-id="${nudge.p.id}">Invite classmates</button></div>
+        <div class="btnrow"><button class="btn btn--sm" data-act="share-product" data-id="${nudge.p.id}">Invite classmates</button><button class="btn btn--ghost btn--sm" data-act="product" data-id="${nudge.p.id}">View</button></div>
       </div>` : ''}
 
       <div class="card">
-        <div class="card__head"><h3>This month at ${esc(S.user ? UNI[S.user.uni].name : 'your university')}</h3></div>
-        <table class="kv">
-          <tr><th>Metric</th><th class="right">This cycle<br><span style="text-transform:none">estimated</span></th><th>Last cycle<br><span style="text-transform:none">realised</span></th></tr>
-          <tr><td>Students participating</td><td class="right">${num(c.participants)}</td><td>${num(LAST.participants)}</td></tr>
-          <tr><td>Product lines ordered</td><td class="right">${num(c.lines)}</td><td>${num(LAST.lines)}</td></tr>
-          <tr><td>Total items</td><td class="right">${num(c.units)}</td><td>${num(LAST.items)}</td></tr>
-          <tr><td>Collective purchasing value</td><td class="right">${eur0(c.value)}</td><td>${eur0(LAST.value)}</td></tr>
-          <tr><td>Community savings (net)</td><td class="right">${eur0(c.savings)}</td><td>${eur0(LAST.savings)}</td></tr>
-          <tr><td>Orders completed</td><td class="right">${S.stage >= 6 ? num(c.participants - 3) : '—'}</td><td>${num(LAST.completed)}</td></tr>
-          <tr><td>Food trips avoided</td><td class="right">${num(c.trips)}</td><td>${num(LAST.trips)}</td></tr>
-        </table>
-        <p class="tiny mute" style="margin:.5rem 0 0">Pilot catalogue of ${D.products.length} products. Demo figures.</p>
+        <div class="card__head"><h3>Saved with Großry</h3><b class="save">${eur(pastSaved() + thisMonth)}</b></div>
+        <div class="months">${months.map(([m, v], i) => `<div><span class="months__v">${v ? eur0(v) : '—'}</span><span class="months__b"><i style="height:${v / maxM * 100}%;${i === months.length - 1 ? '' : 'opacity:.55'}"></i></span><span class="months__m">${m}</span></div>`).join('')}</div>
       </div>
 
+      <button class="card card--save" style="display:block;width:100%;text-align:left" data-act="sub" data-name="bulk">
+        <span class="eyebrow">Your university this month</span>
+        <span style="display:block;font-size:1rem"><b>${num(c.participants)} students</b> save <b class="save">${eur0(c.savings)}</b> together</span>
+        <span class="linkbtn small">See the full bulk order ›</span>
+      </button>
+
       <div class="card" style="padding:.2rem .9rem">
-        <button class="rowbtn" data-act="sub" data-name="community">Community: requests &amp; forum</button>
-        <button class="rowbtn" data-act="sub" data-name="wg">WG mode: order with your flatmates</button>
-        <button class="rowbtn" data-act="tab" data-tab="run">Join the crew: Runner or Distributor</button>
-        <button class="rowbtn" data-act="points">Großry Points: ${num(S.points)}</button>
+        <button class="rowbtn" data-act="tab" data-tab="run">Earn grocery credit: join the crew</button>
+        <button class="rowbtn" data-act="sub" data-name="wg">Order with your WG</button>
+        <button class="rowbtn" data-act="sub" data-name="community">Requests &amp; forum</button>
       </div>`;
   }
 
   /* ── shop ────────────────────────────────────────────── */
   function productCard(p) {
-    const ti = tierInfo(p), n = S.cart[p.id] || 0;
-    const need = p.excluded ? '<span class="badge badge--warn">Pilot excluded: cold chain</span>'
-      : !ti.unlocked ? `${fq(ti.need, p.unit)} more needed to unlock bulk pricing.`
-        : ti.next ? `${fq(ti.need, p.unit)} more to unlock ${eur(ti.next[1])}${per(p)}.` : 'Top price tier reached.';
+    const ti = tierInfo(p), n = S.cart[p.id] || 0, yp = yourPrice(p, ti.price);
+    const more = ti.next ? itemSave(p, ti.next[1]) - itemSave(p, ti.price) : 0;
+    const foot = p.excluded ? '<span class="badge badge--warn">Not in pilot (cold chain)</span>'
+      : !ti.unlocked ? `${fq(ti.need, p.unit)} more to unlock this price`
+        : ti.next ? `${fq(ti.need, p.unit)} more → save <b>${eur(more)}</b> more each` : 'Best price reached';
     return `<button class="pcard${p.excluded ? ' pcard--off' : ''}" data-act="product" data-id="${p.id}">
       <span class="pimg" aria-hidden="true">${p.icon}</span>
       <span>
         <span class="pcard__t">${esc(p.name)} <span class="mute small" style="font-weight:400">· ${esc(p.size)}</span></span>
-        <span class="tiny mute">${esc(p.brand)}</span>
-        <span class="pcard__price"><b>${eur(ti.price)}${per(p)}</b><span class="strike small">${eur(p.ref)}</span>${!ti.unlocked && !p.excluded ? '<span class="badge">if unlocked</span>' : ''}</span>
-        <span class="pcard__meta"><span class="badge">👥 ${p.students + (n ? 1 : 0)} students</span><span class="badge"><span class="stars">★</span> ${p.rating}</span>${n ? `<span class="badge badge--ok">In basket: ${fq(n * p.pack, p.unit)}</span>` : ''}</span>
-        <span class="bar${ti.unlocked ? '' : ' bar--save'}"><i style="width:${ti.pct}%"></i></span>
-        <span class="pcard__need" style="display:block">${need}</span>
+        <span class="pcard__price"><b>${eur(yp)}</b><span class="strike small">${eur(p.ref)}</span>${p.excluded ? '' : `<span class="badge badge--save">−${pctSave(p, ti.price)}%</span>`}${n ? `<span class="badge badge--ok">${n} in basket</span>` : ''}</span>
+        ${p.excluded ? '' : `<span class="bar${ti.unlocked ? '' : ' bar--save'}"><i style="width:${ti.pct}%"></i></span>`}
+        <span class="pcard__need" style="display:block">${foot}</span>
       </span></button>`;
   }
   function shopList() {
     const q = ui.q.trim().toLowerCase();
     const list = D.products.filter(p => (ui.shopCat === 'All' || p.cat === ui.shopCat) && (!q || (p.name + ' ' + p.brand + ' ' + p.cat).toLowerCase().includes(q)));
-    return list.length ? list.map(productCard).join('') : `<p class="mute small">No products match. <button class="linkbtn" data-act="sub" data-name="community">Request it from the community</button>.</p>`;
+    return list.length ? list.map(productCard).join('') : `<p class="mute small">No products match. <button class="linkbtn" data-act="sub" data-name="community">Request it</button>.</p>`;
   }
   function screenShop() {
     const cats = ['All', ...new Set(D.products.map(p => p.cat))];
-    return `${locked() ? `<div class="card card--info small"><b>${cycle.month} ordering is closed.</b> Demand is locked for procurement. Browse now; ${cycle.next} opens on the 1st.</div>` : ''}
+    return `${locked() ? `<div class="card card--info small"><b>${cycle.month} ordering is closed.</b> ${cycle.next} opens on the 1st.</div>` : ''}
       <label class="sr-only" for="searchIn">Search products</label>
       <input class="search" id="searchIn" type="search" placeholder="Search rice, oil, noodles…" value="${esc(ui.q)}" data-input="search">
-      <div class="chips" role="group" aria-label="Categories">${cats.map(c => `<button class="chip" data-act="cat" data-cat="${esc(c)}" aria-pressed="${ui.shopCat === c}">${esc(c)}</button>`).join('')}<button class="chip" data-act="sub" data-name="community">＋ Request a product</button></div>
+      <div class="chips" role="group" aria-label="Categories">${cats.map(c => `<button class="chip" data-act="cat" data-cat="${esc(c)}" aria-pressed="${ui.shopCat === c}">${esc(c)}</button>`).join('')}<button class="chip" data-act="sub" data-name="community">＋ Request</button></div>
+      <p class="tiny mute" style="margin:-.2rem 0 .6rem">Prices include Großry's fee. Crossed out: supermarket reference price.</p>
       <div id="shopList">${shopList()}</div>
       <div style="height:3rem"></div>`;
   }
@@ -360,187 +351,162 @@
   }
 
   function screenProduct(id) {
-    const p = P[id], ti = tierInfo(p), n = S.cart[id] || 0;
+    const p = P[id], ti = tierInfo(p), n = S.cart[id] || 0, yp = yourPrice(p, ti.price);
     const rv = (D.reviews[id] || []).concat((S.myReviews[id] || []).map(r => [r.name, r.stars, r.text]));
-    const savePct = Math.round((1 - ti.price / p.ref) * 100);
     return `<div style="display:flex;gap:.9rem;align-items:center;margin-bottom:.8rem">
         <span class="pimg pimg--lg" aria-hidden="true">${p.icon}</span>
-        <div><h2 style="font-size:1.15rem">${esc(p.name)}</h2><p class="small mute" style="margin:0">${esc(p.size)} · ${esc(p.brand)}</p>
-        <p class="small" style="margin:0"><span class="stars">${stars(p.rating)}</span> ${p.rating}/5 · ${p.nreviews + (S.myReviews[id] || []).length} reviews</p></div>
+        <div><h2 style="font-size:1.15rem">${esc(p.name)}</h2><p class="small mute" style="margin:0">${esc(p.size)} · <span class="stars">★</span> ${p.rating}</p>
+        <span class="badge badge--ok">🔒 Sealed pack</span></div>
       </div>
       ${p.excluded ? `<div class="card card--warn small">${esc(p.excluded)}</div>` : ''}
-      <p class="small" style="margin:-.2rem 0 .8rem"><span class="badge badge--ok">🔒 Sealed</span> Handed over exactly as supplied. Großry never opens, weighs or re-portions packs.</p>
+
       <div class="card">
-        <table class="kv">
-          <tr><td>Reference price (retail benchmark)</td><td class="strike">${eur(p.ref)}${per(p)}</td></tr>
-          <tr><td>Wholesale price (before handling)</td><td>${eur(ti.price * (1 - LOGISTICS))}${per(p)}</td></tr>
-          <tr class="hl"><td>Your expected price</td><td>${eur(ti.price)}${per(p)}</td></tr>
-        </table>
-        <p class="tiny mute" style="margin:.4rem 0 .6rem">${ti.unlocked ? `${savePct}% below the reference before Großry's 20% share of the saving.` : `Bulk pricing is not unlocked yet. If the minimum isn't reached by 10 ${cycle.mon}, this item is refunded or substituted.`}</p>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem">
-          <span class="small">${n ? `In basket: <b>${fq(n * p.pack, p.unit)}</b> · ${eur(n * p.pack * ti.price)}` : `Sold per sealed ${esc(p.size)}`}</span>${stepper(p)}
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:.6rem">
+          <div><span class="small mute">Your price</span><div class="big">${eur(yp)}</div><span class="small mute">Supermarket <span class="strike">${eur(p.ref)}</span></span></div>
+          ${stepper(p)}
         </div>
+        ${p.excluded ? '' : `<p class="savebox">You save <b>${eur(itemSave(p, ti.price))}</b> per ${p.unit} (${pctSave(p, ti.price)}%)${n ? ` · your ${n} save <b>${eur(n * itemSave(p, ti.price))}</b>` : ''}</p>`}
+        ${!ti.unlocked && !p.excluded ? `<p class="tiny mute" style="margin:.4rem 0 0">Needs ${fq(ti.need, p.unit)} more to unlock. Otherwise refunded.</p>` : ''}
       </div>
 
-      <div class="card">
-        <h3>The more students join, the cheaper it gets</h3>
-        <table class="tiers">${p.tiers.map((tr, i) => `<tr class="${i === ti.idx ? 'on' : ti.next && tr === ti.next ? 'next' : ''}"><td>${fq(tr[0], p.unit)}${i === 0 ? ' <span class="tiny mute">(minimum)</span>' : ''}</td><td>${eur(tr[1])}${per(p)}</td></tr>`).join('')}</table>
-        <p class="small" style="margin:.6rem 0 .3rem">Current demand: <b>${fq(ti.t, p.unit)}</b>${ti.next ? ` / ${fq(ti.next[0], p.unit)}` : ''}</p>
+      ${p.excluded ? '' : `<div class="card">
+        <h3>Bigger group, bigger saving</h3>
+        <table class="tiers"><tr class="tiers__h"><td>Group orders</td><td>Your price</td><td>You save</td></tr>
+        ${p.tiers.map((tr, i) => `<tr class="${i === ti.idx ? 'on' : ti.next && tr === ti.next ? 'next' : ''}"><td>${fq(tr[0], p.unit)}+</td><td>${eur(yourPrice(p, tr[1]))}</td><td>${eur(itemSave(p, tr[1]))}</td></tr>`).join('')}</table>
+        <p class="small" style="margin:.6rem 0 .3rem">Ordered so far: <b>${fq(ti.t, p.unit)}</b>${ti.next ? ` of ${fq(ti.next[0], p.unit)}` : ''}</p>
         <div class="bar${ti.unlocked ? '' : ' bar--save'}"><i style="width:${ti.pct}%"></i></div>
-        ${ti.next && !p.excluded ? `<p class="small" style="margin:.4rem 0 0">We need <b>${fq(ti.need, p.unit)}</b> more to unlock <b>${eur(ti.next[1])}${per(p)}</b>.</p>
-        <button class="btn btn--block" style="margin-top:.6rem" data-act="share-product" data-id="${p.id}" ${locked() ? 'disabled' : ''}>Help unlock lower price</button>` : ''}
-      </div>
+        ${ti.next ? `<button class="btn btn--block" style="margin-top:.7rem" data-act="share-product" data-id="${p.id}" ${locked() ? 'disabled' : ''}>Invite classmates · save ${eur(itemSave(p, ti.next[1]) - itemSave(p, ti.price))} more</button>` : ''}
+      </div>`}
 
       <div class="card">
-        <div class="card__head"><h3>Reviews</h3><button class="linkbtn small" data-act="review" data-id="${p.id}">Write a review</button></div>
-        ${rv.length ? `<ul class="list">${rv.map(r => `<li><span class="stars small">${stars(r[1])}</span> <b class="small">${esc(r[0])}</b><p class="small" style="margin:.15rem 0 0">“${esc(r[2])}”</p></li>`).join('')}</ul>` : '<p class="small mute">No written reviews yet.</p>'}
+        <div class="card__head"><h3>Reviews</h3><button class="linkbtn small" data-act="review" data-id="${p.id}">Write one</button></div>
+        ${rv.length ? `<ul class="list">${rv.slice(-2).map(r => `<li><span class="stars small">${stars(r[1])}</span> <b class="small">${esc(r[0])}</b><p class="small" style="margin:.15rem 0 0">“${esc(r[2])}”</p></li>`).join('')}</ul>` : '<p class="small mute">No reviews yet.</p>'}
       </div>
 
-      <div class="card">
-        <h3>Information</h3>
-        <table class="kv small">
+      <details class="card more">
+        <summary>Product details</summary>
+        <table class="kv small" style="margin-top:.5rem">
           <tr><td>Ingredients</td><td>${esc(p.ingredients)}</td></tr>
-          <tr><td>Nutrition</td><td>${esc(p.nutrition)}</td></tr>
           <tr><td>Allergens</td><td>${esc(p.allergens)}</td></tr>
-          <tr><td>Country of origin</td><td>${esc(p.origin)}</td></tr>
+          <tr><td>Nutrition</td><td>${esc(p.nutrition)}</td></tr>
+          <tr><td>Origin</td><td>${esc(p.origin)}</td></tr>
           <tr><td>Storage</td><td>${esc(p.storage)}</td></tr>
           <tr><td>Shelf life</td><td>${esc(p.shelf)}</td></tr>
-          <tr><td>Supplier</td><td>Demo Wholesale Partner</td></tr>
-          <tr><td>You receive</td><td>1 × sealed ${esc(p.size)} per item, unopened</td></tr>
-          <tr><td>Wholesale unit</td><td>${esc(p.supplierPack)}</td></tr>
-          <tr><td>Base price (comparison)</td><td>${p.kg ? eur(ti.price / p.kg) + '/kg or L' : '—'}</td></tr>
-          <tr><td>Availability</td><td>${p.excluded ? 'Not in pilot' : 'Available (demo)'}</td></tr>
-          <tr><td>Collection</td><td>${esc(cycle.distDay)}</td></tr>
+          <tr><td>Base price</td><td>${p.kg ? eur(yp / p.kg) + ' per kg/L' : '—'}</td></tr>
         </table>
-      </div>`;
+        <p class="tiny mute" style="margin:.4rem 0 0">Handed over sealed, exactly as supplied. Never opened or re-portioned.</p>
+      </details>`;
   }
 
   /* ── orders ──────────────────────────────────────────── */
-  function economics(t) {
-    return `<table class="kv">
-      <tr><td>Normal estimated price <span class="tiny mute">(reference basket)</span></td><td>${eur(t.ref)}</td></tr>
-      <tr><td>Bulk purchasing saving</td><td class="ok">−${eur(t.gross)}</td></tr>
-      <tr><td>Großry service contribution <span class="tiny mute">(20% of saving)</span></td><td>+${eur(t.fee)}</td></tr>
-      <tr><td>Collection / handling</td><td>${eur(0)}</td></tr>
-      ${t.credit ? `<tr><td>Großry credit</td><td class="ok">−${eur(t.credit)}</td></tr>` : ''}
-      <tr class="total"><td>You pay</td><td>${eur(t.pay)}</td></tr>
-      <tr class="hl"><td>Your net saving</td><td>${eur(t.net)}</td></tr>
-    </table>`;
-  }
-  function ledger(t) {
-    return `<div class="card">
-      <h3>Savings ledger</h3>
-      <p class="small" style="margin-bottom:.2rem">You saved <b class="save">${eur(t.gross)}</b> before Großry's share. Here's where it comes from:</p>
+  function breakdown(t) {
+    return `<details class="card more">
+      <summary>How your saving is calculated</summary>
+      <table class="kv" style="margin-top:.5rem">
+        <tr><td>Supermarket price</td><td>${eur(t.ref)}</td></tr>
+        <tr><td>Bulk saving</td><td class="ok">−${eur(t.gross)}</td></tr>
+        <tr><td>Großry fee (20% of the saving)</td><td>+${eur(t.fee)}</td></tr>
+        ${t.credit ? `<tr><td>Großry credit</td><td class="ok">−${eur(t.credit)}</td></tr>` : ''}
+        <tr class="total"><td>You pay</td><td>${eur(t.pay)}</td></tr>
+        <tr class="hl"><td>You save</td><td>${eur(t.net)}</td></tr>
+      </table>
+      <p class="small" style="margin:.7rem 0 .2rem"><b>Where the bulk saving comes from</b></p>
       <ul class="ledger">${LEDGER.map(([k, f]) => `<li><span>${k}</span><b>${eur(t.gross * f)}</b><span class="bar bar--save"><i style="width:${f * 100}%"></i></span></li>`).join('')}</ul>
-      <p class="tiny mute" style="margin:.3rem 0 0"><b>Savings = reference retail basket price − actual Großry landed cost.</b> The split above is a modelled breakdown for the prototype.</p>
-    </div>`;
+      <p class="tiny mute" style="margin:.3rem 0 0">Supermarket price = average shelf price across a defined retail basket.</p>
+    </details>`;
   }
   function lineRow(l) {
-    const p = l.p;
-    const status = l.dropped ? '<span class="badge badge--warn">Not unlocked: refunded</span>'
-      : S.stage >= 2 ? '<span class="badge badge--ok">Purchased</span>'
-        : !l.ti.unlocked ? '<span class="badge badge--save">Estimate: not unlocked yet</span>' : '';
+    const p = l.p, net = l.gross * (1 - FEE);
+    const tag = l.dropped ? '<span class="badge badge--warn">Refunded</span>' : !l.ti.unlocked ? '<span class="badge">Not unlocked yet</span>' : `<span class="save tiny">save ${eur(net)}</span>`;
     return `<li style="display:grid;grid-template-columns:36px 1fr auto;gap:.6rem;align-items:center">
       <span class="pimg" style="width:36px;height:36px;font-size:1.2rem" aria-hidden="true">${p.icon}</span>
-      <span><button class="linkbtn" style="text-decoration:none;color:var(--ink)" data-act="product" data-id="${p.id}">${esc(p.name)}</button><br><span class="tiny mute">${fq(l.q, p.unit)} × ${eur(l.ti.price)} · <span class="strike">${eur(l.ref)}</span> ${eur(l.landed)}</span> ${status}</span>
-      ${locked() ? `<b class="small${l.dropped ? ' strike' : ''}">${eur(l.landed)}</b>` : stepper(p)}
+      <span><button class="linkbtn" style="text-decoration:none;color:var(--ink)" data-act="product" data-id="${p.id}">${esc(p.name)}</button><br><span class="tiny mute">${l.n} × ${eur(yourPrice(p, l.ti.price))}</span> ${tag}</span>
+      ${locked() ? `<b class="small${l.dropped ? ' strike' : ''}">${eur(l.landed + l.gross * FEE)}</b>` : stepper(p)}
     </li>`;
   }
   function screenOrders() {
     const L = lines(), t = totals();
-    const past = `<div class="card"><h3>Past orders</h3><ul class="list">${D.history.map(h => `<li style="display:flex;justify-content:space-between;gap:.5rem"><span>${h.month}<br><span class="tiny mute">${h.items} items · ${eur(h.paid)}</span></span><span class="save small">saved ${eur(h.saved)}</span></li>`).join('')}</ul></div>`;
+    const past = `<div class="card"><div class="card__head"><h3>Past orders</h3><span class="small">total saved <b class="save">${eur(pastSaved())}</b></span></div><ul class="list">${D.history.map(h => `<li style="display:flex;justify-content:space-between;gap:.5rem"><span>${h.month}<br><span class="tiny mute">paid ${eur(h.paid)}</span></span><b class="save small">saved ${eur(h.saved)}</b></li>`).join('')}</ul></div>`;
 
     if (!L.length) {
       return `<div class="card" style="text-align:center"><p style="font-size:2rem;margin:0">🧺</p><h3>Your ${cycle.month} basket is empty</h3>
-        <p class="small mute">${locked() ? `Ordering for ${cycle.month} is closed. ${cycle.next} opens on the 1st.` : `Add your expected monthly groceries before 10 ${cycle.mon}, 23:59.`}</p>
-        ${locked() ? '' : '<button class="btn" data-act="tab" data-tab="shop">Browse products</button>'}</div>${past}`;
+        <p class="small mute">${locked() ? `${cycle.next} opens on the 1st.` : `Order by 10 ${cycle.mon} and save around 20%.`}</p>
+        ${locked() ? '' : '<button class="btn" data-act="tab" data-tab="shop">Start shopping</button>'}</div>${past}`;
     }
 
     if (!locked()) {
-      return `<div class="card">
-          <div class="card__head"><h3>Your ${cycle.month} basket</h3>${S.submitted ? '<span class="badge badge--ok">Submitted</span>' : '<span class="badge">Draft</span>'}</div>
+      return `${savingsHero(t, S.submitted ? 'Your order saves' : 'This basket saves')}
+        <div class="card">
+          <div class="card__head"><h3>Your ${cycle.month} basket</h3>${S.submitted ? '<span class="badge badge--ok">Submitted</span>' : ''}</div>
           <ul class="list">${L.map(lineRow).join('')}</ul>
         </div>
-        <div class="card">${economics(t)}
-          <p class="tiny mute" style="margin:.5rem 0 0">Reference = average shelf price for comparable products across a defined retail basket. Prices are estimates until the order closes.</p></div>
-        ${ledger(t)}
-        <div class="card">
-          <label class="toggle"><span>Allow substitutions<br><span class="tiny mute">If an item is unavailable, accept a comparable product at the same or lower price.</span></span><input type="checkbox" data-change="subs" ${S.subs ? 'checked' : ''}></label>
-          ${S.credits ? `<p class="small" style="margin:.5rem 0 0">Credit available: <b>${eur(S.credits)}</b> (applied automatically).</p>` : ''}
-        </div>
-        <div class="card card--info small">
-          <b>Demand lock:</b> you can change or cancel until <b>10 ${cycle.mon}, 23:59</b>. After that the order is committed to the supplier and can't be cancelled. Items that don't reach their bulk minimum are refunded${S.subs ? ' or substituted' : ''}.
-        </div>
+        ${breakdown(t)}
+        <div class="card"><label class="toggle"><span>Allow substitutions if something is unavailable</span><input type="checkbox" data-change="subs" ${S.subs ? 'checked' : ''}></label></div>
         ${S.submitted
-          ? `<div class="btnrow"><button class="btn btn--warn" data-act="cancel-order">Cancel order</button></div><p class="tiny mute" style="text-align:center;margin-top:.5rem">Changes to quantities are saved to your submitted order automatically.</p>`
-          : `<button class="btn btn--block" data-act="submit-order">Submit order · ${eur(t.pay)}</button><p class="tiny mute" style="text-align:center;margin-top:.5rem">Prototype: no payment is taken.</p>`}
+          ? `<p class="small mute" style="text-align:center">You can change or cancel until 10 ${cycle.mon}, 23:59.</p><button class="btn btn--warn btn--block" data-act="cancel-order">Cancel order</button>`
+          : `<button class="btn btn--block" data-act="submit-order">Submit · pay ${eur(t.pay)}, save ${eur(t.net)}</button><p class="tiny mute" style="text-align:center;margin-top:.4rem">Editable until 10 ${cycle.mon}, 23:59. Prototype: no payment is taken.</p>`}
         <div style="height:.8rem"></div>${past}`;
     }
 
     if (!S.submitted) {
-      return `<div class="card card--info"><h3>Basket not submitted</h3><p class="small" style="margin:0">Ordering for ${cycle.month} closed before you submitted. Your basket rolls over to ${cycle.next}.</p></div>${past}`;
+      return `<div class="card card--info"><h3>Basket not submitted</h3><p class="small" style="margin:0">It rolls over to ${cycle.next}.</p></div>${past}`;
     }
 
-    // Locked and submitted: tracking + collection
-    const track = [
-      ['Order submitted', true],
-      ['Bulk targets aggregated', S.stage >= 1],
-      ['Purchased', S.stage >= 2],
-      ['Arrived at campus', S.stage >= 3],
-      ['Sorted', S.stage >= 4],
-      ['Waiting for collection', S.stage >= 5 && !S.noShow],
-      ['Collected', S.collected]
-    ];
-    const nowIdx = track.findIndex(x => !x[1]);
+    const track = ['Submitted', 'Locked', 'Purchased', 'On campus', 'Sorted', 'Ready', 'Collected'];
+    const at = S.collected ? 6 : Math.min(S.stage, 5);
     const dropped = L.filter(l => l.dropped);
     const wgN = S.wg && S.wg.consolidated ? S.wg.members.length : 0;
 
-    return `<div class="card card--info small"><b>🔒 Your order is now locked.</b> It has been committed to procurement.</div>
+    if (S.collected) {
+      return `<div class="card hero-save" style="text-align:center">
+          <p style="font-size:2rem;margin:0">🎉</p>
+          <span class="eyebrow">You saved this month</span>
+          <div class="big save">${eur(t.net)}</div>
+          <p class="small" style="margin:.3rem 0 0">That makes <b>${eur(pastSaved() + t.net)}</b> saved with Großry so far.</p>
+        </div>
+        ${rateCard()}
+        ${breakdown(t)}
+        ${S.stage >= 5 ? '<button class="btn btn--ghost btn--block" data-act="problem">Report a problem</button><div style="height:.8rem"></div>' : ''}
+        ${past}`;
+    }
+
+    return `${savingsHero(t, S.stage >= 2 ? 'Confirmed saving' : 'Your order saves')}
       <div class="card">
-        <div class="card__head"><h3>Order ${S.code}</h3><span class="badge badge--ok">${eur(t.pay)}</span></div>
-        <ul class="tl">${track.map((x, i) => `<li class="${x[1] ? 'done' : i === nowIdx ? 'now' : ''}"><i></i><b>${x[0]}</b></li>`).join('')}</ul>
+        <div class="card__head"><h3>Order ${S.code}</h3><span class="badge badge--save">${track[at]}</span></div>
+        ${hstep(at)}
+        <p class="tiny mute" style="margin:.4rem 0 0">🔒 Locked and committed to the supplier.</p>
       </div>
 
-      ${S.noShow ? `<div class="card card--warn small"><b>Not collected.</b> Your order is held at the campus pickup point for 48 h (demo rule). After that it is donated, without a refund.</div>` : ''}
-
-      ${S.collected ? rateCard() : `<div class="card">
-        <h3>Your collection</h3>
+      ${S.noShow ? `<div class="card card--warn small"><b>Not collected.</b> Held at the pickup point for 48 h.</div>` : `<div class="card">
+        <h3>Pick-up</h3>
         <div class="collect">
           <div class="qr">${qrSvg(S.code)}</div>
           <div class="small">
             <b style="font-size:1rem">${esc(cycle.distDay)}</b><br>
-            📍 ${esc(S.user ? UNI[S.user.uni].name + ', ' + S.user.campus : 'Campus')}, Building X foyer<br>
-            Slot: <b>${SLOT_TIMES[S.slot]}</b>${S.priority ? ' <span class="badge badge--ok">Priority</span>' : ''}<br>
-            Order: <b class="mono">${S.code}</b>
-            ${wgN ? `<br><span class="badge badge--info">WG pickup for ${wgN + 1}</span>` : ''}
+            Slot <b>${SLOT_TIMES[S.slot]}</b>${S.priority ? ' <span class="badge badge--ok">Priority</span>' : ''}<br>
+            📍 Building X foyer<br>
+            <span class="mono">${S.code}</span>${wgN ? `<br><span class="badge badge--info">WG pickup for ${wgN + 1}</span>` : ''}
           </div>
         </div>
-        <p class="small" style="margin:.7rem 0 0">Please arrive within your assigned slot. The distributor scans this code at handover.</p>
-        <p class="tiny mute" style="margin:.2rem 0 0">Illustrative code, not a real scannable QR.</p>
         <div class="btnrow">
           ${S.stage < 5 ? '<button class="btn btn--ghost btn--sm" data-act="change-slot">Change slot</button>' : ''}
-          ${S.stage === 5 ? '<button class="btn btn--sm" data-act="self-handover">Simulate: show QR to distributor</button>' : ''}
+          ${S.stage === 5 ? '<button class="btn btn--sm" data-act="self-handover">Simulate: show QR at pickup</button>' : ''}
         </div>
       </div>`}
 
-      <div class="card">
-        <h3>Items</h3>
-        <ul class="list">${L.map(lineRow).join('')}</ul>
-        ${dropped.length ? `<p class="small" style="margin:.4rem 0 0">${dropped.length} item${dropped.length > 1 ? 's' : ''} didn't reach the bulk minimum and ${dropped.length > 1 ? 'are' : 'is'} refunded${S.subs ? ' (no comparable substitute in stock)' : ''}.</p>` : ''}
-      </div>
-      <div class="card">${economics(t)}</div>
-      ${ledger(t)}
-      ${S.stage >= 5 ? '<button class="btn btn--ghost btn--block" data-act="problem">Report a problem with this order</button><div style="height:.8rem"></div>' : ''}
+      <details class="card more">
+        <summary>Items (${L.length})${dropped.length ? ` · ${dropped.length} refunded` : ''}</summary>
+        <ul class="list" style="margin-top:.4rem">${L.map(lineRow).join('')}</ul>
+      </details>
+      ${breakdown(t)}
+      ${S.stage >= 5 ? '<button class="btn btn--ghost btn--block" data-act="problem">Report a problem</button><div style="height:.8rem"></div>' : ''}
       ${past}`;
   }
   function rateCard() {
-    if (S.rated) return `<div class="card card--save"><h3>✅ Collected. Thank you!</h3><p class="small" style="margin:0">You rated the crew ${S.rated.avg.toFixed(1)}★. +20 points for collecting on time.</p></div>`;
-    const crit = ['On time', 'Complete', 'Friendly / professional', 'Correct distribution', 'Product handling'];
-    return `<div class="card card--save">
-      <h3>✅ Order ${S.code} delivered</h3>
-      <p class="small">Status changed: Prepared → Collected. How was the distribution crew?</p>
-      ${crit.map((c, i) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.2rem 0" class="small"><span>${c}</span><span class="starpick" role="radiogroup" aria-label="${c}">${[1, 2, 3, 4, 5].map(v => `<button data-act="star" data-k="${i}" data-v="${v}" class="${(ui.rate[i] || 0) >= v ? 'on' : ''}" aria-label="${v} stars">★</button>`).join('')}</span></div>`).join('')}
-      <button class="btn btn--block" style="margin-top:.6rem" data-act="submit-rating">Submit rating</button>
+    if (S.rated) return `<div class="card small">Thanks for rating the crew ${S.rated.avg.toFixed(1)}★.</div>`;
+    return `<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
+      <b class="small">Rate the pick-up</b>
+      <span class="starpick" role="radiogroup" aria-label="Rating">${[1, 2, 3, 4, 5].map(v => `<button data-act="star" data-k="0" data-v="${v}" class="${(ui.rate[0] || 0) >= v ? 'on' : ''}" aria-label="${v} stars">★</button>`).join('')}</span>
     </div>`;
   }
 
@@ -718,7 +684,7 @@
       <div class="card">
         <h3>How it works, step by step</h3>
         <ol class="steps">${r.steps.map((st, i) => `<li class="${stepState(st[3])}"><span class="steps__t">${st[0]}</span><span class="steps__n">${i + 1}</span><span><b>${st[1]}</b><small>${st[2]}</small></span></li>`).join('')}</ol>
-        <p class="tiny mute" style="margin:.3rem 0 0"><b>Hygiene rules:</b> packs stay sealed, never opened or re-portioned; no chilled or frozen goods; goods dry and off the floor; damaged packaging is set aside and reported.</p>
+        <p class="tiny mute" style="margin:.3rem 0 0">Packs always stay sealed. No chilled or frozen goods.</p>
       </div>
 
       <div class="card">
@@ -726,14 +692,15 @@
         <div class="paybar">${r.pay.filter(p => p[1]).map((p, i) => `<span style="width:${p[1] / payTotal * 100}%;background:${i ? 'var(--info)' : 'var(--brand)'}"></span>`).join('')}</div>
         <table class="kv small" style="margin-top:.5rem">${r.pay.map(p => `<tr><td>${p[0]}</td><td>${p[1] ? eur(p[1]) : '✓ included'}</td></tr>`).join('')}
           <tr class="total"><td>Total</td><td>${eur(payTotal)}</td></tr></table>
-        <p class="tiny mute" style="margin:.4rem 0 0">${r.payNote} Backups get a <b>€5 reservation credit</b> even if not activated.</p>
+        ${totals().net ? `<p class="savebox">Plus your order saves <b>${eur(totals().net)}</b> → <b>${eur(totals().net + payTotal)}</b> better off this month.</p>` : ''}
+        <p class="tiny mute" style="margin:.4rem 0 0">${r.payNote} Backups get €5 even if not needed.</p>
       </div>
 
       <div class="card">
         <h3>Crew for ${cycle.month}</h3>
         <div class="crew">${SEATS.map(seat).join('')}</div>
         ${R[k] && S.stage >= 1 && S.stage <= 4 ? `<button class="linkbtn small" style="margin-top:.6rem" data-act="runner-cancel" data-role="${k}">Simulate: ${r.title.toLowerCase()} cancels</button>` : ''}
-        <p class="tiny mute" style="margin:.5rem 0 0">One job per student per cycle. Every job has a backup who takes over automatically, so no single student is a point of failure. Volunteering, not employment.</p>
+        <p class="tiny mute" style="margin:.5rem 0 0">One job per student. Every job has a backup who steps in automatically.</p>
       </div>
 
       ${k === 'dist' ? `<div class="card">
@@ -744,8 +711,6 @@
           <li><b>15:30</b> Set up: tables, queue line, zone signs A–D.</li>
           <li><b>16:00</b> Doors open. Each slot admits max ${SLOT_CAP} people; slots are assigned automatically.</li>
           <li><b>Every handover</b> Scan QR → read zone colour → fetch crate → student checks it → confirm.</li>
-          <li><b>Late arrivals</b> Serve at the end of their zone's block, never ahead of on-time students.</li>
-          <li><b>Problems</b> Missing or damaged item: log it in the app, the student is refunded automatically.</li>
           <li><b>19:00</b> Close. Unclaimed crates go back to X.0.12 and are held 48 h.</li>
         </ul>
       </div>` : ''}
@@ -755,15 +720,7 @@
       ${S.stage < 5 && k === 'dist' ? `<p class="small mute">The live scanning dashboard opens on distribution day. Press <b>Advance ▶</b> to get there.</p>` : ''}
       ${doneMsg}
 
-      <div class="card">
-        <h3>Your crew reputation</h3>
-        <div class="grid2">
-          <div class="stat"><b>${R.runs}</b><span>completed jobs</span></div>
-          <div class="stat"><b>${R.rating ? R.rating.toFixed(1) + ' ★' : '—'}</b><span>average rating</span></div>
-        </div>
-        <p class="small" style="margin:.6rem 0 0">${R.runs >= 3 ? '<span class="badge badge--ok">🏅 Trusted crew member</span>' : `<b>Trusted crew member</b> badge after 3 completed jobs (${R.runs}/3).`}</p>
-        <p class="tiny mute" style="margin:.4rem 0 0">Students rate: on time, complete, friendly, correct distribution and product handling.</p>
-      </div>`;
+      <p class="tiny mute" style="text-align:center">${R.runs >= 3 ? '🏅 Trusted crew member' : `Completed jobs: ${R.runs} · Trusted badge after 3`}${R.rating ? ` · ${R.rating.toFixed(1)} ★` : ''}</p>`;
   }
 
   /* ── this month's bulk order (student view) ──────────── */
@@ -1041,7 +998,7 @@
     const fab = $('#fab'); if (fab) fab.remove();
     if ((cur.name === 'shop' || cur.name === 'product') && count && !locked()) {
       const t = totals();
-      $('#phone').insertAdjacentHTML('beforeend', `<button class="fab" id="fab" data-act="tab" data-tab="orders">🧺 Basket · ${eur(t.pay)} <span style="opacity:.8;font-weight:500">save ${eur(t.net)}</span></button>`);
+      $('#phone').insertAdjacentHTML('beforeend', `<button class="fab" id="fab" data-act="tab" data-tab="orders">🧺 ${eur(t.pay)} · <span class="fab__save">you save ${eur(t.net)}</span></button>`);
     }
   }
 
@@ -1120,7 +1077,9 @@
       const before = tierInfo(P[id]).idx;
       if (n) S.cart[id] = n; else delete S.cart[id];
       const after = tierInfo(P[id]).idx;
-      if (after > before) toast(`🎉 New price tier unlocked: ${eur(P[id].tiers[after][1])}${per(P[id])}`);
+      const p = P[id], ti = tierInfo(p);
+      if (after > before) toast(`🎉 Price dropped for everyone: you now save ${eur(itemSave(p, ti.price))} per ${p.unit}`);
+      else if (Number(el.dataset.d) > 0 && ti.unlocked) toast(`+1 ${p.unit} · you save ${eur(itemSave(p, ti.price))} on it`);
       if (!Object.keys(S.cart).length && S.submitted) { S.submitted = false; toast('Basket empty: order withdrawn.'); }
       save(); render();
     },
@@ -1128,16 +1087,14 @@
       const p = P[el.dataset.id], ti = tierInfo(p);
       share(ti.next ? `We need ${fq(ti.need, p.unit)} more ${p.name.toLowerCase()} to unlock ${eur(ti.next[1])}${per(p)} on Großry. Join this month's student order!` : `Join this month's Großry student grocery order!`);
     },
-    'submit-order'() { S.submitted = true; save(); render(); toast(`Order submitted. You can change it until 10 ${cycle.mon}, 23:59.`); },
+    'submit-order'() { S.submitted = true; save(); render(); toast(`Submitted! You save ${eur(totals().net)} this month.`); },
     'cancel-order'() { if (confirm('Cancel your submitted order? Your basket stays as a draft.')) { S.submitted = false; save(); render(); toast('Order cancelled. Nothing will be bought for you.'); } },
     'change-slot': slotSheet,
     'pick-slot'(el) { S.slot = Number(el.dataset.i); save(); closeSheet(); render(); toast(`Collection slot changed to ${SLOT_TIMES[S.slot]}.`); },
-    'self-handover'() { S.collected = true; addPoints('Collected on time', 20); save(); render(); toast(`Order ${S.code} delivered. Status: Prepared → Collected.`); },
-    star(el) { ui.rate[el.dataset.k] = Number(el.dataset.v); render(); },
+    'self-handover'() { S.collected = true; addPoints('Collected on time', 20); save(); render(); $('#screen').scrollTop = 0; },
+    star(el) { ui.rate[0] = Number(el.dataset.v); ACT['submit-rating'](); },
     'submit-rating'() {
-      const v = [0, 1, 2, 3, 4].map(i => ui.rate[i] || 0);
-      if (v.some(x => !x)) { toast('Please rate all five points.'); return; }
-      S.rated = { scores: v, avg: v.reduce((a, b) => a + b, 0) / 5 }; addPoints('Rated the crew', 5); save(); render();
+      S.rated = { avg: ui.rate[0] }; addPoints('Rated the crew', 5); save(); render();
     },
     problem() {
       const L = lines().filter(l => !l.dropped);
