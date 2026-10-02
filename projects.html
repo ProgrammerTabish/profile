@@ -297,7 +297,7 @@
   <article class="feature__item" id="proj-grossry" style="margin-top:2.4rem;">
     <h3>Großry: a student collective purchasing app</h3>
     <p class="feature__meta">University project · Clickable prototype · HTML, CSS, vanilla JavaScript</p>
-    <p class="feature__sub">Get wholesale prices without having to buy wholesale quantities. Students enter their expected monthly groceries, Großry pools the demand to unlock bulk price tiers, buys once, and a student Order Runner brings the order to campus for slot-based QR pickup.</p>
+    <p class="feature__sub">Get wholesale prices without having to buy wholesale quantities. Students enter their expected monthly groceries, Großry pools the demand to unlock bulk price tiers, buys once, and a student crew (a Runner who drives, a Distributor who hands out) brings it to campus for slot-based QR pickup.</p>
 
     <div class="case">
       <div class="case__block">
@@ -306,7 +306,7 @@
       </div>
       <div class="case__block">
         <span class="case__label">What the prototype shows</span>
-        <p>The whole monthly cycle, clickable end to end: verified sign-up, a shop where every product shows its bulk-price progress bar, a transparent cost breakdown, demand lock at the cutoff, an Order Runner flow with a backup runner, automatic pickup slots, QR handover, and an admin dashboard.</p>
+        <p>The whole monthly cycle, clickable end to end: verified sign-up, a shop where every product shows its bulk-price progress bar, a transparent cost breakdown, demand lock at the cutoff, Runner and Distributor jobs with backups, automatic pickup slots, QR handover, a view of the month's complete bulk order, and an admin dashboard.</p>
       </div>
 
       <div class="case__block case__block--wide">
@@ -318,7 +318,7 @@
           <span class="flow__arrow" aria-hidden="true">→</span>
           <div class="flow__node"><b>Bulk procurement</b><span>one supplier order</span></div>
           <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Order Runner</b><span>primary + backup</span></div>
+          <div class="flow__node"><b>Runner + Distributor</b><span>each with a backup</span></div>
           <span class="flow__arrow" aria-hidden="true">→</span>
           <div class="flow__node"><b>Slot + QR pickup</b><span>12 people / 15 min</span></div>
         </div>
@@ -328,7 +328,7 @@
         <span class="case__label">Key decisions</span>
         <ul>
           <li><b>Savings defined, not asserted.</b> Saving = reference retail basket price − actual landed cost. Großry takes 20% of that verified saving, and the cart shows every line of it.</li>
-          <li><b>No single point of failure.</b> Every run has a backup runner who is paid a small reservation credit and takes over automatically if the primary cancels.</li>
+          <li><b>No single point of failure.</b> Every crew job has a backup who is paid a small reservation credit and takes over automatically if the primary cancels.</li>
           <li><b>Aggregated insights, not data selling.</b> The admin view previews exactly what a partner would see: totals only, with any product bought by fewer than 10 students suppressed.</li>
         </ul>
       </div>
@@ -336,7 +336,7 @@
         <span class="case__label">Constraints taken seriously</span>
         <ul>
           <li>GDPR data minimisation: no photo required, data export and deletion in the profile.</li>
-          <li>Food hygiene: chilled and frozen goods stay out of student-run distribution, and splitting sacks into portions is never done by runners.</li>
+          <li>Food hygiene: everything is handed out sealed, as supplied (nothing is opened or re-portioned), and chilled and frozen goods stay out of student-run distribution.</li>
           <li>Terms and Privacy ship as clearly marked drafts, not as legal text.</li>
         </ul>
       </div>

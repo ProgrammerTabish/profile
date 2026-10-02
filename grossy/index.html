@@ -58,20 +58,22 @@
         <li><b>Shop</b>: open a product, watch the bulk-price progress bar move as you add packs.</li>
         <li><b>Orders</b>: check the cost breakdown and savings ledger, then submit.</li>
         <li>Press <b>Advance ▶</b> above to move through the monthly cycle: demand lock, procurement, arrival, sorting, distribution.</li>
-        <li><b>Run</b>: volunteer as Order Runner or backup, then scan handovers on distribution day.</li>
+        <li><b>Home</b>: open <i>This month's complete bulk order</i> to see what the whole university is buying.</li>
+        <li><b>Run</b>: pick a crew job, Runner (pick up &amp; drive) or Distributor (sort &amp; hand out), or be a backup. On distribution day, scan handovers.</li>
         <li>Switch to <b>Admin</b> for procurement, inventory, finance and the anonymised insights preview.</li>
       </ol>
 
       <h2>The model</h2>
       <div class="flowline">
-        <span>Student demand</span><i>→</i><span>Aggregation</span><i>→</i><span>Bulk threshold</span><i>→</i><span>Procurement</span><i>→</i><span>Order Runner</span><i>→</i><span>Sorting</span><i>→</i><span>Slot allocation</span><i>→</i><span>QR handover</span><i>→</i><span>Transparent savings</span>
+        <span>Student demand</span><i>→</i><span>Aggregation</span><i>→</i><span>Bulk threshold</span><i>→</i><span>Procurement</span><i>→</i><span>Runner</span><i>→</i><span>Distributor</span><i>→</i><span>Slot allocation</span><i>→</i><span>QR handover</span><i>→</i><span>Transparent savings</span>
       </div>
 
       <h2>Design principles</h2>
       <ul>
         <li>Savings are measured against a stated reference basket, never an arbitrary price.</li>
         <li>Großry takes 20% of the <i>verified</i> saving, and the cart shows it.</li>
-        <li>No single point of failure: every run has a backup runner.</li>
+        <li>No single point of failure: every crew job has a backup.</li>
+        <li>Everything is sold and handed out sealed, as supplied. Nothing is opened, weighed or re-portioned.</li>
         <li>Data minimisation: no photo needed, no individual data sold. Only aggregated, thresholded statistics.</li>
         <li>Chilled and frozen goods stay out of student-run distribution until food-hygiene handling is reviewed.</li>
       </ul>

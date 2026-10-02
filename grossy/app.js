@@ -6,7 +6,7 @@
   const D = window.GR_DATA;
   const P = Object.fromEntries(D.products.map(p => [p.id, p]));
   const UNI = Object.fromEntries(D.universities.map(u => [u.id, u]));
-  const KEY = 'grossry.proto.v1';
+  const KEY = 'grossry.proto.v2';
   const FEE = 0.20;                 // Großry takes 20% of the verified saving
   const LOGISTICS = 0.08;           // share of the landed price that is transport + handling
   const SLOT_CAP = 12;              // max people per 15-minute slot
@@ -34,7 +34,8 @@
     const dist = new Date(d.getFullYear(), d.getMonth(), 16);
     const next = new Date(d.getFullYear(), d.getMonth() + 1, 1).toLocaleString('en-GB', { month: 'long' });
     const daysLeft = Math.max(0, Math.ceil((new Date(d.getFullYear(), d.getMonth(), 10, 23, 59) - today) / 864e5));
-    return { month, mon, year: d.getFullYear(), next, daysLeft, distDay: dist.toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) };
+    const day = n => new Date(d.getFullYear(), d.getMonth(), n).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    return { day, month, mon, year: d.getFullYear(), next, daysLeft, distDay: dist.toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) };
   })();
   const STAGES = [
     { label: 'Shopping open', when: `1–10 ${cycle.mon}`, text: 'Shopping opens' },
@@ -48,17 +49,17 @@
 
   /* ── state ───────────────────────────────────────────── */
   const fresh = () => ({
-    v: 1, view: 'app', tab: 'home', user: null,
+    v: 2, view: 'app', tab: 'home', user: null,
     cart: {}, submitted: false, stage: 0, subs: true, slot: null, priority: false,
     code: 'GR-' + (1000 + Math.floor(Math.random() * 9000)),
     collected: false, noShow: false, rated: null, creditUsed: 0, paidAtLock: null,
     credits: 0, points: 120, pointsLog: [['Welcome bonus', 120]], redeemed: [],
-    runner: { primary: null, backup: null, handed: 0, issues: 0, done: false, runs: 0, rating: null, notes: [] },
+    runner: { runner: null, runnerBackup: null, dist: null, distBackup: null, handed: 0, issues: 0, done: {}, runs: 0, rating: null },
     votes: {}, myRequests: [], posts: [], replies: {}, myReviews: {}, problems: [],
     wg: null, notif: { order: true, runner: true, community: false }, insights: true, invites: 0
   });
   const store = {
-    get() { try { const s = JSON.parse(localStorage.getItem(KEY)); return s && s.v === 1 ? Object.assign(fresh(), s) : null; } catch (e) { return null; } },
+    get() { try { const s = JSON.parse(localStorage.getItem(KEY)); return s && s.v === 2 ? Object.assign(fresh(), s) : null; } catch (e) { return null; } },
     set(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { /* storage unavailable: demo still works for this visit */ } },
     clear() { try { localStorage.removeItem(KEY); } catch (e) {} }
   };
@@ -66,7 +67,7 @@
   const save = () => store.set(S);
 
   // Transient UI state (not persisted)
-  const ui = { stack: [], shopCat: 'All', q: '', comm: 'requests', forumCat: 'All', ob: { step: 'welcome' }, preview: false, photo: null, rate: {} };
+  const ui = { stack: [], shopCat: 'All', q: '', comm: 'requests', forumCat: 'All', ob: { step: 'welcome' }, preview: false, photo: null, rate: {}, role: 'runner' };
 
   /* ── helpers ─────────────────────────────────────────── */
   const $ = (s, r = document) => r.querySelector(s);
@@ -74,14 +75,12 @@
   const eur = n => '€' + (Math.round(n * 100) / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const eur0 = n => '€' + Math.round(n).toLocaleString('en-GB');
   const num = n => Math.round(n).toLocaleString('en-GB');
-  const PLURAL = { can: 'cans', jar: 'jars', pack: 'packs', bag: 'bags', bottle: 'bottles' };
+  const PLURAL = { can: 'cans', jar: 'jars', pack: 'packs', bag: 'bags', bottle: 'bottles', sack: 'sacks', tray: 'trays', carton: 'cartons' };
   const fq = (q, u) => { const v = +(+q).toFixed(1); return v + ' ' + (v !== 1 && PLURAL[u] ? PLURAL[u] : u); };
   const per = p => '/' + p.unit;
   const stars = r => '★★★★★'.slice(0, Math.round(r)) + '☆☆☆☆☆'.slice(0, 5 - Math.round(r));
   const first = () => (S.user && S.user.name ? S.user.name.split(' ')[0] : 'there');
   const locked = () => S.stage >= 1;
-  const isRunner = () => S.runner.primary === 'you';
-  const isBackup = () => S.runner.backup === 'you';
 
   function addPoints(label, n) { S.points += n; S.pointsLog.unshift([label, n]); }
 
@@ -117,12 +116,13 @@
     return t;
   }
   function community() {
-    const c = { units: 0, value: 0, gross: 0, lines: 0, sacks: 0 };
+    const c = { units: 0, value: 0, gross: 0, lines: 0, kg: 0 };
     D.products.forEach(p => {
       if (p.excluded) return;
       const ti = tierInfo(p);
       if (!ti.unlocked && locked()) return;
       c.units += ti.t / p.pack;
+      c.kg += ti.t * (p.kg || 1);
       c.value += ti.t * ti.price;
       c.gross += ti.t * (p.ref - ti.price);
       c.lines += p.students + (S.cart[p.id] ? 1 : 0);
@@ -279,6 +279,17 @@
         <p class="tiny mute" style="margin:.4rem 0 0">After Großry's 20% share of the saving. ${S.stage < 2 ? 'Estimated until procurement.' : 'Confirmed at procurement.'}</p>
       </div>` : `<div class="card"><span class="eyebrow">Savings meter</span><p class="small" style="margin:0">Add products to see your saving against the supermarket reference basket. <button class="linkbtn" data-act="tab" data-tab="shop">Start shopping</button></p></div>`}
 
+      <div class="card">
+        <h3>Cycle timetable</h3>
+        <ul class="tl">${STAGES.map((s, i) => `<li class="${i < S.stage ? 'done' : i === S.stage ? 'now' : ''}"><i></i><b>${s.text}</b><small>${s.when}</small></li>`).join('')}</ul>
+      </div>
+
+      <button class="card" style="display:block;width:100%;text-align:left;cursor:pointer" data-act="sub" data-name="bulk">
+        <span class="eyebrow">This month's complete bulk order</span>
+        <span style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem"><b style="font-size:1.05rem">${num(c.units)} items · ${eur0(c.value)}</b><span class="linkbtn small">See all ›</span></span>
+        <span class="small mute">${D.products.filter(p => !p.excluded && tierInfo(p).unlocked).length} of ${D.products.length} products past their bulk minimum · ${num(c.participants)} students</span>
+      </button>
+
       <div class="card card--save"><span class="eyebrow">Community savings this month</span><div class="big save">${eur0(c.savings)}</div><p class="tiny mute" style="margin:0">Estimated: students' net saving across all orders this cycle.</p></div>
 
       ${nudge && S.stage === 0 ? `<div class="card">
@@ -303,24 +314,10 @@
         <p class="tiny mute" style="margin:.5rem 0 0">Pilot catalogue of ${D.products.length} products. Demo figures.</p>
       </div>
 
-      <div class="card">
-        <h3>Cycle timetable</h3>
-        <ul class="tl">${STAGES.map((s, i) => `<li class="${i < S.stage ? 'done' : i === S.stage ? 'now' : ''}"><i></i><b>${s.text}</b><small>${s.when}</small></li>`).join('')}</ul>
-      </div>
-
-      <div class="card">
-        <h3>Sustainability (estimated)</h3>
-        <div class="grid2">
-          <div class="stat"><b>${num(c.trips)}</b><span>individual supermarket trips avoided</span></div>
-          <div class="stat"><b>1</b><span>consolidated van delivery instead</span></div>
-        </div>
-        <p class="tiny mute" style="margin:.5rem 0 0"><b>Method:</b> assumes each participant replaces 2 bulk-shopping trips a month (to be validated by survey). Packaging saved is not claimed until measured.</p>
-      </div>
-
       <div class="card" style="padding:.2rem .9rem">
         <button class="rowbtn" data-act="sub" data-name="community">Community: requests &amp; forum</button>
         <button class="rowbtn" data-act="sub" data-name="wg">WG mode: order with your flatmates</button>
-        <button class="rowbtn" data-act="tab" data-tab="run">Become an Order Runner</button>
+        <button class="rowbtn" data-act="tab" data-tab="run">Join the crew: Runner or Distributor</button>
         <button class="rowbtn" data-act="points">Großry Points: ${num(S.points)}</button>
       </div>`;
   }
@@ -362,32 +359,6 @@
     return `<span class="stepper"><button data-act="qty" data-id="${p.id}" data-d="-1" aria-label="Remove one ${esc(p.name)}" ${off || !n ? 'disabled' : ''}>−</button><output aria-live="polite">${n}</output><button data-act="qty" data-id="${p.id}" data-d="1" aria-label="Add one ${esc(p.name)}" ${off ? 'disabled' : ''}>+</button></span>`;
   }
 
-  function splitView(p) {
-    // Deterministic other-student portions, packed into sacks in order; you take the first portion of sack 1.
-    const mine = (S.cart[p.id] || 0) * p.pack;
-    const sizes = [2.5, 1, 3, .5, 5, 2, 1.5, 4, 1, 2.5, .5, 3];
-    let left = p.demand, i = 0; const portions = [];
-    if (mine) portions.push({ who: 'You', q: mine, me: true });
-    while (left > 0.001) { const q = Math.min(sizes[i % sizes.length], left); portions.push({ who: 'Student ' + String.fromCharCode(65 + (i % 26)), q }); left -= q; i++; }
-    const sacks = []; let cur = [], fill = 0;
-    portions.forEach(pt => {
-      let q = pt.q;
-      while (q > 0.001) { const take = Math.min(q, p.sack - fill); cur.push({ ...pt, q: take }); fill += take; q -= take; if (fill >= p.sack - 0.001) { sacks.push(cur); cur = []; fill = 0; } }
-    });
-    const partial = cur.length ? { items: cur, fill } : null;
-    const s1 = sacks[0] || (partial && partial.items) || [];
-    const palette = ['var(--brand)', 'var(--save)', 'var(--info)', 'var(--mute)'];
-    return `<div class="card">
-      <h3>Buy together, split automatically</h3>
-      <p class="small mute">The supplier sells ${esc(p.supplierPack)}s. Großry splits each sack across students' portions.</p>
-      <p class="small" style="margin-bottom:.3rem"><b>Sack 1 of ${sacks.length + (partial ? 1 : 0)}</b> (${p.sack} kg)</p>
-      <div style="display:flex;height:18px;border-radius:6px;overflow:hidden;border:1px solid var(--rule)">${s1.map((x, k) => `<span title="${esc(x.who)}: ${+x.q.toFixed(1)} kg" style="width:${x.q / p.sack * 100}%;background:${x.me ? 'var(--brand)' : palette[(k % 3) + 1]};opacity:${x.me ? 1 : .55};border-right:1px solid var(--surface)"></span>`).join('')}</div>
-      <ul class="list small" style="margin-top:.4rem">${s1.slice(0, 6).map(x => `<li style="padding:.25rem 0;display:flex;justify-content:space-between"><span>${x.me ? '<b>You</b>' : esc(x.who)}</span><span>${+x.q.toFixed(1)} kg</span></li>`).join('')}${s1.length > 6 ? `<li class="mute" style="padding:.25rem 0">+ ${s1.length - 6} more portions</li>` : ''}</ul>
-      ${partial ? `<p class="small" style="margin:.4rem 0 0">Last sack: <b>${+partial.fill.toFixed(1)} of ${p.sack} kg</b> claimed. ${+(p.sack - partial.fill).toFixed(1)} kg more fills it; otherwise the remainder is bought at the next smaller pack size.</p>` : ''}
-      <p class="tiny mute" style="margin:.5rem 0 0">Portioning loose food is a food-hygiene activity (LMHV). In the pilot, portions are packed by the supplier or hygiene-trained staff, never by runners.</p>
-    </div>`;
-  }
-
   function screenProduct(id) {
     const p = P[id], ti = tierInfo(p), n = S.cart[id] || 0;
     const rv = (D.reviews[id] || []).concat((S.myReviews[id] || []).map(r => [r.name, r.stars, r.text]));
@@ -398,6 +369,7 @@
         <p class="small" style="margin:0"><span class="stars">${stars(p.rating)}</span> ${p.rating}/5 · ${p.nreviews + (S.myReviews[id] || []).length} reviews</p></div>
       </div>
       ${p.excluded ? `<div class="card card--warn small">${esc(p.excluded)}</div>` : ''}
+      <p class="small" style="margin:-.2rem 0 .8rem"><span class="badge badge--ok">🔒 Sealed</span> Handed over exactly as supplied. Großry never opens, weighs or re-portions packs.</p>
       <div class="card">
         <table class="kv">
           <tr><td>Reference price (retail benchmark)</td><td class="strike">${eur(p.ref)}${per(p)}</td></tr>
@@ -406,7 +378,7 @@
         </table>
         <p class="tiny mute" style="margin:.4rem 0 .6rem">${ti.unlocked ? `${savePct}% below the reference before Großry's 20% share of the saving.` : `Bulk pricing is not unlocked yet. If the minimum isn't reached by 10 ${cycle.mon}, this item is refunded or substituted.`}</p>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem">
-          <span class="small">${n ? `In basket: <b>${fq(n * p.pack, p.unit)}</b> · ${eur(n * p.pack * ti.price)}` : `Step: ${fq(p.pack, p.unit)}`}</span>${stepper(p)}
+          <span class="small">${n ? `In basket: <b>${fq(n * p.pack, p.unit)}</b> · ${eur(n * p.pack * ti.price)}` : `Sold per sealed ${esc(p.size)}`}</span>${stepper(p)}
         </div>
       </div>
 
@@ -418,8 +390,6 @@
         ${ti.next && !p.excluded ? `<p class="small" style="margin:.4rem 0 0">We need <b>${fq(ti.need, p.unit)}</b> more to unlock <b>${eur(ti.next[1])}${per(p)}</b>.</p>
         <button class="btn btn--block" style="margin-top:.6rem" data-act="share-product" data-id="${p.id}" ${locked() ? 'disabled' : ''}>Help unlock lower price</button>` : ''}
       </div>
-
-      ${p.shared && !p.excluded ? splitView(p) : ''}
 
       <div class="card">
         <div class="card__head"><h3>Reviews</h3><button class="linkbtn small" data-act="review" data-id="${p.id}">Write a review</button></div>
@@ -436,7 +406,9 @@
           <tr><td>Storage</td><td>${esc(p.storage)}</td></tr>
           <tr><td>Shelf life</td><td>${esc(p.shelf)}</td></tr>
           <tr><td>Supplier</td><td>Demo Wholesale Partner</td></tr>
-          <tr><td>Supplier packaging</td><td>${esc(p.supplierPack)}</td></tr>
+          <tr><td>You receive</td><td>1 × sealed ${esc(p.size)} per item, unopened</td></tr>
+          <tr><td>Wholesale unit</td><td>${esc(p.supplierPack)}</td></tr>
+          <tr><td>Base price (comparison)</td><td>${p.kg ? eur(ti.price / p.kg) + '/kg or L' : '—'}</td></tr>
           <tr><td>Availability</td><td>${p.excluded ? 'Not in pilot' : 'Available (demo)'}</td></tr>
           <tr><td>Collection</td><td>${esc(cycle.distDay)}</td></tr>
         </table>
@@ -543,11 +515,11 @@
             ${wgN ? `<br><span class="badge badge--info">WG pickup for ${wgN + 1}</span>` : ''}
           </div>
         </div>
-        <p class="small" style="margin:.7rem 0 0">Please arrive within your assigned slot. Your runner scans this code at handover.</p>
+        <p class="small" style="margin:.7rem 0 0">Please arrive within your assigned slot. The distributor scans this code at handover.</p>
         <p class="tiny mute" style="margin:.2rem 0 0">Illustrative code, not a real scannable QR.</p>
         <div class="btnrow">
           ${S.stage < 5 ? '<button class="btn btn--ghost btn--sm" data-act="change-slot">Change slot</button>' : ''}
-          ${S.stage === 5 ? '<button class="btn btn--sm" data-act="self-handover">Simulate: show QR to runner</button>' : ''}
+          ${S.stage === 5 ? '<button class="btn btn--sm" data-act="self-handover">Simulate: show QR to distributor</button>' : ''}
         </div>
       </div>`}
 
@@ -562,18 +534,108 @@
       ${past}`;
   }
   function rateCard() {
-    if (S.rated) return `<div class="card card--save"><h3>✅ Collected. Thank you!</h3><p class="small" style="margin:0">You rated your runner ${S.rated.avg.toFixed(1)}★. +20 points for collecting on time.</p></div>`;
+    if (S.rated) return `<div class="card card--save"><h3>✅ Collected. Thank you!</h3><p class="small" style="margin:0">You rated the crew ${S.rated.avg.toFixed(1)}★. +20 points for collecting on time.</p></div>`;
     const crit = ['On time', 'Complete', 'Friendly / professional', 'Correct distribution', 'Product handling'];
     return `<div class="card card--save">
       <h3>✅ Order ${S.code} delivered</h3>
-      <p class="small">Status changed: Prepared → Collected. How was your Order Runner?</p>
+      <p class="small">Status changed: Prepared → Collected. How was the distribution crew?</p>
       ${crit.map((c, i) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:.2rem 0" class="small"><span>${c}</span><span class="starpick" role="radiogroup" aria-label="${c}">${[1, 2, 3, 4, 5].map(v => `<button data-act="star" data-k="${i}" data-v="${v}" class="${(ui.rate[i] || 0) >= v ? 'on' : ''}" aria-label="${v} stars">★</button>`).join('')}</span></div>`).join('')}
       <button class="btn btn--block" style="margin-top:.6rem" data-act="submit-rating">Submit rating</button>
     </div>`;
   }
 
-  /* ── run ─────────────────────────────────────────────── */
-  function runnerDashboard() {
+  /* ── run (crew: Runner + Distributor) ────────────────── */
+  // Four 45-minute pickup zones; each crate is labelled with its zone colour.
+  const ZONES = [
+    { id: 'A', from: 0, to: 3, color: 'var(--brand)' },
+    { id: 'B', from: 3, to: 6, color: 'var(--save)' },
+    { id: 'C', from: 6, to: 9, color: 'var(--info)' },
+    { id: 'D', from: 9, to: 12, color: '#A855F7' }
+  ];
+  const zoneOf = i => ZONES.find(z => i >= z.from && i < z.to);
+  const SEATS = [['runner', 'Runner'], ['runnerBackup', 'Runner backup'], ['dist', 'Distributor'], ['distBackup', 'Distributor backup']];
+  const FILL = { runner: 'Noah K.', runnerBackup: 'Lina S.', dist: 'Mara P.', distBackup: 'Felix T.' };
+
+  function roleDef(k) {
+    if (k === 'runner') return {
+      key: 'runner', backup: 'runnerBackup', icon: '🚐', title: 'Runner', tag: 'Pick up & drive', payShort: '€20 + fuel',
+      what: 'Collect the consolidated order from the wholesaler and bring it to campus.',
+      where: 'Demo Wholesale Partner → campus loading bay, Building X',
+      when: `${cycle.day(14)}, 09:00–12:30`, hours: '≈ 3.5 hours, one morning',
+      needs: ['Driving licence', 'Car or van (van rental reimbursed)', 'One helper allowed'],
+      pay: [['Grocery credit', 20], ['Fuel: €0.30/km × 42 km', 12.6]], payNote: 'Fuel is reimbursed against a receipt, max €15.',
+      steps: [
+        ['09:00', 'Check in at the pickup desk', 'Show the purchase order in the app at Demo Wholesale Partner.', 'done3'],
+        ['09:15', 'Count cases against the pick list', 'Scan the delivery note. Report anything missing before you leave.', 'done3'],
+        ['09:40', 'Load the vehicle', 'Heavy cases at the bottom, glass jars secured. Nothing is opened.', 'done3'],
+        ['10:15', 'Drive to campus', '≈ 21 km, about 30 minutes.', 'done3'],
+        ['11:00', 'Unload into storage room X.0.12', 'Hand over to the Distributor: you both sign off in the app.', 'done3'],
+        ['12:00', 'Upload the fuel receipt', 'Credit and reimbursement are released after sign-off.', 'done3']
+      ]
+    };
+    return {
+      key: 'dist', backup: 'distBackup', icon: '📦', title: 'Distributor', tag: 'Sort & hand out', payShort: '€15 credit',
+      what: 'Sort the delivery into one crate per order, then hand crates out in 15-minute pickup slots.',
+      where: 'Storage room X.0.12 (sorting) → Building X foyer (handout)',
+      when: `${cycle.day(15)} 16:00–18:00 · ${cycle.day(16)} 15:30–19:30`, hours: '≈ 6 hours over two afternoons',
+      needs: ['Smartphone with the Großry app (QR scanner)', '10-minute hygiene briefing video'],
+      pay: [['Grocery credit', 15], ['Priority pickup next cycle', 0]], payNote: 'Credit is released after close-out on distribution day.',
+      steps: [
+        [`${cycle.day(15)} · 16:00`, 'Receive the delivery from the Runner', 'Check the case count and sign off in the app.', 'd4'],
+        ['16:15', 'Sort with the pick list', 'One crate per order, labelled with order code and zone colour. Packs stay sealed.', 'd4'],
+        ['17:45', 'Stage crates by zone', 'Four colour zones, A to D, as on the floor plan.', 'd4'],
+        [`${cycle.day(16)} · 15:30`, 'Set up the foyer', 'Tables, queue line, scan desk, zone signs.', 'd5'],
+        ['16:00–19:00', 'Scan & hand over', 'Scan QR → fetch crate from its zone → hand over. Max 12 people per 15 minutes.', 'd5'],
+        ['19:00', 'Close out', 'Unclaimed crates back to storage (held 48 h). Report issues in the app.', 'd5']
+      ]
+    };
+  }
+  const myRole = () => SEATS.map(s => s[0]).find(k => S.runner[k] === 'you') || null;
+
+  function routeSvg() {
+    return `<svg viewBox="0 0 320 128" class="illus" role="img" aria-label="Route: wholesaler to campus, about 21 kilometres, 30 minutes">
+      <path d="M58 70 C 120 10, 200 120, 262 62" fill="none" style="stroke:var(--brand)" stroke-width="3" stroke-dasharray="7 6" stroke-linecap="round"/>
+      <g><rect x="12" y="44" width="58" height="46" rx="6" style="fill:var(--surface-2);stroke:var(--rule)"/><path d="M12 56 l14 -12 l14 12 l14 -12 l16 12" fill="none" style="stroke:var(--mute)" stroke-width="2"/><text x="41" y="78" text-anchor="middle" font-size="18">🏭</text></g>
+      <g><rect x="250" y="36" width="58" height="54" rx="6" style="fill:var(--brand-lo);stroke:var(--brand)"/><text x="279" y="72" text-anchor="middle" font-size="20">🏫</text></g>
+      <text x="160" y="66" text-anchor="middle" font-size="20">🚐</text>
+      <text x="41" y="106" text-anchor="middle" class="svgt">Wholesaler</text><text x="41" y="120" text-anchor="middle" class="svgs">09:00</text>
+      <text x="279" y="106" text-anchor="middle" class="svgt">Campus, X.0.12</text><text x="279" y="120" text-anchor="middle" class="svgs">11:00</text>
+      <rect x="118" y="80" width="84" height="20" rx="10" style="fill:var(--surface);stroke:var(--rule)"/><text x="160" y="94" text-anchor="middle" class="svgs">≈ 21 km · 30 min</text>
+    </svg>`;
+  }
+  function floorSvg() {
+    const z = ZONES.map((zz, i) => `<g><rect x="${196 + (i % 2) * 58}" y="${18 + Math.floor(i / 2) * 50}" width="52" height="42" rx="6" style="fill:${zz.color};opacity:.85"/>
+      <text x="${222 + (i % 2) * 58}" y="${36 + Math.floor(i / 2) * 50}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Zone ${zz.id}</text>
+      <text x="${222 + (i % 2) * 58}" y="${51 + Math.floor(i / 2) * 50}" text-anchor="middle" font-size="9" fill="#fff">${SLOT_TIMES[zz.from].split('–')[0]}–${SLOT_TIMES[zz.to - 1].split('–')[1]}</text></g>`).join('');
+    return `<svg viewBox="0 0 320 150" class="illus" role="img" aria-label="Foyer floor plan: entrance, queue, scan desk, four colour-coded crate zones, exit">
+      <rect x="2" y="2" width="316" height="146" rx="10" fill="none" style="stroke:var(--rule)" stroke-width="2"/>
+      <text x="22" y="40" font-size="18">🚪</text><text x="16" y="58" class="svgs">Entrance</text>
+      <path d="M48 46 C 70 46, 70 96, 92 96 L 120 96" fill="none" style="stroke:var(--mute)" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="58" y="80" class="svgs">queue</text>
+      <rect x="122" y="80" width="56" height="32" rx="6" style="fill:var(--ink)"/><text x="150" y="100" text-anchor="middle" font-size="10" font-weight="700" style="fill:var(--surface)">Scan desk</text>
+      <path d="M178 96 L 192 96" style="stroke:var(--mute)" stroke-width="2"/>
+      ${z}
+      <text x="150" y="136" text-anchor="middle" class="svgs">Scan QR → fetch crate from its zone → hand over</text>
+      <text x="22" y="132" font-size="16">🚶</text>
+    </svg>`;
+  }
+  function scheduleSvg() {
+    const max = 14, W = 300, H = 120, bw = W / BASE_LOADS.length;
+    const y = v => 10 + (H - 30) * (1 - v / max);
+    const bars = BASE_LOADS.map((l, i) => {
+      const n = l + (S.submitted && S.slot === i ? 1 : 0), x = 10 + i * bw;
+      return `<rect x="${x + 3}" y="${y(n)}" width="${bw - 6}" height="${y(0) - y(n)}" rx="3" style="fill:${zoneOf(i).color}" opacity="${S.submitted && S.slot === i ? 1 : .7}"/>
+        <text x="${x + bw / 2}" y="${y(n) - 3}" text-anchor="middle" class="svgs">${n}</text>
+        ${i % 3 === 0 ? `<text x="${x + 3}" y="${H - 4}" class="svgs">${SLOT_TIMES[i].split('–')[0]}</text>` : ''}
+        ${S.submitted && S.slot === i ? `<text x="${x + bw / 2}" y="${y(n) - 14}" text-anchor="middle" class="svgt">you</text>` : ''}`;
+    }).join('');
+    return `<svg viewBox="0 0 320 ${H}" class="illus" role="img" aria-label="Orders per 15-minute slot, capacity 12">
+      <line x1="10" x2="310" y1="${y(SLOT_CAP)}" y2="${y(SLOT_CAP)}" style="stroke:var(--warn)" stroke-dasharray="4 3"/>
+      <text x="310" y="${y(SLOT_CAP) - 3}" text-anchor="end" class="svgs" style="fill:var(--warn)">capacity ${SLOT_CAP}</text>
+      ${bars}<line x1="10" x2="310" y1="${y(0)}" y2="${y(0)}" style="stroke:var(--rule)"/></svg>`;
+  }
+
+  function distDashboard() {
     const total = OTHERS + (S.submitted ? 1 : 0);
     const collected = S.runner.handed + (S.collected ? 1 : 0);
     const issues = S.runner.issues;
@@ -583,15 +645,19 @@
       const n = l + (S.submitted && S.slot === i ? 1 : 0);
       const start = cum; cum += n;
       const st = S.runner.handed >= cum ? '<span class="ok">Done</span>' : S.runner.handed > start ? '<span class="save">Now</span>' : '<span class="mute">Next</span>';
-      return `<tr><td>${SLOT_TIMES[i]}</td><td class="right">${n}</td><td class="right">${st}</td></tr>`;
+      return `<tr><td><span class="zdot" style="background:${zoneOf(i).color}"></span>${SLOT_TIMES[i]}</td><td class="right">${n}</td><td class="right">${st}</td></tr>`;
     }).join('');
     const queue = [0, 1, 2].map(k => 'GR-' + (4000 + ((S.runner.handed + k) * 377) % 5000));
     return `<div class="card">
-      <h3>Today's distribution · ${total} orders</h3>
-      <div class="grid2" style="grid-template-columns:repeat(3,1fr)">
-        <div class="stat"><b class="ok">${collected}</b><span>collected</span></div>
-        <div class="stat"><b class="save">${waiting}</b><span>waiting</span></div>
-        <div class="stat"><b class="bad">${issues}</b><span>issues</span></div>
+      <span class="badge badge--save">LIVE · distribution day</span>
+      <h3 style="margin-top:.4rem">Today's handout · ${total} orders</h3>
+      <div class="donut-row">
+        <div class="donut" style="--p:${Math.round(collected / total * 100)}"><b>${Math.round(collected / total * 100)}%</b></div>
+        <div class="grid2" style="grid-template-columns:repeat(3,1fr);flex:1">
+          <div class="stat"><b class="ok">${collected}</b><span>collected</span></div>
+          <div class="stat"><b class="save">${waiting}</b><span>waiting</span></div>
+          <div class="stat"><b class="bad">${issues}</b><span>issues</span></div>
+        </div>
       </div>
       <form data-form="scan" style="display:flex;gap:.4rem;margin:.8rem 0 .3rem">
         <label class="sr-only" for="scanIn">Order code</label>
@@ -602,72 +668,126 @@
       <ul class="list">${queue.map(c => `<li style="display:flex;justify-content:space-between;align-items:center"><span class="mono small">${c}</span><button class="btn btn--ghost btn--sm" data-act="handover" data-code="${c}">Confirm handover</button></li>`).join('')}</ul>
       <div class="btnrow"><button class="btn btn--sm" data-act="handover-batch">Simulate next few handovers</button><button class="btn btn--warn btn--sm" data-act="runner-issue">Report issue</button></div>
       <table class="kv small" style="margin-top:.8rem"><tr><th>Slot</th><th class="right">Orders</th><th>Status</th></tr>${rows}</table>
-      <p class="tiny mute" style="margin:.4rem 0 0">Capacity: ${SLOT_CAP} people per 15 minutes, allocated automatically.</p>
     </div>`;
   }
+
   function screenRun() {
     const c = community(), R = S.runner;
-    const role = isRunner() ? 'primary' : isBackup() ? 'backup' : null;
+    const k = ui.role, r = roleDef(k), mine = myRole();
     const canSign = S.stage <= 1;
-    const name = x => x === 'you' ? '<b>You</b>' : x ? esc(x) : '<span class="mute">Open</span>';
-    const steps = [['Pick up bulk order at Demo Wholesale Partner', 2], ['Transport to campus', 3], ['Sort into orders (ambient goods only)', 4], ['Run distribution 16:00–19:00', 5], ['Hand back unclaimed orders and close the run', 6]];
+    const payTotal = r.pay.reduce((a, p) => a + p[1], 0);
+    const stepState = tag => {
+      const doneAt = tag === 'done3' ? 3 : tag === 'd4' ? 5 : 6, nowAt = tag === 'done3' ? 2 : tag === 'd4' ? 4 : 5;
+      return S.stage >= doneAt ? 'done' : S.stage === nowAt ? 'now' : '';
+    };
+    const seat = ([key, label]) => {
+      const v = R[key], me = v === 'you';
+      const ini = me ? 'You' : v ? v.split(' ').map(x => x[0]).join('').slice(0, 2) : '?';
+      const btn = !canSign ? '' : me ? `<button class="btn btn--ghost btn--sm" data-act="runner-withdraw">Withdraw</button>`
+        : v ? '' : `<button class="btn btn--sm${key.endsWith('Backup') ? ' btn--ghost' : ''}" data-act="runner-join" data-role="${key}" ${mine ? 'disabled' : ''}>Take it</button>`;
+      return `<div class="seat${me ? ' seat--me' : ''}${v ? '' : ' seat--open'}"><span class="seat__av">${esc(ini)}</span><span class="seat__l">${label}</span><span class="seat__n">${me ? '<b>You</b>' : v ? esc(v) : 'Open'}</span>${btn}</div>`;
+    };
+    const doneMsg = R.done[k] ? `<div class="card card--save small"><b>${r.title} job complete.</b> ${k === 'runner' ? '€20 credit added, +100 points, fuel reimbursement €12.60 (demo) recorded.' : '€15 credit added, +80 points, priority pickup next cycle.'}</div>` : '';
 
-    return `<div class="card">
-        <span class="eyebrow">This month's bulk order</span>
-        <div class="grid2" style="grid-template-columns:repeat(3,1fr)">
-          <div class="stat"><b>${num(c.participants)}</b><span>students</span></div>
-          <div class="stat"><b>${num(c.units)}</b><span>units</span></div>
-          <div class="stat"><b>${eur0(c.value)}</b><span>order value</span></div>
-        </div>
+    return `<div class="card card--brand">
+        <span class="eyebrow mute">${cycle.month} crew</span>
+        <p style="font-weight:600;margin-bottom:.3rem">Help bring ${num(c.participants)} students' groceries to campus, and get paid in grocery credit.</p>
+        <button class="linkbtn" style="color:inherit" data-act="sub" data-name="bulk">See this month's bulk order: ${num(c.units)} items, ≈ ${num(c.kg)} kg ›</button>
+      </div>
+
+      <p class="eyebrow" style="margin:.2rem 0 .4rem">Choose a job</p>
+      <div class="roles" role="group" aria-label="Crew job">
+        ${['runner', 'dist'].map(x => { const d = roleDef(x); return `<button class="rolecard" data-act="role" data-v="${x}" aria-pressed="${k === x}">
+          <span class="rolecard__i" aria-hidden="true">${d.icon}</span><b>${d.title}</b><span class="tiny mute">${d.tag}</span><span class="badge badge--save">${d.payShort}</span>
+          ${R[x] === 'you' || R[d.backup] === 'you' ? '<span class="badge badge--ok">Your job</span>' : ''}</button>`; }).join('')}
+      </div>
+
+      <div class="glance">
+        <div><span>📋 What</span><p>${r.what}</p></div>
+        <div><span>📍 Where</span><p>${r.where}</p></div>
+        <div><span>🕒 When</span><p>${r.when}<br><span class="mute">${r.hours}</span></p></div>
+        <div><span>💶 Pay</span><p><b class="save" style="font-size:1.1rem">${eur(payTotal)}</b><br><span class="mute">${k === 'runner' ? 'credit + fuel' : 'credit + priority slot'}</span></p></div>
       </div>
 
       <div class="card">
-        <h3>Can you collect this order for your university?</h3>
-        <table class="kv small">
-          <tr><td>Estimated workload</td><td>3.5 hours</td></tr>
-          <tr><td>Transport required</td><td>Car or van (rental reimbursed)</td></tr>
-          <tr><td>Collection location</td><td>Demo Wholesale Partner</td></tr>
-          <tr><td>University</td><td>${esc(S.user ? UNI[S.user.uni].name + ', ' + S.user.campus : '')}</td></tr>
-          <tr><td>Distribution</td><td>${esc(cycle.distDay)}, 16:00–19:00</td></tr>
-        </table>
-        <div class="card card--save small" style="margin:.7rem 0 0"><b>Incentive:</b> €20 grocery credit + transport reimbursement (€0.30/km, max €15).<br><b>Backup runner:</b> €5 reservation credit, paid even if not activated.</div>
+        <h3>${k === 'runner' ? 'Your route' : 'Foyer floor plan'}</h3>
+        ${k === 'runner' ? routeSvg() : floorSvg()}
+        <p class="small" style="margin:.4rem 0 0"><b>You need:</b> ${r.needs.join(' · ')}</p>
       </div>
 
       <div class="card">
-        <h3>Runners for ${cycle.month}</h3>
-        <table class="kv small">
-          <tr><td>Primary runner</td><td>${name(R.primary)}</td></tr>
-          <tr><td>Backup runner</td><td>${name(R.backup)}</td></tr>
-        </table>
-        ${canSign ? `<div class="btnrow">
-          ${role ? `<button class="btn btn--ghost btn--sm" data-act="runner-withdraw">Withdraw (${role})</button>` : `
-          <button class="btn btn--sm" data-act="runner-join" data-role="primary" ${R.primary ? 'disabled' : ''}>Volunteer as primary</button>
-          <button class="btn btn--ghost btn--sm" data-act="runner-join" data-role="backup" ${R.backup ? 'disabled' : ''}>Volunteer as backup</button>`}
-        </div>` : ''}
-        ${R.primary && S.stage >= 1 && S.stage <= 4 ? `<button class="linkbtn small" style="margin-top:.6rem" data-act="runner-cancel">Simulate: primary runner cancels</button>` : ''}
-        <p class="tiny mute" style="margin:.5rem 0 0">Every run has a backup, so no single student is a point of failure. Volunteering is voluntary and not employment.</p>
+        <h3>How it works, step by step</h3>
+        <ol class="steps">${r.steps.map((st, i) => `<li class="${stepState(st[3])}"><span class="steps__t">${st[0]}</span><span class="steps__n">${i + 1}</span><span><b>${st[1]}</b><small>${st[2]}</small></span></li>`).join('')}</ol>
+        <p class="tiny mute" style="margin:.3rem 0 0"><b>Hygiene rules:</b> packs stay sealed, never opened or re-portioned; no chilled or frozen goods; goods dry and off the floor; damaged packaging is set aside and reported.</p>
       </div>
 
-      ${isRunner() && S.stage >= 1 ? `<div class="card">
-        <h3>Your assignment</h3>
-        <ul class="tl">${steps.map(([s, st]) => `<li class="${S.stage >= st ? 'done' : S.stage === st - 1 ? 'now' : ''}"><i></i><b>${s}</b></li>`).join('')}</ul>
-        <p class="tiny mute" style="margin:0"><b>Hygiene checklist:</b> keep goods dry and off the floor, no chilled/frozen items, wash hands before sorting, report damaged packaging.</p>
+      <div class="card">
+        <h3>What you get</h3>
+        <div class="paybar">${r.pay.filter(p => p[1]).map((p, i) => `<span style="width:${p[1] / payTotal * 100}%;background:${i ? 'var(--info)' : 'var(--brand)'}"></span>`).join('')}</div>
+        <table class="kv small" style="margin-top:.5rem">${r.pay.map(p => `<tr><td>${p[0]}</td><td>${p[1] ? eur(p[1]) : '✓ included'}</td></tr>`).join('')}
+          <tr class="total"><td>Total</td><td>${eur(payTotal)}</td></tr></table>
+        <p class="tiny mute" style="margin:.4rem 0 0">${r.payNote} Backups get a <b>€5 reservation credit</b> even if not activated.</p>
+      </div>
+
+      <div class="card">
+        <h3>Crew for ${cycle.month}</h3>
+        <div class="crew">${SEATS.map(seat).join('')}</div>
+        ${R[k] && S.stage >= 1 && S.stage <= 4 ? `<button class="linkbtn small" style="margin-top:.6rem" data-act="runner-cancel" data-role="${k}">Simulate: ${r.title.toLowerCase()} cancels</button>` : ''}
+        <p class="tiny mute" style="margin:.5rem 0 0">One job per student per cycle. Every job has a backup who takes over automatically, so no single student is a point of failure. Volunteering, not employment.</p>
+      </div>
+
+      ${k === 'dist' ? `<div class="card">
+        <h3>Distribution schedule</h3>
+        <p class="small mute" style="margin-bottom:.3rem">${esc(cycle.distDay)} · orders per 15-minute slot, coloured by crate zone</p>
+        ${scheduleSvg()}
+        <ul class="directive">
+          <li><b>15:30</b> Set up: tables, queue line, zone signs A–D.</li>
+          <li><b>16:00</b> Doors open. Each slot admits max ${SLOT_CAP} people; slots are assigned automatically.</li>
+          <li><b>Every handover</b> Scan QR → read zone colour → fetch crate → student checks it → confirm.</li>
+          <li><b>Late arrivals</b> Serve at the end of their zone's block, never ahead of on-time students.</li>
+          <li><b>Problems</b> Missing or damaged item: log it in the app, the student is refunded automatically.</li>
+          <li><b>19:00</b> Close. Unclaimed crates go back to X.0.12 and are held 48 h.</li>
+        </ul>
       </div>` : ''}
 
-      ${S.stage === 5 && (isRunner() || ui.preview) ? runnerDashboard() : ''}
-      ${S.stage === 5 && !isRunner() && !ui.preview ? `<div class="card small">Distribution is running now with ${name(R.primary)}. <button class="linkbtn" data-act="preview-runner">Preview the runner dashboard</button></div>` : ''}
-      ${S.stage < 5 && !isRunner() ? `<p class="small mute">The runner dashboard (slot schedule, live status, QR scanning) unlocks on distribution day. Volunteer as primary, or press <b>Advance ▶</b> to distribution day to preview it.</p>` : ''}
-      ${R.done ? `<div class="card card--save small"><b>Run complete.</b> €20 credit added to your account, +100 points, and transport reimbursement of €12.60 (demo) recorded.</div>` : ''}
+      ${S.stage === 5 && k === 'dist' && (R.dist === 'you' || ui.preview) ? distDashboard() : ''}
+      ${S.stage === 5 && k === 'dist' && R.dist !== 'you' && !ui.preview ? `<div class="card small">Distribution is running now. <button class="linkbtn" data-act="preview-runner">Preview the distributor dashboard</button></div>` : ''}
+      ${S.stage < 5 && k === 'dist' ? `<p class="small mute">The live scanning dashboard opens on distribution day. Press <b>Advance ▶</b> to get there.</p>` : ''}
+      ${doneMsg}
 
       <div class="card">
-        <h3>Your runner reputation</h3>
+        <h3>Your crew reputation</h3>
         <div class="grid2">
-          <div class="stat"><b>${R.runs}</b><span>completed runs</span></div>
+          <div class="stat"><b>${R.runs}</b><span>completed jobs</span></div>
           <div class="stat"><b>${R.rating ? R.rating.toFixed(1) + ' ★' : '—'}</b><span>average rating</span></div>
         </div>
-        <p class="small" style="margin:.6rem 0 0">${R.runs >= 3 ? '<span class="badge badge--ok">🏅 Trusted Order Runner</span>' : `<b>Trusted Order Runner</b> badge after 3 successful runs (${R.runs}/3).`}</p>
+        <p class="small" style="margin:.6rem 0 0">${R.runs >= 3 ? '<span class="badge badge--ok">🏅 Trusted crew member</span>' : `<b>Trusted crew member</b> badge after 3 completed jobs (${R.runs}/3).`}</p>
         <p class="tiny mute" style="margin:.4rem 0 0">Students rate: on time, complete, friendly, correct distribution and product handling.</p>
       </div>`;
+  }
+
+  /* ── this month's bulk order (student view) ──────────── */
+  function screenBulk() {
+    const c = community();
+    const unlocked = D.products.filter(p => !p.excluded && tierInfo(p).unlocked).length;
+    const cats = [...new Set(D.products.map(p => p.cat))];
+    return `<div class="grid2" style="margin-bottom:.8rem">
+        <div class="stat"><b>${num(c.participants)}</b><span>students ordering</span></div>
+        <div class="stat"><b>${num(c.units)}</b><span>sealed items</span></div>
+        <div class="stat"><b>${eur0(c.value)}</b><span>collective value</span></div>
+        <div class="stat"><b>${unlocked}/${D.products.length}</b><span>products past minimum</span></div>
+      </div>
+      <div class="card card--info small">≈ <b>${num(c.kg)} kg</b> to transport · one van trip · ${esc(cycle.distDay)}. ${locked() ? 'Demand is locked.' : `Totals keep changing until 10 ${cycle.mon}, 23:59.`}</div>
+      ${cats.map(cat => `<div class="card"><h3>${esc(cat)}</h3><ul class="list">${D.products.filter(p => p.cat === cat).map(p => {
+        const ti = tierInfo(p), mine = S.cart[p.id] || 0;
+        const st = p.excluded ? '<span class="badge badge--warn">Excluded</span>' : ti.unlocked ? '<span class="badge badge--ok">Unlocked</span>' : `<span class="badge badge--save">${locked() ? 'Dropped' : fq(ti.need, p.unit) + ' to go'}</span>`;
+        return `<li><button class="bulkrow" data-act="product" data-id="${p.id}">
+          <span class="bulkrow__i" aria-hidden="true">${p.icon}</span>
+          <span class="bulkrow__b"><span class="bulkrow__h"><b>${esc(p.name)}</b>${st}</span>
+          <span class="tiny mute">${num(ti.t)} × ${esc(p.size)} · ${eur(ti.price)}${per(p)}${mine ? ` · <b class="ok">you: ${mine}</b>` : ''}</span>
+          <span class="bar${ti.unlocked ? '' : ' bar--save'}" style="margin-top:.3rem"><i style="width:${ti.pct}%"></i></span></span></button></li>`;
+      }).join('')}</ul></div>`).join('')}
+      <p class="tiny mute">Everything is bought and handed out sealed, as supplied. Products below their minimum at the cutoff are dropped and refunded.</p>`;
   }
 
   /* ── profile ─────────────────────────────────────────── */
@@ -695,7 +815,7 @@
       <div class="card">
         <h3>Notifications</h3>
         <label class="toggle"><span>Order status &amp; collection slot</span><input type="checkbox" data-change="notif" data-k="order" ${S.notif.order ? 'checked' : ''}></label>
-        <label class="toggle"><span>Runner opportunities</span><input type="checkbox" data-change="notif" data-k="runner" ${S.notif.runner ? 'checked' : ''}></label>
+        <label class="toggle"><span>Crew jobs (runner / distributor)</span><input type="checkbox" data-change="notif" data-k="runner" ${S.notif.runner ? 'checked' : ''}></label>
         <label class="toggle"><span>Community &amp; price-tier updates</span><input type="checkbox" data-change="notif" data-k="community" ${S.notif.community ? 'checked' : ''}></label>
       </div>
 
@@ -764,7 +884,7 @@
 
   /* ── sheets ──────────────────────────────────────────── */
   function pointsSheet() {
-    openSheet('Großry Points', `<p class="big" style="margin-bottom:.2rem">${num(S.points)}</p><p class="small mute">Earn by ordering (1 pt per €), running orders (+100), inviting classmates (+10), collecting on time (+20) and reviewing (+5).</p>
+    openSheet('Großry Points', `<p class="big" style="margin-bottom:.2rem">${num(S.points)}</p><p class="small mute">Earn by ordering (1 pt per €), crew jobs (+80 to +100), inviting classmates (+10), collecting on time (+20) and reviewing (+5).</p>
       <h4 style="margin:.8rem 0 .4rem">Redeem</h4>
       <ul class="list">${REWARDS.map(r => `<li style="display:flex;justify-content:space-between;align-items:center;gap:.5rem"><span class="small">${r.name}<br><span class="tiny mute">${r.cost} points</span></span><button class="btn btn--sm" data-act="redeem" data-id="${r.id}" ${S.points < r.cost || (r.id === 'prio' && S.priority) ? 'disabled' : ''}>${r.id === 'prio' && S.priority ? 'Active' : 'Redeem'}</button></li>`).join('')}</ul>
       <h4 style="margin:.8rem 0 .4rem">History</h4>
@@ -799,7 +919,6 @@
     const incidents = S.problems.length + S.runner.issues;
     const damaged = S.stage >= 3 ? 2 : 0;
     const runnerName = x => x === 'you' ? (S.user ? esc(S.user.name) + ' (you)' : 'You') : x ? esc(x) : '<span class="bad">Unassigned</span>';
-    const sacks = rows.filter(r => r.p.shared && r.buy);
     const insightRows = rows.filter(r => !r.p.excluded).map(r => ({ name: r.p.name, n: r.p.students + (S.cart[r.p.id] && S.insights ? 1 : 0), q: r.q, unit: r.p.unit }));
 
     $('#adminView').innerHTML = `<div class="admin">
@@ -847,23 +966,20 @@
           <table class="dt"><tbody>
             <tr><td>Gross sales</td><td class="num">${eur(sum('landed') + sum('fee'))}</td></tr>
             <tr><td>Procurement cost</td><td class="num">${eur(sum('wholesale'))}</td></tr>
-            <tr><td>Logistics cost (incl. runner credit)</td><td class="num">${eur(sum('logistics'))}</td></tr>
+            <tr><td>Logistics cost (incl. crew credits)</td><td class="num">${eur(sum('logistics'))}</td></tr>
             <tr><td>Platform revenue</td><td class="num">${eur(sum('fee'))}</td></tr>
             <tr><td>Actual student savings (net)</td><td class="num">${eur(sum('net'))}</td></tr>
           </tbody></table></section>
 
         <section class="panel"><h2>Operations</h2><p>Distribution ${esc(cycle.distDay)}, 16:00–19:00.</p>
           <table class="dt"><tbody>
-            <tr><td>Current runner</td><td class="num">${runnerName(S.runner.primary)}</td></tr>
-            <tr><td>Backup runner</td><td class="num">${runnerName(S.runner.backup)}</td></tr>
+            <tr><td>Runner</td><td class="num">${runnerName(S.runner.runner)}</td></tr>
+            <tr><td>Runner backup</td><td class="num">${runnerName(S.runner.runnerBackup)}</td></tr>
+            <tr><td>Distributor</td><td class="num">${runnerName(S.runner.dist)}</td></tr>
+            <tr><td>Distributor backup</td><td class="num">${runnerName(S.runner.distBackup)}</td></tr>
             <tr><td>Distribution slots</td><td class="num">${BASE_LOADS.length} × 15 min</td></tr>
             <tr><td>Slot utilisation</td><td class="num">${Math.round(total / (BASE_LOADS.length * SLOT_CAP) * 100)}%</td></tr>
             <tr><td>Open incidents</td><td class="num">${incidents}</td></tr>
-          </tbody></table></section>
-
-        <section class="panel"><h2>Pack splitting</h2><p>Supplier sacks split into student portions.</p>
-          <table class="dt"><thead><tr><th>Product</th><th class="num">Demand</th><th class="num">Sacks</th><th class="num">Last sack</th></tr></thead><tbody>
-            ${sacks.map(r => { const full = Math.floor(r.q / r.p.sack), rest = +(r.q - full * r.p.sack).toFixed(1); return `<tr><td>${esc(r.p.name)}</td><td class="num">${fq(r.q, 'kg')}</td><td class="num">${full + (rest ? 1 : 0)} × ${r.p.sack} kg</td><td class="num">${rest ? rest + ' kg' : 'full'}</td></tr>`; }).join('') || '<tr><td colspan="4" class="mute">None unlocked.</td></tr>'}
           </tbody></table></section>
 
         <section class="panel panel--wide"><h2>Aggregated market insights (preview)</h2>
@@ -907,14 +1023,14 @@
     const cur = current();
     const key = cur.name + (cur.id || '');
     const keep = key === lastKey ? scr.scrollTop : 0;
-    const titles = { home: 'Großry', shop: 'Shop', orders: 'Orders', run: 'Run an order', profile: 'Profile', community: 'Community', wg: 'WG mode', product: cur.id ? P[cur.id].name : '' };
+    const titles = { home: 'Großry', shop: 'Shop', orders: 'Orders', run: 'Run an order', profile: 'Profile', community: 'Community', wg: 'WG mode', bulk: "This month's bulk order", product: cur.id ? P[cur.id].name : '' };
     const count = Object.values(S.cart).reduce((a, b) => a + b, 0);
     $('#appbar').innerHTML = `${ui.stack.length ? '<button class="iconbtn" data-act="back" aria-label="Back">←</button>' : ''}
       <h2>${esc(titles[cur.name])}</h2>
       <span class="badge badge--ok" title="Großry Points">${num(S.points)} pts</span>
       <button class="iconbtn" data-act="tab" data-tab="orders" aria-label="Basket, ${count} items">🧺${count ? `<span class="dot">${count}</span>` : ''}</button>`;
 
-    const map = { home: screenHome, shop: screenShop, orders: screenOrders, run: screenRun, profile: screenProfile, community: screenCommunity, wg: screenWG };
+    const map = { home: screenHome, shop: screenShop, orders: screenOrders, run: screenRun, profile: screenProfile, community: screenCommunity, wg: screenWG, bulk: screenBulk };
     scr.innerHTML = cur.name === 'product' ? screenProduct(cur.id) : map[cur.name]();
     scr.scrollTop = keep;
     lastKey = key;
@@ -954,15 +1070,17 @@
       } else if (lines().length) toast('Basket not submitted. It rolls over to next cycle.');
     }
     if (from === 1) {
-      if (!S.runner.primary) S.runner.primary = 'Noah K. (Trusted Runner)';
-      if (!S.runner.backup) S.runner.backup = 'Lina S.';
-      if (isBackup()) { S.credits += 5; toast('Backup reservation: €5 credit added.'); }
+      Object.keys(FILL).forEach(k => { if (!S.runner[k]) S.runner[k] = FILL[k]; });
+      if (S.runner.runnerBackup === 'you' || S.runner.distBackup === 'you') { S.credits += 5; toast('Backup reservation: €5 credit added.'); }
+    }
+    if (from === 2 && S.runner.runner === 'you' && !S.runner.done.runner) {
+      S.runner.done.runner = true; S.runner.runs++; S.credits += 20; S.runner.rating = 4.9; addPoints('Completed a Runner job', 100);
+      toast('Delivery signed off: €20 credit added.');
     }
     if (from === 5) {
       if (S.submitted && !S.collected) S.noShow = true;
-      if (isRunner() && !S.runner.done) {
-        S.runner.done = true; S.runner.runs++; S.credits += 20; addPoints('Completed an Order Runner run', 100);
-        S.runner.rating = 4.9;
+      if (S.runner.dist === 'you' && !S.runner.done.dist) {
+        S.runner.done.dist = true; S.runner.runs++; S.credits += 15; S.runner.rating = 4.8; addPoints('Completed a Distributor job', 80);
       }
     }
     save(); render();
@@ -988,7 +1106,7 @@
     ob(el) { ui.ob.step = el.dataset.step; ui.ob.err = null; render(); },
     'demo-login'() {
       S.user = { name: 'Alex Student', email: 'alex.demo@student.example', phone: '+49 000 0000000', uni: 'oth-aw', campus: 'Amberg', verified: true };
-      S.cart = { rice: 5, oatmilk: 6, passata: 2, noodles: 3, sunoil: 2, tp: 1 };
+      S.cart = { rice: 1, oatmilk: 6, passata: 2, noodles: 3, sunoil: 2, tp: 1 };
       save(); render(); toast('Signed in with the demo account. Basket pre-filled.');
     },
     tab(el) { go(el.dataset.tab); },
@@ -1019,7 +1137,7 @@
     'submit-rating'() {
       const v = [0, 1, 2, 3, 4].map(i => ui.rate[i] || 0);
       if (v.some(x => !x)) { toast('Please rate all five points.'); return; }
-      S.rated = { scores: v, avg: v.reduce((a, b) => a + b, 0) / 5 }; addPoints('Rated your runner', 5); save(); render();
+      S.rated = { scores: v, avg: v.reduce((a, b) => a + b, 0) / 5 }; addPoints('Rated the crew', 5); save(); render();
     },
     problem() {
       const L = lines().filter(l => !l.dropped);
@@ -1029,16 +1147,18 @@
         <label class="field"><span>Details (optional)</span><textarea name="note" maxlength="300"></textarea></label>
         <button class="btn btn--block">Send report</button></form>`);
     },
+    role(el) { ui.role = el.dataset.v; ui.preview = false; render(); },
     'runner-join'(el) {
-      S.runner[el.dataset.role] = 'you'; save(); render();
-      toast(el.dataset.role === 'primary' ? 'You are the primary Order Runner. Incentive: €20 credit + transport.' : 'You are the backup runner: €5 reservation credit.');
+      if (myRole()) { toast('One crew job per cycle. Withdraw first.'); return; }
+      const k = el.dataset.role; S.runner[k] = 'you'; save(); render();
+      toast(k.endsWith('Backup') ? 'You are on standby as backup: €5 reservation credit.' : k === 'runner' ? 'You are the Runner: €20 credit + fuel.' : 'You are the Distributor: €15 credit.');
     },
-    'runner-withdraw'() { if (isRunner()) S.runner.primary = null; if (isBackup()) S.runner.backup = null; save(); render(); },
-    'runner-cancel'() {
-      const R = S.runner;
-      if (isBackup()) { R.primary = 'you'; R.backup = 'Lina S. (new backup)'; toast('Backup Runner activated: you are now the primary runner.'); }
-      else if (isRunner()) { R.primary = R.backup || 'Lina S.'; R.backup = null; toast('You cancelled. Backup Runner activated.'); }
-      else { R.primary = R.backup || 'Lina S.'; R.backup = null; toast('Primary cancelled. Backup Runner activated; backup slot is open.'); }
+    'runner-withdraw'() { SEATS.forEach(([k]) => { if (S.runner[k] === 'you') S.runner[k] = null; }); save(); render(); },
+    'runner-cancel'(el) {
+      const R = S.runner, k = el.dataset.role, b = k + 'Backup', t = roleDef(k).title;
+      if (R[b] === 'you') { R[k] = 'you'; R[b] = FILL[b] === FILL[k] ? null : 'Sam R. (new backup)'; toast(`Backup activated: you are now the ${t}.`); }
+      else if (R[k] === 'you') { R[k] = R[b]; R[b] = null; toast(`You cancelled. ${t} backup activated.`); }
+      else { R[k] = R[b] || null; R[b] = null; toast(`${t} cancelled. Backup activated; the backup seat is open again.`); }
       save(); render();
     },
     'preview-runner'() { ui.preview = true; render(); },
