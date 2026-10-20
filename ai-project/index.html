@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Water in a bottle · Data collector</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Private data-collection tool for the Water in a bottle AI project.">
+<meta name="theme-color" content="#10202C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<script>
+  try { var t = localStorage.getItem('zt.theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+
+<!-- ══ PIN ══ -->
+<section class="lock" id="lock" aria-labelledby="lockTitle">
+  <div class="lock__card">
+    <svg class="lock__mark" viewBox="0 0 48 64" aria-hidden="true">
+      <path d="M17 2h14v8l4 7v41a4 4 0 0 1-4 4H17a4 4 0 0 1-4-4V17l4-7z"/>
+      <path class="lock__water" d="M13 38q5.5-3 11 0t11 0V58a4 4 0 0 1-4 4H17a4 4 0 0 1-4-4z"/>
+    </svg>
+    <h1 id="lockTitle">Water in a bottle</h1>
+    <p class="lock__sub">Data collector. Enter the PIN to start.</p>
+    <form id="pinForm" autocomplete="off">
+      <label class="sr-only" for="pinInput">PIN</label>
+      <input id="pinInput" class="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="one-time-code" placeholder="PIN" required>
+      <label class="check"><input type="checkbox" id="pinRemember" checked> Remember on this device</label>
+      <button class="btn btn--primary btn--wide" type="submit" id="pinGo">Unlock</button>
+      <p class="lock__msg" id="pinMsg" role="alert"></p>
+    </form>
+  </div>
+  <a class="lock__back" href="../projects.html">Back to the portfolio</a>
+</section>
+
+<!-- ══ app ══ -->
+<div class="app" id="app" hidden>
+
+  <header class="bar">
+    <span class="bar__title"><b>Water in a bottle</b><span class="bar__who" id="barWho"></span></span>
+    <button class="sync" id="syncPill" type="button" data-state="idle" aria-live="polite">
+      <i aria-hidden="true"></i><span id="syncText">All uploaded</span>
+    </button>
+  </header>
+
+  <main class="views">
+
+    <!-- capture -->
+    <section class="view view--capture" id="viewCapture" aria-label="Capture">
+      <div class="finder" id="finder">
+        <canvas id="preview" aria-label="Camera view, rotated exactly as the photos are saved"></canvas>
+        <video id="video" playsinline muted autoplay></video>
+
+        <ol class="steps" id="steps" aria-label="Steps for each bottle">
+          <li data-step="scale"><span>1</span>Scale photo</li>
+          <li data-step="type"><span>2</span>Bottle type</li>
+          <li data-step="capture"><span>3</span>Images</li>
+        </ol>
+
+        <div class="finder__count" id="finderCount" hidden>
+          <b id="countNum">0</b><span id="countLabel">images</span>
+        </div>
+        <p class="finder__hint" id="hint"></p>
+        <div class="finder__msg" id="camMsg" hidden></div>
+      </div>
+
+      <div class="deck">
+        <div class="rate" role="group" aria-label="Burst rate">
+          <button type="button" class="rate__btn" id="rateDown" aria-label="Slower burst">−</button>
+          <span class="rate__val"><b id="rateVal">5</b>/s</span>
+          <button type="button" class="rate__btn" id="rateUp" aria-label="Faster burst">+</button>
+        </div>
+        <button type="button" class="shutter" id="shutter" aria-label="Take photo">
+          <span class="shutter__ring"></span><span class="shutter__core"></span>
+        </button>
+        <button type="button" class="deck__side" id="nextBottle">Next bottle</button>
+      </div>
+
+      <!-- step 2: bottle type sheet -->
+      <div class="sheet" id="typeSheet" hidden>
+        <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="typeTitle">
+          <div class="sheet__grip" aria-hidden="true"></div>
+          <h2 id="typeTitle">Which bottle is on the scale?</h2>
+
+          <label class="lcd" for="typeWeight">
+            <span class="lcd__label">Weight on the scale, optional</span>
+            <span class="lcd__screen">
+              <span class="lcd__ghost" aria-hidden="true">8888.8</span>
+              <input id="typeWeight" type="text" inputmode="decimal" autocomplete="off" placeholder="" aria-describedby="typeVol">
+              <span class="lcd__unit">g</span>
+            </span>
+            <span class="lcd__note" id="typeVol">You can also read it from the scale photo later, in Review.</span>
+          </label>
+
+          <div class="types" id="typeGrid" role="group" aria-label="Bottle type"></div>
+
+          <div class="sheet__actions">
+            <button type="button" class="btn btn--ghost" id="retakeScale">Retake scale photo</button>
+            <button type="button" class="btn btn--ghost btn--danger" id="discardScale">Discard</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- review -->
+    <section class="view view--review" id="viewReview" aria-label="Review" hidden>
+      <div class="pane" id="reviewList">
+        <div class="pane__head">
+          <h2>Review</h2>
+          <div class="seg" role="group" aria-label="Show">
+            <button type="button" data-filter="todo" aria-pressed="true">To review <span id="cntTodo"></span></button>
+            <button type="button" data-filter="all" aria-pressed="false">All <span id="cntAll"></span></button>
+          </div>
+        </div>
+        <p class="pane__lead">Label each bottle from its scale photo, drop the bad images, then approve it. Approved bottles leave this list.</p>
+        <ul class="bottles" id="bottleList"></ul>
+        <p class="empty" id="listEmpty" hidden></p>
+        <button type="button" class="btn btn--ghost btn--wide" id="listRefresh">Refresh</button>
+      </div>
+
+      <div class="pane pane--bottle" id="reviewBottle" hidden>
+        <div class="crumbs">
+          <button type="button" class="link" id="bottleBack">All bottles</button>
+          <span id="bottlePos"></span>
+        </div>
+        <h2 class="bottle__title"><span id="bottleId">S0000</span> <small id="bottleType"></small></h2>
+
+        <ol class="tabs2" role="tablist">
+          <li><button type="button" role="tab" id="tabLabel" aria-selected="true"><span>1</span>Label</button></li>
+          <li><button type="button" role="tab" id="tabImages" aria-selected="false"><span>2</span>Images <em id="imgCount"></em></button></li>
+        </ol>
+
+        <!-- step 1 -->
+        <div class="step" id="stepLabel">
+          <div class="zoom" id="scaleZoom" data-zoom="1">
+            <img id="scaleImg" alt="Scale photo of this bottle">
+            <button type="button" class="zoom__btn" id="zoomBtn">Zoom</button>
+          </div>
+          <label class="lcd lcd--big" for="labelWeight">
+            <span class="lcd__label">Weight on the scale, bottle + water</span>
+            <span class="lcd__screen">
+              <span class="lcd__ghost" aria-hidden="true">8888.8</span>
+              <input id="labelWeight" type="text" inputmode="decimal" autocomplete="off" aria-describedby="labelVol">
+              <span class="lcd__unit">g</span>
+            </span>
+            <span class="lcd__note" id="labelVol"></span>
+          </label>
+          <div class="row">
+            <button type="button" class="btn btn--primary btn--wide" id="saveLabel">Save label</button>
+          </div>
+          <div class="row row--split">
+            <button type="button" class="btn btn--ghost" id="prevBottle">Previous bottle</button>
+            <button type="button" class="btn btn--ghost" id="skipBottle">Skip bottle</button>
+          </div>
+        </div>
+
+        <!-- step 2 -->
+        <div class="step" id="stepImages" hidden>
+          <p class="step__lead" id="imagesLead">Tap an image to look at it full size. Discarded images move to <i>_discarded</i> on Drive and can be restored there.</p>
+          <ul class="grid" id="imgGrid"></ul>
+          <div class="row row--split">
+            <button type="button" class="btn btn--ghost" id="rotateAll">Rotate all 90°</button>
+            <button type="button" class="btn btn--ghost" id="undoDiscard">Undo discard</button>
+          </div>
+          <div class="approve">
+            <button type="button" class="btn btn--primary btn--wide" id="approveBtn">Approve bottle</button>
+            <button type="button" class="link" id="saveNoApprove">Save discards without approving</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- setup -->
+    <section class="view view--setup" id="viewSetup" aria-label="Setup" hidden>
+      <div class="pane">
+        <h2>Setup</h2>
+
+        <div class="group">
+          <h3>Who is collecting</h3>
+          <label class="field">Your name <input id="setCollector" type="text" autocomplete="name" placeholder="e.g. Tabish or Awais"></label>
+          <p class="hint">Saved with every bottle you capture on this device.</p>
+        </div>
+
+        <div class="group">
+          <h3>Camera</h3>
+          <label class="field">Camera <select id="setCamera"><option value="">Back camera (default)</option></select></label>
+          <div class="field">Rotation of the view
+            <div class="seg seg--4" id="setRotation" role="group" aria-label="Rotation">
+              <button type="button" data-rot="0">0°</button><button type="button" data-rot="90">90°</button><button type="button" data-rot="180">180°</button><button type="button" data-rot="270">270°</button>
+            </div>
+          </div>
+          <p class="hint">Set it so the bottle stands upright in the view. Photos are saved exactly as shown. A phone held upright needs 0°; a webcam mounted sideways needs 90°.</p>
+          <p class="hint" id="camInfo"></p>
+        </div>
+
+        <div class="group">
+          <h3>Photo size for training</h3>
+          <div class="seg seg--3" id="setSize" role="group" aria-label="Photo size">
+            <button type="button" data-size="1280">1280 px</button><button type="button" data-size="960">960 px</button><button type="button" data-size="640">640 px</button>
+          </div>
+          <div class="seg seg--3" id="setQuality" role="group" aria-label="JPEG quality">
+            <button type="button" data-q="0.92">High</button><button type="button" data-q="0.85">Standard</button><button type="button" data-q="0.75">Small</button>
+          </div>
+          <p class="hint" id="sizeHint">Long side 1280 px, JPEG quality 85. Scale photos are always kept at high quality so the digits stay readable.</p>
+        </div>
+
+        <div class="group">
+          <h3>Uploads</h3>
+          <p class="stat" id="queueStat">Nothing waiting.</p>
+          <p class="hint">Photos are kept on this phone until Drive confirms them, so you can keep capturing with a bad connection.</p>
+          <div class="row row--split">
+            <button type="button" class="btn btn--ghost" id="uploadNow">Upload now</button>
+            <button type="button" class="btn btn--ghost btn--danger" id="clearQueue">Delete waiting photos</button>
+          </div>
+        </div>
+
+        <div class="group">
+          <h3>Dataset on Drive</h3>
+          <p class="stat" id="dataStat">–</p>
+          <button type="button" class="btn btn--ghost btn--wide" id="exportXlsx">Write Excel copy to Drive</button>
+          <p class="hint">Saves water_in_a_bottle_dataset.xlsx next to the Google Sheet, for <code>pandas.read_excel</code>.</p>
+          <p class="hint">Every photo carries the owner tag <b id="ownerTag"></b> in its metadata (Artist, Copyright, description).</p>
+        </div>
+
+        <div class="group">
+          <button type="button" class="btn btn--ghost btn--wide" id="lockNow">Lock and forget the PIN on this device</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="Sections">
+    <button type="button" data-view="capture" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Capture
+    </button>
+    <button type="button" data-view="review">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 12l3 3 5-6"/></svg>Review
+    </button>
+    <button type="button" data-view="setup">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Setup
+    </button>
+  </nav>
+</div>
+
+<!-- full-size image viewer -->
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Image">
+  <div class="viewer__top">
+    <button type="button" class="link link--light" id="viewerClose">Back to grid</button>
+    <span id="viewerPos"></span>
+  </div>
+  <div class="viewer__stage" id="viewerStage">
+    <img id="viewerImg" alt="">
+    <span class="viewer__stamp" id="viewerStamp" hidden>Discarded</span>
+  </div>
+  <p class="viewer__name" id="viewerName"></p>
+  <div class="viewer__deck">
+    <button type="button" class="vbtn" id="viewerPrev" aria-label="Previous image">‹</button>
+    <button type="button" class="vbtn vbtn--discard" id="viewerDiscard">Discard</button>
+    <button type="button" class="vbtn vbtn--keep" id="viewerKeep">Keep</button>
+    <button type="button" class="vbtn" id="viewerNext" aria-label="Next image">›</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="config.js"></script>
+<script src="exif.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
