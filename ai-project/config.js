@@ -2,7 +2,7 @@
    endpoint: the "Web app URL" of the Google Apps Script deployment (ends in /exec). It is not a secret:
    every request still needs the PIN, which is checked by the script on Google's side. */
 window.AIP_CONFIG = {
-  endpoint: '',
+  endpoint: 'https://script.google.com/macros/s/AKfycbw3jBoUxEuVF5vdWmNrKtxpZTqK3wNKpuUcQzmh9UDPODgyJEYbTc0SamnMlBIds1Q1zg/exec',
 
   // Written into every photo (EXIF Artist + Copyright + description) and into the Drive file description.
   ownerTag: 'ShaikhZakaTabish_Awais',
