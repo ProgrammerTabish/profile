@@ -947,12 +947,12 @@
     if (S.pin) api('ping').then(showStats).catch(() => {});
   }
 
-  // ------------------------------------------------------------------ water levels (setup)
+  // ------------------------------------------------------------------ scale weight levels (setup)
   const MIN_GAP_G = 40;           // smaller gaps are not worth a bottle
 
   function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
   function fmtG(v) { return Math.round(v).toLocaleString('en'); }
-  function hasWater(l) { return l.waterG !== null && l.waterG !== '' && isFinite(l.waterG); }
+  function hasWeight(l) { return l.weightG !== null && l.weightG !== '' && isFinite(l.weightG); }
 
   /** A script deployed before "levels" existed answers unknown_action: build the same list from "list". */
   async function driveLevels() {
@@ -966,7 +966,7 @@
       const r = await api('list');
       applyServerConfig(r.config);
       levels = r.samples.map((s) => ({
-        sampleId: s.sampleId, type: s.type, weightG: s.weight, waterG: s.volume, images: s.numImages, approved: s.reviewStatus === 'approved',
+        sampleId: s.sampleId, type: s.type, weightG: s.weight, images: s.numImages, approved: s.reviewStatus === 'approved',
       }));
     }
     return levels;
@@ -983,9 +983,9 @@
     }
   }
 
-  /** Spaces between neighbouring levels (empty bottle = 0 g counts as a level), biggest first. */
-  function levelGaps(values) {
-    const pts = [0].concat(values);
+  /** Spaces between neighbouring scale weights (the empty bottle counts as a level), biggest first. */
+  function levelGaps(values, empty) {
+    const pts = [empty].concat(values.filter((v) => v > empty));
     const out = [];
     for (let i = 1; i < pts.length; i++) {
       if (pts[i] - pts[i - 1] >= MIN_GAP_G) out.push({ from: pts[i - 1], to: pts[i], size: pts[i] - pts[i - 1] });
@@ -997,25 +997,26 @@
     const box = $('levels');
     box.innerHTML = '';
     $('levelsNote').textContent = note;
-    const top = Math.max(500, ...levels.filter(hasWater).map((l) => Number(l.waterG)));
-    const step = top <= 500 ? 100 : 250;
+    const top = Math.max(1000, ...levels.filter(hasWeight).map((l) => Number(l.weightG)),
+      ...Object.values(S.types).map((i) => Number(i.emptyWeightG) || 0));
+    const step = top > 1000 ? 500 : 250;
     const axisMax = Math.ceil(top / step) * step;
     const pct = (g) => Math.min(100, Math.max(0, (g / axisMax) * 100));
 
     Object.keys(S.types).sort().forEach((t) => {
       const info = S.types[t];
       const mine = levels.filter((l) => String(l.type) === t);
-      const pts = mine.filter(hasWater).map((l) => Object.assign({}, l, { waterG: Number(l.waterG) })).sort((a, b) => a.waterG - b.waterG);
+      const empty = Number(info.emptyWeightG) || 0;
+      const pts = mine.filter(hasWeight).map((l) => Object.assign({}, l, { weightG: Number(l.weightG) })).sort((a, b) => a.weightG - b.weightG);
       const images = mine.reduce((n, l) => n + Number(l.images || 0), 0);
-      const total = pts.reduce((n, l) => n + l.waterG, 0);
       const unlabeled = mine.length - pts.length;
-      const gaps = levelGaps(Array.from(new Set(pts.map((l) => l.waterG))));
+      const gaps = levelGaps(Array.from(new Set(pts.map((l) => l.weightG))), empty);
       const short = String(info.description || '').replace(/^(Tallest|Shortest)\s*-\s*/, '');
 
       const sec = document.createElement('section');
       sec.className = 'lv';
       const sum = mine.length
-        ? `${mine.length} bottle${mine.length === 1 ? '' : 's'} · ${fmtG(images)} images · <b>${fmtG(total)} g</b> water in total${unlabeled ? ` · ${unlabeled} without label` : ''}`
+        ? `${mine.length} bottle${mine.length === 1 ? '' : 's'} · ${fmtG(images)} images${unlabeled ? ` · ${unlabeled} without label` : ''}`
         : 'No bottles yet';
       sec.innerHTML = `<h4 class="lv__title">Type ${esc(t)} <small>${esc(short)} · empty ${esc(info.emptyWeightG)} g</small></h4>`
         + `<p class="lv__sum">${sum}</p>`;
@@ -1031,6 +1032,11 @@
         band.style.width = (pct(g.to) - pct(g.from)) + '%';
         track.appendChild(band);
       });
+      const mark = document.createElement('span');
+      mark.className = 'lv__empty';
+      mark.style.left = pct(empty) + '%';
+      mark.title = `Empty bottle: ${empty} g`;
+      track.appendChild(mark);
       const tip = document.createElement('div');
       tip.className = 'lv__tip';
       tip.hidden = true;
@@ -1038,13 +1044,13 @@
         const d = document.createElement('button');
         d.type = 'button';
         d.className = 'lv__dot' + (l.approved ? '' : ' is-open');
-        d.style.left = pct(l.waterG) + '%';
-        const text = `${l.sampleId} · ${fmtWeight(l.waterG)} g water · scale ${fmtWeight(Number(l.weightG))} g · ${l.images} images · ${l.approved ? 'approved' : 'not approved yet'}`;
+        d.style.left = pct(l.weightG) + '%';
+        const text = `${l.sampleId} · ${fmtWeight(l.weightG)} g on the scale (bottle + water) · ${l.images} images · ${l.approved ? 'approved' : 'not approved yet'}`;
         d.setAttribute('aria-label', text);
         const show = () => {
           tip.textContent = text;
           tip.hidden = false;
-          const x = (pct(l.waterG) / 100) * track.offsetWidth + track.offsetLeft;
+          const x = (pct(l.weightG) / 100) * track.offsetWidth + track.offsetLeft;
           const half = tip.offsetWidth / 2;
           tip.style.left = Math.min(strip.offsetWidth - half, Math.max(half, x)) + 'px';
         };
@@ -1072,15 +1078,15 @@
 
       const vals = document.createElement('p');
       vals.className = 'lv__vals';
-      vals.textContent = pts.length ? 'Water: ' + pts.map((l) => fmtWeight(l.waterG)).join(' · ') + ' g' : 'No labeled bottle yet – any level from empty to full is new.';
+      vals.textContent = pts.length ? 'Scale: ' + pts.map((l) => fmtWeight(l.weightG)).join(' · ') + ' g' : 'No labeled bottle yet – any level from empty to full is new.';
       sec.appendChild(vals);
 
       if (gaps.length) {
         const next = document.createElement('p');
         next.className = 'lv__next';
-        next.innerHTML = '<i>Fill next (middle of the biggest gaps)</i>' + gaps.slice(0, 3).map((g) => {
+        next.innerHTML = '<i>Fill next, on the scale (middle of the biggest gaps)</i>' + gaps.slice(0, 3).map((g) => {
           const mid = Math.round((g.from + g.to) / 2 / 5) * 5;
-          return `<span><b>≈ ${mid} g</b> water <small>(scale ≈ ${fmtG(mid + Number(info.emptyWeightG))} g, gap ${fmtWeight(g.from)}–${fmtWeight(g.to)})</small></span>`;
+          return `<span><b>≈ ${fmtG(mid)} g</b> <small>(gap ${fmtWeight(g.from)}–${fmtWeight(g.to)} g)</small></span>`;
         }).join('');
         sec.appendChild(next);
       }

@@ -363,7 +363,7 @@ code { font: 500 .85em var(--f-mono); }
 .hint { font-size: .88rem; color: var(--mute); max-width: 38em; }
 .stat { font-size: .95rem; }
 
-/* water levels: one strip per bottle type, shared grams axis */
+/* scale weight levels: one strip per bottle type, shared grams axis (bottle + water) */
 .levels { display: grid; gap: .75rem; }
 .lv { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: .8rem .9rem .7rem; display: grid; gap: .35rem; }
 .lv__title { margin: 0; font-size: .95rem; font-weight: 600; }
@@ -377,6 +377,7 @@ code { font: 500 .85em var(--f-mono); }
   background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--amber) 35%, transparent) 0 3px, transparent 3px 7px);
   border: 1px dashed var(--amber);
 }
+.lv__empty { position: absolute; top: 2px; bottom: -4px; width: 0; border-left: 2px solid var(--mute); }
 .lv__dot {
   position: absolute; top: 50%; width: 24px; height: 24px; margin: -12px 0 0 -12px; padding: 0; border: 0; background: none;
   display: grid; place-items: center;
@@ -404,6 +405,7 @@ code { font: 500 .85em var(--f-mono); }
 .lv-key { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-size: .8rem; color: var(--mute); }
 .lv-key span { display: inline-flex; align-items: center; gap: .35rem; }
 .lv-key__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--water); }
+.lv-key__empty { width: 0; height: 12px; border-left: 2px solid var(--mute); }
 .lv-key__dot--open { background: none; box-shadow: inset 0 0 0 2px var(--water); }
 .lv-key__gap { width: 18px; height: 10px; border-radius: 3px; border: 1px dashed var(--amber); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--amber) 35%, transparent) 0 3px, transparent 3px 7px); }
 
