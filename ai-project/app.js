@@ -178,7 +178,7 @@
     document.querySelector('meta[name="theme-color"]').content = view === 'capture' ? '#10202C' : getComputedStyle(document.body).backgroundColor;
     if (view === 'capture') startCamera(); else stopCamera();
     if (view === 'review') loadList();
-    if (view === 'setup') renderSetup();
+    if (view === 'setup') { renderSetup(); loadLevels(); }
   }
 
   // ------------------------------------------------------------------ IndexedDB queue
@@ -945,6 +945,155 @@
     jobsCount().then(renderQueueStat);
     listCameras();
     if (S.pin) api('ping').then(showStats).catch(() => {});
+  }
+
+  // ------------------------------------------------------------------ water levels (setup)
+  const MIN_GAP_G = 40;           // smaller gaps are not worth a bottle
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function fmtG(v) { return Math.round(v).toLocaleString('en'); }
+  function hasWater(l) { return l.waterG !== null && l.waterG !== '' && isFinite(l.waterG); }
+
+  /** Bottles from the PC dataset (config.js), shaped like the script's "levels" answer. */
+  function pcLevels() {
+    return (CFG.pcLevels || []).map(([sampleId, type, weightG, images]) => {
+      const empty = S.types[type] ? S.types[type].emptyWeightG : 0;
+      return { sampleId, type, weightG, waterG: weightG - empty, images, approved: true, source: 'PC' };
+    });
+  }
+
+  /** A script deployed before "levels" existed answers unknown_action: build the same list from "list". */
+  async function driveLevels() {
+    let levels;
+    try {
+      const r = await api('levels');
+      applyServerConfig(r.config);
+      levels = r.levels;
+    } catch (e) {
+      if (e.code !== 'unknown_action') throw e;
+      const r = await api('list');
+      applyServerConfig(r.config);
+      levels = r.samples.map((s) => ({
+        sampleId: s.sampleId, type: s.type, weightG: s.weight, waterG: s.volume, images: s.numImages, approved: s.reviewStatus === 'approved',
+      }));
+    }
+    return levels.map((l) => Object.assign(l, { source: 'Drive' }));
+  }
+
+  async function loadLevels() {
+    const pc = pcLevels();
+    renderLevels(pc, S.pin ? 'Loading the bottles on Drive…' : '');
+    if (!S.pin) return;
+    try {
+      renderLevels(pc.concat(await driveLevels()), '');
+    } catch (e) {
+      renderLevels(pc, 'Bottles on Drive not loaded: ' + errText(e) + ' Showing the PC bottles only.');
+    }
+  }
+
+  /** Spaces between neighbouring levels (empty bottle = 0 g counts as a level), biggest first. */
+  function levelGaps(values) {
+    const pts = [0].concat(values);
+    const out = [];
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i] - pts[i - 1] >= MIN_GAP_G) out.push({ from: pts[i - 1], to: pts[i], size: pts[i] - pts[i - 1] });
+    }
+    return out.sort((a, b) => b.size - a.size);
+  }
+
+  function renderLevels(levels, note) {
+    const box = $('levels');
+    box.innerHTML = '';
+    $('levelsNote').textContent = note;
+    const top = Math.max(500, ...levels.filter(hasWater).map((l) => Number(l.waterG)));
+    const step = top <= 500 ? 100 : 250;
+    const axisMax = Math.ceil(top / step) * step;
+    const pct = (g) => Math.min(100, Math.max(0, (g / axisMax) * 100));
+
+    Object.keys(S.types).sort().forEach((t) => {
+      const info = S.types[t];
+      const mine = levels.filter((l) => String(l.type) === t);
+      const pts = mine.filter(hasWater).map((l) => Object.assign({}, l, { waterG: Number(l.waterG) })).sort((a, b) => a.waterG - b.waterG);
+      const images = mine.reduce((n, l) => n + Number(l.images || 0), 0);
+      const total = pts.reduce((n, l) => n + l.waterG, 0);
+      const unlabeled = mine.length - pts.length;
+      const gaps = levelGaps(Array.from(new Set(pts.map((l) => l.waterG))));
+      const short = String(info.description || '').replace(/^(Tallest|Shortest)\s*-\s*/, '');
+
+      const sec = document.createElement('section');
+      sec.className = 'lv';
+      const sum = mine.length
+        ? `${mine.length} bottle${mine.length === 1 ? '' : 's'} · ${fmtG(images)} images · <b>${fmtG(total)} g</b> water in total${unlabeled ? ` · ${unlabeled} without label` : ''}`
+        : 'No bottles yet';
+      sec.innerHTML = `<h4 class="lv__title">Type ${esc(t)} <small>${esc(short)} · empty ${esc(info.emptyWeightG)} g</small></h4>`
+        + `<p class="lv__sum">${sum}</p>`;
+
+      const strip = document.createElement('div');
+      strip.className = 'lv__strip';
+      const track = document.createElement('div');
+      track.className = 'lv__track';
+      gaps.slice(0, 3).forEach((g) => {
+        const band = document.createElement('span');
+        band.className = 'lv__gap';
+        band.style.left = pct(g.from) + '%';
+        band.style.width = (pct(g.to) - pct(g.from)) + '%';
+        track.appendChild(band);
+      });
+      const tip = document.createElement('div');
+      tip.className = 'lv__tip';
+      tip.hidden = true;
+      pts.forEach((l) => {
+        const d = document.createElement('button');
+        d.type = 'button';
+        d.className = 'lv__dot' + (l.approved ? '' : ' is-open');
+        d.style.left = pct(l.waterG) + '%';
+        const text = `${l.sampleId} · ${fmtWeight(l.waterG)} g water · scale ${fmtWeight(Number(l.weightG))} g · ${l.images} images · ${l.approved ? 'approved' : 'not approved yet'} · ${l.source}`;
+        d.setAttribute('aria-label', text);
+        const show = () => {
+          tip.textContent = text;
+          tip.hidden = false;
+          const x = (pct(l.waterG) / 100) * track.offsetWidth + track.offsetLeft;
+          const half = tip.offsetWidth / 2;
+          tip.style.left = Math.min(strip.offsetWidth - half, Math.max(half, x)) + 'px';
+        };
+        d.addEventListener('pointerenter', show);
+        d.addEventListener('focus', show);
+        d.addEventListener('click', show);
+        d.addEventListener('pointerleave', () => { if (document.activeElement !== d) tip.hidden = true; });
+        d.addEventListener('blur', () => { tip.hidden = true; });
+        track.appendChild(d);
+      });
+      strip.appendChild(track);
+      strip.appendChild(tip);
+
+      const axis = document.createElement('div');
+      axis.className = 'lv__axis';
+      axis.setAttribute('aria-hidden', 'true');
+      for (let g = 0; g <= axisMax; g += step) {
+        const tick = document.createElement('span');
+        tick.style.left = pct(g) + '%';
+        tick.textContent = g === axisMax ? `${g} g` : String(g);
+        axis.appendChild(tick);
+      }
+      strip.appendChild(axis);
+      sec.appendChild(strip);
+
+      const vals = document.createElement('p');
+      vals.className = 'lv__vals';
+      vals.textContent = pts.length ? 'Water: ' + pts.map((l) => fmtWeight(l.waterG)).join(' · ') + ' g' : 'No labeled bottle yet – any level from empty to full is new.';
+      sec.appendChild(vals);
+
+      if (gaps.length) {
+        const next = document.createElement('p');
+        next.className = 'lv__next';
+        next.innerHTML = '<i>Fill next (middle of the biggest gaps)</i>' + gaps.slice(0, 3).map((g) => {
+          const mid = Math.round((g.from + g.to) / 2 / 5) * 5;
+          return `<span><b>≈ ${mid} g</b> water <small>(scale ≈ ${fmtG(mid + Number(info.emptyWeightG))} g, gap ${fmtWeight(g.from)}–${fmtWeight(g.to)})</small></span>`;
+        }).join('');
+        sec.appendChild(next);
+      }
+      box.appendChild(sec);
+    });
   }
 
   // ------------------------------------------------------------------ events

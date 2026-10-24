@@ -186,6 +186,14 @@
         <h2>Setup</h2>
 
         <div class="group">
+          <h3>Water levels per bottle</h3>
+          <p class="hint">Every labeled bottle is a dot at its water amount (grams of water = scale weight − empty bottle, 1 g = 1 ml). Fill the marked gaps next.</p>
+          <p class="lv-key" aria-hidden="true"><span><i class="lv-key__dot"></i>approved</span><span><i class="lv-key__dot lv-key__dot--open"></i>not approved yet</span><span><i class="lv-key__gap"></i>gap to fill</span></p>
+          <div class="levels" id="levels"></div>
+          <p class="hint" id="levelsNote"></p>
+        </div>
+
+        <div class="group">
           <h3>Who is collecting</h3>
           <label class="field">Your name <input id="setCollector" type="text" autocomplete="name" placeholder="e.g. Tabish or Awais"></label>
           <p class="hint">Saved with every bottle you capture on this device.</p>
