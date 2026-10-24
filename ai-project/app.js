@@ -78,6 +78,7 @@
     locked: 'Too many wrong PINs. Try again in 15 minutes.',
     not_set_up: 'The Drive backend is not set up yet: run setup() in the Apps Script editor.',
     network: 'No connection to Drive.',
+    unknown_action: 'The Apps Script is older than this page: paste the new Code.gs and deploy a new version.',
   };
 
   async function api(action, data, pin) {
@@ -471,7 +472,10 @@
     sh.dataset.mode = S.step === 'scale' ? 'scale' : 'image';
     sh.setAttribute('aria-label', S.step === 'scale' ? 'Take the scale photo' : 'Take image (hold for burst)');
     sh.disabled = S.step === 'type';
-    $('nextBottle').disabled = S.step !== 'capture';
+    const side = $('nextBottle');
+    const canContinue = S.step === 'scale' && !!S.lastSample;
+    side.textContent = canContinue ? `Continue ${S.lastSample.sampleId || 'last bottle'}` : 'Next bottle';
+    side.disabled = S.step !== 'capture' && !canContinue;
     $('rateVal').textContent = settings.rate;
     const count = $('finderCount');
     let hint = '';
@@ -605,11 +609,61 @@
   }
 
   function nextBottle() {
+    if (S.step === 'scale' && S.lastSample) { continueSample(S.lastSample); return; }
     if (S.step !== 'capture') return;
     stopBurst();
     S.lastSample = S.sample;
     S.sample = null;
     setStep('scale');
+  }
+
+  /** Capture more images for a bottle that already has its scale photo (same scale reading, numbered on). */
+  function continueSample(s) {
+    stopBurst();
+    if (S.sample && S.sample !== s) S.lastSample = S.sample;
+    S.pendingScale = null;
+    S.sample = s;
+    if (S.view !== 'capture') showView('capture');
+    setStep('capture');
+    toast(`Adding images to ${s.sampleId || 'the last bottle'}, same scale reading`);
+  }
+
+  /** Continue a bottle that is already on Drive (from Review). */
+  async function continueDriveSample(info) {
+    const localId = 'drive:' + info.sampleId;
+    await samplePut({ localId, sampleId: info.sampleId });
+    continueSample({ localId, type: info.type, count: info.numImages || 0, weight: info.weight, sampleId: info.sampleId, ready: Promise.resolve() });
+  }
+
+  /** Drive sample ids that still have photos waiting in this phone's queue (or are being captured now). */
+  async function busySampleIds() {
+    const ids = new Set();
+    if (S.sample && S.sample.sampleId) ids.add(S.sample.sampleId);
+    const jobs = await tx('jobs', 'readonly', (s) => s.getAll());
+    for (const j of jobs || []) {
+      const map = await sampleGet(j.localId);
+      if (map) ids.add(map.sampleId);
+    }
+    return ids;
+  }
+
+  /** Deletes bottles that have only a scale photo. Returns the script's answer, or null if nothing was sent. */
+  async function deleteEmptySamples(ids) {
+    const busy = await busySampleIds();
+    const kept = ids.filter((id) => busy.has(id));
+    ids = ids.filter((id) => !busy.has(id));
+    if (!ids.length) { toast('Photos of these bottles are still waiting on this phone.', true); return null; }
+    const what = ids.length === 1 ? `bottle ${ids[0]}` : `${ids.length} bottles (${ids.join(', ')})`;
+    if (!confirm(`Delete ${what} without images? The scale photo moves to _discarded on Drive.`)) return null;
+    try {
+      const r = await api('deleteSamples', { sampleIds: ids });
+      const skipped = r.skipped.map((s) => `${s.sampleId}: ${s.reason}`).concat(kept.map((id) => `${id}: photos waiting on this phone`));
+      toast((r.deleted.length ? `Deleted ${r.deleted.join(', ')}.` : 'Nothing deleted.') + (skipped.length ? ' Kept ' + skipped.join('; ') + '.' : ''), !r.deleted.length);
+      return r;
+    } catch (e) {
+      toast(errText(e), true);
+      return null;
+    }
   }
 
   function setRate(delta) {
@@ -724,6 +778,7 @@
     $('bottlePos').textContent = `${i + 1} of ${R.todo.length}`;
     $('scaleImg').removeAttribute('src');
     $('imgGrid').innerHTML = '';
+    $('deleteBottle').hidden = true;
     $('labelWeight').value = R.cur.weight !== null ? fmtWeight(R.cur.weight) : '';
     updateWeightNote($('labelWeight'), $('labelVol'), R.cur.type);
     showStep(R.cur.weight !== null && R.cur.reviewStatus !== 'approved' ? 'images' : 'label');
@@ -734,6 +789,7 @@
       R.images = r.images;
       if (r.scale) $('scaleImg').src = b64ToUrl(r.scale);
       else $('scaleImg').alt = 'This bottle has no scale photo.';
+      $('deleteBottle').hidden = R.images.length > 0;
       renderGrid();
     } catch (e) {
       toast('Could not load ' + R.cur.sampleId + ': ' + errText(e), true);
@@ -975,12 +1031,24 @@
   /** Only the bottles recorded on Google Drive; the PC/webcam dataset is not shown. */
   async function loadLevels() {
     renderLevels([], S.pin ? 'Loading the bottles on Drive…' : '');
+    renderEmpty([]);
     if (!S.pin) return;
     try {
-      renderLevels(await driveLevels(), '');
+      const levels = await driveLevels();
+      renderLevels(levels, '');
+      renderEmpty(levels);
     } catch (e) {
       renderLevels([], 'Bottles on Drive not loaded: ' + errText(e));
     }
+  }
+
+  let emptyIds = [];
+  /** Bottles that have only a scale photo, with the bulk delete button. */
+  function renderEmpty(levels) {
+    emptyIds = levels.filter((l) => !Number(l.images)).map((l) => l.sampleId).sort();
+    $('emptyGroup').hidden = !emptyIds.length;
+    $('emptyList').textContent = emptyIds.join(' · ');
+    $('deleteEmpty').textContent = `Delete ${emptyIds.length} bottle${emptyIds.length === 1 ? '' : 's'} without images`;
   }
 
   /** Spaces between neighbouring scale weights (the empty bottle counts as a level), biggest first. */
@@ -1155,6 +1223,16 @@
     $('approveBtn').addEventListener('click', () => finishBottle(true));
     $('saveNoApprove').addEventListener('click', () => finishBottle(false));
     $('rotateAll').addEventListener('click', rotateAll);
+    $('continueBottle').addEventListener('click', () => { if (R.cur) continueDriveSample(R.cur); });
+    $('deleteBottle').addEventListener('click', async () => {
+      if (!R.cur) return;
+      const r = await deleteEmptySamples([R.cur.sampleId]);
+      if (r && r.deleted.includes(R.cur.sampleId)) {
+        R.samples = R.samples.filter((s) => s.sampleId !== R.cur.sampleId);
+        closeBottle();
+        loadList();
+      }
+    });
 
     // viewer
     $('viewerClose').addEventListener('click', closeViewer);
@@ -1194,6 +1272,11 @@
       b.disabled = true; b.textContent = 'Writing…';
       try { const r = await api('exportXlsx'); toast(`${r.file} written to the Drive folder`); } catch (e) { toast(errText(e), true); }
       b.disabled = false; b.textContent = 'Write Excel copy to Drive';
+    });
+    $('deleteEmpty').addEventListener('click', async () => {
+      const b = $('deleteEmpty');
+      b.disabled = true;
+      try { if (await deleteEmptySamples(emptyIds.slice())) await loadLevels(); } finally { b.disabled = false; }
     });
     $('lockNow').addEventListener('click', () => lock('Locked. The PIN was removed from this device.'));
 

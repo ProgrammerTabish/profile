@@ -363,6 +363,8 @@ code { font: 500 .85em var(--f-mono); }
 .hint { font-size: .88rem; color: var(--mute); max-width: 38em; }
 .stat { font-size: .95rem; }
 
+.bottle__actions { margin: .25rem 0 .75rem; }
+
 /* scale weight levels: one strip per bottle type, shared grams axis (bottle + water) */
 .levels { display: grid; gap: .75rem; }
 .lv { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: .8rem .9rem .7rem; display: grid; gap: .35rem; }

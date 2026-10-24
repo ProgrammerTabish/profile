@@ -134,6 +134,10 @@
           <span id="bottlePos"></span>
         </div>
         <h2 class="bottle__title"><span id="bottleId">S0000</span> <small id="bottleType"></small></h2>
+        <div class="row row--split bottle__actions">
+          <button type="button" class="btn btn--ghost" id="continueBottle">Add images</button>
+          <button type="button" class="btn btn--ghost btn--danger" id="deleteBottle" hidden>Delete bottle</button>
+        </div>
 
         <ol class="tabs2" role="tablist">
           <li><button type="button" role="tab" id="tabLabel" aria-selected="true"><span>1</span>Label</button></li>
@@ -191,6 +195,13 @@
           <p class="lv-key" aria-hidden="true"><span><i class="lv-key__dot"></i>approved</span><span><i class="lv-key__dot lv-key__dot--open"></i>not approved yet</span><span><i class="lv-key__gap"></i>gap to fill</span><span><i class="lv-key__empty"></i>empty bottle</span></p>
           <div class="levels" id="levels"></div>
           <p class="hint" id="levelsNote"></p>
+        </div>
+
+        <div class="group" id="emptyGroup" hidden>
+          <h3>Bottles without images</h3>
+          <p class="stat" id="emptyList"></p>
+          <p class="hint">Only a scale photo is stored for these. Deleting moves the scale photo to <i>_discarded</i> on Drive. Bottles captured in the last 15 minutes or with photos still waiting on this phone are kept.</p>
+          <button type="button" class="btn btn--ghost btn--danger btn--wide" id="deleteEmpty">Delete bottles without images</button>
         </div>
 
         <div class="group">
