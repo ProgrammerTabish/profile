@@ -954,14 +954,6 @@
   function fmtG(v) { return Math.round(v).toLocaleString('en'); }
   function hasWater(l) { return l.waterG !== null && l.waterG !== '' && isFinite(l.waterG); }
 
-  /** Bottles from the PC dataset (config.js), shaped like the script's "levels" answer. */
-  function pcLevels() {
-    return (CFG.pcLevels || []).map(([sampleId, type, weightG, images]) => {
-      const empty = S.types[type] ? S.types[type].emptyWeightG : 0;
-      return { sampleId, type, weightG, waterG: weightG - empty, images, approved: true, source: 'PC' };
-    });
-  }
-
   /** A script deployed before "levels" existed answers unknown_action: build the same list from "list". */
   async function driveLevels() {
     let levels;
@@ -977,17 +969,17 @@
         sampleId: s.sampleId, type: s.type, weightG: s.weight, waterG: s.volume, images: s.numImages, approved: s.reviewStatus === 'approved',
       }));
     }
-    return levels.map((l) => Object.assign(l, { source: 'Drive' }));
+    return levels;
   }
 
+  /** Only the bottles recorded on Google Drive; the PC/webcam dataset is not shown. */
   async function loadLevels() {
-    const pc = pcLevels();
-    renderLevels(pc, S.pin ? 'Loading the bottles on Drive…' : '');
+    renderLevels([], S.pin ? 'Loading the bottles on Drive…' : '');
     if (!S.pin) return;
     try {
-      renderLevels(pc.concat(await driveLevels()), '');
+      renderLevels(await driveLevels(), '');
     } catch (e) {
-      renderLevels(pc, 'Bottles on Drive not loaded: ' + errText(e) + ' Showing the PC bottles only.');
+      renderLevels([], 'Bottles on Drive not loaded: ' + errText(e));
     }
   }
 
@@ -1047,7 +1039,7 @@
         d.type = 'button';
         d.className = 'lv__dot' + (l.approved ? '' : ' is-open');
         d.style.left = pct(l.waterG) + '%';
-        const text = `${l.sampleId} · ${fmtWeight(l.waterG)} g water · scale ${fmtWeight(Number(l.weightG))} g · ${l.images} images · ${l.approved ? 'approved' : 'not approved yet'} · ${l.source}`;
+        const text = `${l.sampleId} · ${fmtWeight(l.waterG)} g water · scale ${fmtWeight(Number(l.weightG))} g · ${l.images} images · ${l.approved ? 'approved' : 'not approved yet'}`;
         d.setAttribute('aria-label', text);
         const show = () => {
           tip.textContent = text;
