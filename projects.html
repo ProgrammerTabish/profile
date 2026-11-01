@@ -5,24 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Projects · Shaikh Zaka Tabish</title>
 
-<meta name="description" content="Case studies: a private, citation-backed RAG assistant for banking compliance with a live 3D demo, an MCP server connecting AI models to Jira and hardware diagnostics at Nokia, a lab network anomaly detection system, a real time IoT waste collection tracker with a live simulated dashboard, and Großry, a clickable prototype of a student collective purchasing app.">
+<meta name="description" content="Case studies: a private, citation-backed RAG assistant for banking compliance with a live 3D demo, an automatic cone crimping machine built in a garage with Arduino, an MCP server connecting AI models to Jira and hardware diagnostics at Nokia, a lab network anomaly detection system, a real time IoT waste collection tracker with a live dashboard, and Großry, a student collective purchasing prototype.">
 <meta name="author" content="Shaikh Zaka Tabish">
 <meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
 <link rel="canonical" href="https://www.zakatabish.online/projects.html">
 
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Shaikh Zaka Tabish">
 <meta property="og:title" content="Projects · Shaikh Zaka Tabish">
-<meta property="og:description" content="Real case studies covering architecture, decisions and trade offs, including a live simulated dashboard for a real time IoT waste collection tracker.">
+<meta property="og:description" content="Private RAG for banks, a machine built in a garage, MCP tooling at Nokia, and more: the problem, the architecture and the trade-offs.">
 <meta property="og:url" content="https://www.zakatabish.online/projects.html">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://www.zakatabish.online/assets/img/og/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="assets/img/icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<script>document.documentElement.classList.add('js');try{var t=JSON.parse(localStorage.getItem('zt.theme'));document.documentElement.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/js/vendor/leaflet.css">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235645D6'/%3E%3Cpath d='M5 20 q4 -12 8 0 t8 0 t6 -6' fill='none' stroke='%233FE0D0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<script type="speculationrules">{"prefetch":[{"source":"document","where":{"href_matches":"/*.html"},"eagerness":"moderate"}]}</script>
 </head>
 
 <body>
@@ -62,287 +71,305 @@
 
 <main id="main">
 
-<section class="section" id="projects" aria-labelledby="projH" style="padding-top:clamp(5.5rem,10vw,7rem)">
+<section class="section section--top" id="projects" aria-labelledby="projH">
   <div class="section__head">
     <span class="section__eyebrow">Selected work</span>
     <h2 id="projH">Projects</h2>
-    <p>Pieces of work I'd most want to walk you through: the problem, what I actually built, the trade offs, and what it took to get there. Several have a live simulation running in the browser below them.</p>
+    <p>Each one starts with the short version. Open <b>Engineering details</b> when you want the problem, the decisions and what went wrong.</p>
   </div>
 
+  <nav class="jump" aria-label="Projects on this page">
+    <a href="#proj-rag">Private RAG</a>
+    <a href="#proj-crimp">Crimping machine</a>
+    <a href="#proj-mcp">MCP server</a>
+    <a href="#proj-monitoring">Lab monitoring</a>
+    <a href="#proj-waste">Waste tracking</a>
+    <a href="#proj-grossry">Großry</a>
+  </nav>
+
   <!-- ══ private RAG assistant ══ -->
-  <article class="feature__item" id="proj-rag" style="margin-bottom:2.4rem;">
-    <h3>Private RAG Assistant: a compliance document reader for banks</h3>
-    <p class="feature__meta">SPG Innovation Challenge 2026, Use Case 13 · Python, FastAPI, Qdrant, BGE-M3, BM25, Docling, Ollama / vLLM, Go</p>
-    <p class="feature__sub">Built for Specific-Group GmbH at the Innovation Challenge &amp; Fair 2026 (Ecosystem Smart Niederbayern, Landau an der Isar, 8&ndash;10 October 2026). This is Variant B of the brief: the fully self-hosted, open-source pipeline, from PDF ingestion to the chat UI and a one-click installer.</p>
+  <article class="proj" id="proj-rag" data-reveal>
+    <header class="proj__head">
+      <p class="feature__meta">Innovation Challenge 2026 · Use Case 13 · Python, FastAPI, Qdrant, BGE-M3, BM25, Docling, Ollama / vLLM, Go</p>
+      <h3>Private RAG Assistant: a compliance document reader for banks</h3>
+      <p class="proj__lede">Ask about GwG, KWG, MaRisk or DORA in English or German and get an answer where every statement points to a file, section and page. Fully self-hosted: documents, model and answers never leave the bank. Built in 24 hours with Specific-Group's team in Landshut, and covered in the regional press.</p>
+    </header>
 
-    <div class="case">
-      <div class="case__block">
-        <span class="case__label">The problem</span>
-        <p>Compliance, risk and audit teams at German banks spend hours searching and quoting BaFin circulars, MaRisk, EBA guidelines and laws like the GwG and KWG. ChatGPT is off the table: the questions and documents fall under banking secrecy. They need answers they can verify, from a model that never leaves the bank's own infrastructure.</p>
+    <div class="flow" data-tilt="5">
+      <div class="flow__node"><b>50 PDFs</b><span>Docling, §-aware chunks</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Qdrant</b><span>BGE-M3 dense + BM25</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__group">
+        <div class="flow__node"><b>Question + German rewrite</b><span>4 ranked lists</span></div>
+        <div class="flow__node"><b>RRF fusion</b><span>top 8, max 4 per doc</span></div>
       </div>
-      <div class="case__block">
-        <span class="case__label">What I built</span>
-        <p>A citation-backed assistant over 50 regulatory PDFs (3,387 pages, 12,186 chunks). It takes a natural-language question in English or German and returns an answer in which every statement carries a <code>[n]</code> pointing to a file, section and page, plus a confidence score, a status and an audit-trail entry. Every component is open source and runs inside the tenant: documents, embeddings, model weights, prompts and answers never leave it.</p>
-      </div>
-
-      <div class="case__block case__block--wide">
-        <span class="case__label">Architecture</span>
-        <div class="flow">
-          <div class="flow__node"><b>50 PDFs</b><span>Docling, § / Art. / AT-aware chunks</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Qdrant</b><span>BGE-M3 dense + BM25 sparse</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__group">
-            <div class="flow__node"><b>Question + German rewrite</b><span>4 ranked lists</span></div>
-            <div class="flow__node"><b>RRF fusion</b><span>top 8, max 4 per doc</span></div>
-          </div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Open-source LLM</b><span>Mistral Small 3.1 / Llama 3.3, in-tenant</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Verified answer</b><span>citations, confidence, audit</span></div>
-        </div>
-        <p style="margin:0;"><a class="linkbtn" href="playground.html#demo-rag">Ask it a question and watch this pipeline run in 3D in the Playground →</a></p>
-      </div>
-
-      <div class="case__block">
-        <span class="case__label">Key decisions</span>
-        <ul>
-          <li><b>Hybrid search, because the questions are English and the law is German.</b> Measured on the challenge's question set: plain dense + keyword search found an expected document for 5 of 31 questions. Adding a German query (an LLM rewrite plus an EN&rarr;DE compliance glossary) to both the dense and the keyword side raised that to 20 of 31 with the local stand-in models.</li>
-          <li><b>Chunks never cross a legal boundary.</b> A chunker that knows <code>§ 10</code>, <code>Artikel 19</code> and <code>AT 4.4.2</code> means every citation can read <code>01_GwG.pdf | § 10 | p. 17-18</code>, which is how a compliance officer actually checks a source.</li>
-          <li><b>Distrust the model's citations.</b> Markers that point to sources that were never shown are removed, fewer than 2 citations triggers one retry, and <code>NOT_IN_SOURCES</code> produces an honest refusal. That covers market data, the bank's internal limits, and anything the corpus doesn't cover.</li>
-          <li><b>No Docker, no admin rights.</b> Two shell scripts and a Go launcher for Windows install everything in user space, restore a prebuilt vector database and start the API and chat UI. A bank's IT can run it on one GPU machine.</li>
-        </ul>
-      </div>
-      <div class="case__block">
-        <span class="case__label">Challenges</span>
-        <ul>
-          <li>Parsing PDFs the way lawyers cite them. A non-breaking space in <code>§&nbsp;10</code>, cross-references like <code>§ 46 Abs. 1</code> that look like headings, table-of-contents pages and EU recitals all broke section detection until they were handled one by one.</li>
-          <li>A stale checkpoint bug: re-ingesting after a chunker change silently kept the old chunks. The checkpoint fingerprint now includes a hash of the ingestion code itself.</li>
-          <li>Small models sometimes loop on citation markers or answer <code>NOT_IN_SOURCES</code> and then answer anyway. Both are detected and cleaned up in post-processing.</li>
-          <li>113 tests cover the failure paths a bank's IT will hit: corrupt or encrypted PDFs, the embedding endpoint or LLM going down mid-request, a database failing during an audit write, and 16 concurrent requests.</li>
-        </ul>
-      </div>
-
-      <div class="case__block case__block--wide">
-        <span class="case__label">Result</span>
-        <p>A working self-hosted assistant: 50 of 50 PDFs ingested with no failures, 12,186 chunks embedded with BGE-M3 on a single RTX 2080 SUPER, and Mistral Small 3.1 24B serving answers through Ollama on hardware the bank controls. It ships as one install script (or one double-click on Windows) with the prebuilt index included, so a CPU-only machine can run it without re-embedding anything.</p>
-        <p>The Playground demo runs that same index in your browser. It ports the tokenizer, BM25 scoring, fusion, citation checks and confidence formula from the Python code, and on the 30 in-scope evaluation questions it retrieves an expected source document for 26. The LLM step there is simulated, and the demo says so.</p>
-        <p class="feature__links">
-          <a class="btn btn--solid btn--sm" href="playground.html#demo-rag">Try the live demo</a>
-          <a class="btn btn--outline btn--sm" href="rag/">Open full screen</a>
-          <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish/private-rag-assistant" rel="noopener">View the code</a>
-        </p>
-      </div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Open-source LLM</b><span>Mistral Small 3.1, in-tenant</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Verified answer</b><span>citations, confidence, audit</span></div>
     </div>
+
+    <ul class="stats">
+      <li><b>12,186</b>chunks from 3,387 pages</li>
+      <li><b>5 → 20</b>of 31 questions found, after the German rewrite</li>
+      <li><b>113</b>tests on the failure paths</li>
+    </ul>
+
+    <p class="feature__links">
+      <a class="btn btn--solid btn--sm" href="playground.html#demo-rag">Try the live 3D demo</a>
+      <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish/private-rag-assistant" rel="noopener">View the code</a>
+      <a class="btn btn--ghost btn--sm" href="https://innovationchallenge2026.smart.niederbayern.de/events/innovation-challenge-2026/#usecases" rel="noopener">Use Case 13 ↗</a>
+      <a class="btn btn--ghost btn--sm" data-lightbox href="assets/img/press/innovation-challenge-2026.jpg"
+         data-caption="<b>“Studierende tüfteln 24 Stunden an digitaler Zukunft”</b> — regional press, October 2026. Around 80 students solved 18 real tasks from industry and public administration in 24 hours at the Innovation Challenge 2026 of Ecosystem Smart Niederbayern. Specific-Group Germany hosted a team of seven in its Landshut office on two use cases, one of them the <i>AI Compliance Document Reader / Private RAG Assistant</i>. Landshut's Lord Mayor Thomas Haslinger visited the team.">Press article</a>
+    </p>
+
+    <details class="more">
+      <summary>Engineering details</summary>
+      <p class="feature__sub">Built for Specific-Group at the Innovation Challenge &amp; Fair 2026 of Ecosystem Smart Niederbayern (8&ndash;10 October 2026), with the team working from Specific-Group's Landshut office. This is Variant B of the brief: the fully self-hosted, open-source pipeline, from PDF ingestion to the chat UI and a one-click installer.</p>
+      <div class="case">
+        <div class="case__block">
+          <span class="case__label">The problem</span>
+          <p>Compliance, risk and audit teams at German banks spend hours searching and quoting BaFin circulars, MaRisk, EBA guidelines and laws like the GwG and KWG. ChatGPT is off the table: the questions and documents fall under banking secrecy. They need answers they can verify, from a model that never leaves the bank's own infrastructure.</p>
+        </div>
+        <div class="case__block">
+          <span class="case__label">What I built</span>
+          <p>A citation-backed assistant over 50 regulatory PDFs (3,387 pages, 12,186 chunks). A natural-language question in English or German returns an answer in which every statement carries a <code>[n]</code> pointing to a file, section and page, plus a confidence score, a status and an audit-trail entry.</p>
+        </div>
+        <div class="case__block">
+          <span class="case__label">Key decisions</span>
+          <ul>
+            <li><b>Hybrid search, because the questions are English and the law is German.</b> Plain dense + keyword search found an expected document for 5 of 31 questions. Adding a German query (an LLM rewrite plus an EN&rarr;DE compliance glossary) to both sides raised that to 20 of 31 with the local stand-in models.</li>
+            <li><b>Chunks never cross a legal boundary.</b> A chunker that knows <code>§ 10</code>, <code>Artikel 19</code> and <code>AT 4.4.2</code> means every citation reads like <code>01_GwG.pdf | § 10 | p. 17-18</code>.</li>
+            <li><b>Distrust the model's citations.</b> Markers pointing to sources that were never shown are removed, fewer than 2 citations triggers one retry, and <code>NOT_IN_SOURCES</code> produces an honest refusal.</li>
+            <li><b>No Docker, no admin rights.</b> Two shell scripts and a Go launcher for Windows install everything in user space and restore a prebuilt vector database.</li>
+          </ul>
+        </div>
+        <div class="case__block">
+          <span class="case__label">Challenges</span>
+          <ul>
+            <li>Parsing PDFs the way lawyers cite them: a non-breaking space in <code>§&nbsp;10</code>, cross-references that look like headings, table-of-contents pages and EU recitals all broke section detection.</li>
+            <li>A stale checkpoint bug kept old chunks after a chunker change. The checkpoint fingerprint now includes a hash of the ingestion code itself.</li>
+            <li>Small models sometimes loop on citation markers or refuse and then answer anyway. Both are detected and cleaned up.</li>
+            <li>113 tests cover corrupt or encrypted PDFs, the embedding endpoint or LLM going down mid-request, a database failing during an audit write, and 16 concurrent requests.</li>
+          </ul>
+        </div>
+        <div class="case__block case__block--wide">
+          <span class="case__label">Result</span>
+          <p>50 of 50 PDFs ingested with no failures, 12,186 chunks embedded with BGE-M3 on a single RTX 2080 SUPER, and Mistral Small 3.1 24B answering through Ollama on hardware the bank controls. The Playground demo runs that same index in your browser; on the 30 in-scope evaluation questions it retrieves an expected source document for 26. The LLM step there is simulated, and the demo says so.</p>
+        </div>
+      </div>
+    </details>
+  </article>
+
+  <!-- ══ cone crimping machine ══ -->
+  <article class="proj" id="proj-crimp" data-reveal>
+    <header class="proj__head">
+      <p class="feature__meta">Personal hardware project · Arduino Nano, IR proximity sensors, relays, 12 V DC + 220 V AC motors, C++</p>
+      <h3>An automatic cone crimping machine, built in my garage</h3>
+      <p class="proj__lede">I took a manual machine that crimps lids onto ice-cream cones and made it run itself: drop in a cone, and it turns, crimps and throws the finished cone into a bin. The video shows the result first, then the mechanism, the electronics, a live demo and a full code review.</p>
+    </header>
+
+    <div class="vblock">
+      <figure class="vplayer" id="vpCrimp" data-src="assets/video/cone-crimping-machine.mp4" data-teaser="assets/video/cone-crimping-machine-teaser.mp4">
+        <video muted loop playsinline preload="none" poster="assets/video/cone-crimping-machine-poster.jpg" aria-label="Automatic cone crimping machine: build, live demo, hardware and code review"></video>
+        <button class="vplayer__play" type="button"><i aria-hidden="true"></i>Watch the build <span>9:51 · with sound</span></button>
+      </figure>
+      <ol class="vchapters" data-video="vpCrimp" aria-label="Jump to a chapter">
+        <li><button type="button" data-t="0"><time>0:00</time>The result</button></li>
+        <li><button type="button" data-t="41"><time>0:41</time>The idea</button></li>
+        <li><button type="button" data-t="64"><time>1:04</time>How the mechanism works</button></li>
+        <li><button type="button" data-t="132"><time>2:12</time>The electronics</button></li>
+        <li><button type="button" data-t="220"><time>3:40</time>Crimped vs. uncrimped</button></li>
+        <li><button type="button" data-t="258"><time>4:18</time>Calibration &amp; live demo</button></li>
+        <li><button type="button" data-t="353"><time>5:53</time>Serial monitor</button></li>
+        <li><button type="button" data-t="398"><time>6:38</time>Code review</button></li>
+      </ol>
+    </div>
+
+    <div class="flow" data-tilt="5">
+      <div class="flow__node"><b>Cone dropped in</b><span>IR sensor A sees it</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Disc turns</b><span>12 V DC motor</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Under the press</b><span>IR sensor B stops it</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Crimp</b><span>220 V winch, reed switch</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Eject</b><span>seesaw lever to a bin</span></div>
+    </div>
+
+    <details class="more">
+      <summary>Engineering details</summary>
+      <div class="case">
+        <div class="case__block">
+          <span class="case__label">The problem</span>
+          <p>The base machine, from Maru Machinery, crimps the lid onto a filled ice-cream cone so nothing falls out. Run by hand, every cone has to be positioned, pressed and removed one at a time, which is slow and tiring.</p>
+        </div>
+        <div class="case__block">
+          <span class="case__label">The mechanism</span>
+          <p>A slotted disc carries the cones. A motor-driven winch pulls the crimping piston down onto the cone, and on the way round a seesaw lever with a leaf-spring "spatula" knocks the finished cone out of its holder into a container. Slots for small and large cones are calibrated separately.</p>
+        </div>
+        <div class="case__block">
+          <span class="case__label">The electronics</span>
+          <ul>
+            <li>An <b>Arduino Nano</b> reads two <b>IR proximity sensors</b> and a <b>reed switch</b> that signals when the crimp has reached full tension.</li>
+            <li>Three relays: one drives the 12 V disc motor, and the 220 V crimping motor is switched through a <b>30 A secondary relay</b>, because the 10 A relay module isn't rated for a motor with that much torque.</li>
+            <li>A <b>flyback diode</b> on the DC motor absorbs the back-EMF so it stops the instant power is cut. A fan cools the relays.</li>
+            <li>The USB port is brought outside the box, so a laptop can watch every state change live in the serial monitor.</li>
+          </ul>
+        </div>
+        <div class="case__block">
+          <span class="case__label">The code</span>
+          <ul>
+            <li><b>A small state machine.</b> Cone at sensor A and nothing at B: turn the disc. Cone arrives at B: stop the disc, wait 100 ms to settle, run the crimp motor until the reed switch closes, wait 200 ms for the piston to retract, then wait for the next cone.</li>
+            <li><b>Safe on power-up.</b> Inputs use <code>INPUT_PULLUP</code> and the relay logic is inverted, so every motor is guaranteed off when the machine is switched on.</li>
+            <li><b>Observable.</b> Every change in sensor and motor state is printed over serial, for example <code>Sensor A: ACTIVE | Sensor B: INACTIVE | Motor: ON</code>.</li>
+          </ul>
+        </div>
+        <div class="case__block case__block--wide">
+          <span class="case__label">Result</span>
+          <p>A fully automatic cycle: drop in a cone and it is indexed, crimped and ejected with no hands on the machine, and the lid is held firmly by the cone's edges. The demo uses empty cones, because ice cream melts faster than a calibration run.</p>
+        </div>
+      </div>
+    </details>
   </article>
 
   <!-- ══ MCP server ══ -->
-  <article class="feature__item" id="proj-mcp" style="margin-bottom:2.4rem;">
-    <h3>An MCP server for hardware diagnostics</h3>
-    <p class="feature__meta">Nokia Nuremberg · Python, HTTP streaming, MCP, Jira API</p>
+  <article class="proj" id="proj-mcp" data-reveal>
+    <header class="proj__head">
+      <p class="feature__meta">Nokia Nuremberg · Python, HTTP streaming, MCP, Jira API</p>
+      <h3>An MCP server for hardware diagnostics</h3>
+      <p class="proj__lede">An engineer asks "board B3 failed overnight, why?" in Cursor, and the model runs the real test pipeline on the real board, checks Jira for related tickets and answers with both.</p>
+    </header>
 
-    <div class="case">
-      <div class="case__block">
-        <span class="case__label">The problem</span>
-        <p>Engineers investigating a failing board had to manually run the right test pipeline, then separately dig through Jira for related history. Two disconnected tools, no shortcut from a symptom to its context.</p>
+    <div class="flow" data-tilt="5">
+      <div class="flow__node"><b>Engineer</b><span>asks in Cursor</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>MCP server</b><span>lab gateway machine</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__group">
+        <div class="flow__node"><b>Diagnostics suite</b><span>runs on real hardware</span></div>
+        <div class="flow__node"><b>Jira API</b><span>ticket history</span></div>
       </div>
-      <div class="case__block">
-        <span class="case__label">What I built</span>
-        <p>A streamable HTTP MCP server running on a lab gateway machine. It exposes the diagnostics suite and Jira as callable tools an AI model can use, so an engineer can ask a question in plain language inside Cursor and get back real results from the physical hardware.</p>
-      </div>
-
-      <div class="case__block case__block--wide">
-        <span class="case__label">Architecture</span>
-        <div class="flow">
-          <div class="flow__node"><b>Engineer</b><span>asks in Cursor</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>MCP server</b><span>lab gateway machine</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__group">
-            <div class="flow__node"><b>Diagnostics suite</b><span>runs on real hardware</span></div>
-            <div class="flow__node"><b>Jira API</b><span>ticket history</span></div>
-          </div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Grounded answer</b><span>back in the conversation</span></div>
-        </div>
-        <p style="margin:0;"><a class="linkbtn" href="playground.html#demo-mcp">See this exact request/response flow animated in the Playground →</a></p>
-      </div>
-
-      <div class="case__block">
-        <span class="case__label">Key decisions</span>
-        <ul>
-          <li>Streamable HTTP over stdio, since engineers needed to reach the server from their own machines rather than running it locally next to the model.</li>
-          <li>Tool calls scoped narrowly to specific tests and ticket lookups, not open shell access, so a wrong guess from the model can't do anything destructive to the hardware it's diagnosing.</li>
-        </ul>
-      </div>
-      <div class="case__block">
-        <span class="case__label">Challenges</span>
-        <ul>
-          <li>Test pipelines can run for minutes against physical hardware, so the server had to handle long running calls without blocking the conversation.</li>
-          <li>Results needed enough structure that the model could reason over them reliably, instead of just echoing raw logs back.</li>
-        </ul>
-      </div>
-
-      <div class="case__block case__block--wide">
-        <span class="case__label">Result</span>
-        <p>An engineer can go from "board B3 failed overnight" to a grounded answer, real test results correlated with matching tickets, without leaving the conversation.</p>
-        <p class="feature__note" style="margin-top:.6rem;">Internal work. Code stays with Nokia, but I can talk through the architecture in detail.</p>
-      </div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Grounded answer</b><span>back in the conversation</span></div>
     </div>
+
+    <p class="feature__links">
+      <a class="btn btn--outline btn--sm" href="playground.html#demo-mcp">See the flow animated in 3D</a>
+    </p>
+
+    <details class="more">
+      <summary>Engineering details</summary>
+      <div class="case">
+        <div class="case__block">
+          <span class="case__label">The problem</span>
+          <p>Engineers investigating a failing board had to run the right test pipeline by hand, then dig through Jira for related history separately. Two disconnected tools, no shortcut from a symptom to its context.</p>
+        </div>
+        <div class="case__block">
+          <span class="case__label">What I built</span>
+          <p>A streamable HTTP MCP server on a lab gateway machine that exposes the diagnostics suite and Jira as tools an AI model can call, so a plain-language question returns real results from physical hardware.</p>
+        </div>
+        <div class="case__block">
+          <span class="case__label">Key decisions</span>
+          <ul>
+            <li>Streamable HTTP over stdio, so engineers reach the server from their own machines.</li>
+            <li>Tools scoped narrowly to specific tests and ticket lookups, not open shell access, so a wrong guess from the model can't harm the hardware.</li>
+          </ul>
+        </div>
+        <div class="case__block">
+          <span class="case__label">Challenges</span>
+          <ul>
+            <li>Test pipelines run for minutes, so long calls must not block the conversation.</li>
+            <li>Results need enough structure for the model to reason over, not raw logs.</li>
+          </ul>
+        </div>
+        <div class="case__block case__block--wide">
+          <p class="feature__note">Internal work. Code stays with Nokia, but I can talk through the architecture in detail.</p>
+        </div>
+      </div>
+    </details>
   </article>
 
   <!-- ══ lab monitoring ══ -->
-  <article class="feature__item" id="proj-monitoring" style="margin-bottom:2.4rem;">
-    <h3>Lab network monitoring &amp; anomaly alerting</h3>
-    <p class="feature__meta">Nokia Nuremberg · Python, anomaly detection, SMTP alerting</p>
+  <article class="proj" id="proj-monitoring" data-reveal>
+    <header class="proj__head">
+      <p class="feature__meta">Nokia Nuremberg · Python, anomaly detection, SMTP alerting</p>
+      <h3>Lab network monitoring &amp; anomaly alerting</h3>
+      <p class="proj__lede">A degrading link used to show up hours later as a mysterious test failure. Now it is caught against its own normal behaviour and reported by email the moment it drifts.</p>
+    </header>
 
-    <div class="case">
-      <div class="case__block">
-        <span class="case__label">The problem</span>
-        <p>The diagnostics lab had no visibility into a degrading network link until a test run failed hours later, with no clear reason why. By the time anyone noticed, the trail was cold.</p>
-      </div>
-      <div class="case__block">
-        <span class="case__label">What I built</span>
-        <p>A continuous monitoring system I specified from scratch: periodic health checks across lab network links, anomaly detection against each link's normal behaviour, and email alerts the moment something looks wrong.</p>
-      </div>
-
-      <div class="case__block case__block--wide">
-        <span class="case__label">Architecture</span>
-        <div class="flow">
-          <div class="flow__node"><b>Lab network links</b><span>periodic health checks</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Anomaly detection</b><span>deviation from baseline</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__group">
-            <div class="flow__node"><b>Within range</b><span>logged, silent</span></div>
-            <div class="flow__node"><b>Anomaly</b><span>SMTP alert sent</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="case__block">
-        <span class="case__label">Key decisions</span>
-        <ul>
-          <li>Lightweight polling over standing up new monitoring infrastructure, since the lab already had enough moving parts.</li>
-          <li>Tuned toward fewer, trustworthy alerts: too strict and every routine blip pages someone for nothing, too loose and it misses what it exists to catch.</li>
-        </ul>
-      </div>
-      <div class="case__block">
-        <span class="case__label">Challenges</span>
-        <ul>
-          <li>A lab network has bursty, unpredictable usage: test runs, firmware flashes, hardware being plugged and unplugged. So "normal" isn't a fixed number.</li>
-          <li>Building a baseline that adapted to that without drowning in false positives was most of the actual work.</li>
-        </ul>
-      </div>
-
-      <div class="case__block case__block--wide">
-        <span class="case__label">Result</span>
-        <p>Degradation gets caught and reported before it silently costs someone a day of debugging a test failure that was never really about their code.</p>
-        <p class="feature__note" style="margin-top:.6rem;">Internal work. Architecture and approach available on request.</p>
+    <div class="flow" data-tilt="5">
+      <div class="flow__node"><b>Lab network links</b><span>periodic health checks</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Anomaly detection</b><span>deviation from baseline</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__group">
+        <div class="flow__node"><b>Within range</b><span>logged, silent</span></div>
+        <div class="flow__node"><b>Anomaly</b><span>SMTP alert sent</span></div>
       </div>
     </div>
+
+    <details class="more">
+      <summary>Engineering details</summary>
+      <div class="case">
+        <div class="case__block">
+          <span class="case__label">Key decisions</span>
+          <ul>
+            <li>Lightweight polling instead of new monitoring infrastructure; the lab had enough moving parts.</li>
+            <li>Tuned for fewer, trustworthy alerts: too strict pages someone for every blip, too loose misses what it exists to catch.</li>
+          </ul>
+        </div>
+        <div class="case__block">
+          <span class="case__label">Challenges</span>
+          <ul>
+            <li>Lab traffic is bursty (test runs, firmware flashes, hardware plugged in and out), so "normal" isn't a fixed number.</li>
+            <li>A baseline that adapts to that without drowning in false positives was most of the work.</li>
+          </ul>
+        </div>
+        <div class="case__block case__block--wide">
+          <p class="feature__note">Internal work. Architecture and approach available on request.</p>
+        </div>
+      </div>
+    </details>
   </article>
 
   <!-- ══ waste management ══ -->
-  <article class="feature__item feature__item--open" id="proj-waste">
-    <h3>City Waste Management System Using Van Tracking</h3>
-    <p class="feature__meta">Bachelor thesis, B.Tech CSE · NodeMCU ESP8266, NEO-6M GPS, WebSockets, MERN, React Leaflet, OpenStreetMap</p>
-    <p class="feature__sub">Final year project at Marathwada Institute of Technology, Chh. Sambhajinagar, under Dr. Babasaheb Ambedkar Technological University, Lonere. Submitted May 2024 under the guidance of Ms. Ankita Shewale and built by a team of four; my share was the hardware-to-backend link and the live tracking side of the web application.</p>
+  <article class="proj" id="proj-waste" data-reveal>
+    <header class="proj__head">
+      <p class="feature__meta">Bachelor thesis · NodeMCU ESP8266, NEO-6M GPS, WebSockets, MERN, React Leaflet, OpenStreetMap</p>
+      <h3>City Waste Management System Using Van Tracking</h3>
+      <p class="proj__lede">Vans, complaints and routes were three systems that never spoke. A GPS box in each van, a WebSocket backend and three web portals put them in one data model, and complaint handling got 17% faster.</p>
+    </header>
 
-    <div class="case">
-      <div class="case__block">
-        <span class="case__label">The problem</span>
-        <p>Municipal waste collection in the case study city ran on fixed routes with no real time visibility. Administrators could not tell whether a van was on schedule or had skipped a zone, route planning was done on assumption rather than data, and a citizen who filed a complaint had no way of knowing whether anyone had acted on it. The failure was not any one of those things on its own &mdash; it was that the vans, the complaints and the routes were three separate systems that never spoke to each other.</p>
-      </div>
-      <div class="case__block">
-        <span class="case__label">What I built</span>
-        <p>An end to end IoT system that closes that loop. A NodeMCU ESP8266 paired with a NEO-6M GPS module rides in each collection van and streams its position over a WebSocket to a Node/Express server, which broadcasts it out to every connected client. A MERN stack web application then gives each of the three groups the view it actually needs: a live fleet map for the municipal corporation, an assigned route and complaint queue for the driver, and a &ldquo;where is my complaint&rdquo; status page for the citizen who filed it.</p>
-      </div>
-
-      <div class="case__block case__block--wide">
-        <span class="case__label">Architecture</span>
-        <div class="flow">
-          <div class="flow__node"><b>NodeMCU + NEO-6M</b><span>in the van, TinyGPS++</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>WebSocket</b><span>persistent, not polled</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Node / Express</b><span>socket.io broadcast</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>MongoDB</b><span>positions, routes, complaints</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__group">
-            <div class="flow__node"><b>Admin</b><span>live fleet map</span></div>
-            <div class="flow__node"><b>Driver</b><span>route &amp; complaint queue</span></div>
-            <div class="flow__node"><b>Citizen</b><span>file &amp; track a complaint</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="case__block case__block--wide">
-        <span class="case__label">The three portals</span>
-        <div class="portals">
-          <div class="portal">
-            <h4>Citizen</h4>
-            <p>Registers with a phone number, drops a pin on an OpenStreetMap tile to mark exactly where the problem is, and files a complaint against those coordinates. The history page then shows its live status, and the tracking page shows the vehicle assigned to that zone moving on the map.</p>
-          </div>
-          <div class="portal">
-            <h4>Van driver</h4>
-            <p>Sees the route assigned to the van and the complaints that fall along it, and acknowledges or resolves each one from the same screen &mdash; so a complaint closes at the moment the work is done, not whenever someone gets round to the paperwork.</p>
-          </div>
-          <div class="portal">
-            <h4>Municipal corporation</h4>
-            <p>Registers vans, watches the whole fleet on one map, assigns complaints to routes and reads a dashboard of collection efficiency per zone. This is the view that turns a stream of coordinates into something a planner can act on.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="case__block">
-        <span class="case__label">Key decisions</span>
-        <ul>
-          <li><b>WebSockets over HTTP polling.</b> A van reports every few seconds. Polling that from a dozen browsers would have meant thousands of near-empty requests an hour; one persistent socket per van, broadcast out through socket.io, keeps the map live without the traffic. On the device side that meant <code>WebSocketClient.h</code> on the ESP8266 and <code>TinyGPS++</code> to parse the NEO-6M&rsquo;s NMEA sentences.</li>
-          <li><b>OpenStreetMap and Leaflet over a paid maps API.</b> This had to be viable on a municipal budget, not just as a thesis demo. Per-request billing would have made the live map the single most expensive part of running the system.</li>
-          <li><b>Coordinates as the primary key of a complaint.</b> A complaint is filed against a point on the map, not a free text address. That is what makes it possible to assign complaints to routes automatically, and to measure whether a route actually passed the places it was meant to.</li>
-          <li><b>Built to run convincingly on simulated GPS during development</b>, since the hardware was not always available and a thesis demo cannot depend on a van being out on a round. The dashboard below uses the same approach, for the same reason.</li>
-        </ul>
-      </div>
-      <div class="case__block">
-        <span class="case__label">Challenges</span>
-        <ul>
-          <li><b>A GPS fix is not a position.</b> The NEO-6M drops out under cover, and raw fixes jitter by tens of metres while a van sits still. Points had to be filtered before they were trusted, or the map showed a parked van wandering around the depot.</li>
-          <li><b>Rendering a moving fleet without melting the browser.</b> Every van pushing updates into a Leaflet map with per-marker redraws does not scale, so updates were batched and markers grouped by zoom level rather than redrawn one at a time.</li>
-          <li><b>Defining &ldquo;route efficiency&rdquo; at all.</b> Turning raw position pings into a number meant first deciding what an efficient route through a collection zone looks like, then measuring deviation from it: distance covered against bins actually served, and time spent inside the zone against time spent getting to it.</li>
-          <li><b>Keeping the citizen view simple while the admin view stayed dense.</b> The same underlying data has to read as a one line status to one user and as a planning dashboard to another.</li>
-        </ul>
-      </div>
-
-      <div class="case__block">
-        <span class="case__label">The hardware</span>
-        <p>Each unit is a self contained box: a NodeMCU ESP8266 with onboard WiFi, a NEO-6M GPS module and its antenna, a lithium polymer battery with a micro-USB charging port, and a toggle switch so a driver can power it without opening anything. Nothing about it needs attention during a round &mdash; a deliberate constraint, because a tracking device that needs attention is a tracking device that gets switched off.</p>
-      </div>
-      <div class="case__block">
-        <span class="case__label">Security</span>
-        <p>Passwords are hashed with bcrypt rather than stored, CORS is configured explicitly rather than left open, and each of the three roles only reaches the endpoints belonging to it. This is a system holding citizens&rsquo; phone numbers alongside their home coordinates; treating that casually was not an option.</p>
-      </div>
-
-      <div class="case__block case__block--wide">
-        <span class="case__label">Result</span>
-        <p>Measured against the city&rsquo;s previous fixed route process, the system cut complaint handling time by 17% and improved route efficiency by 25%. The wider point of the thesis was that neither number came from the tracking hardware on its own. They came from complaints, routes and vehicle positions finally living in one data model.</p>
-        <p class="feature__stats" style="margin-top:.4rem;">
-          <span><b>17%</b> faster complaint handling</span>
-          <span><b>25%</b> better route efficiency</span>
-          <span><b>12</b> papers in the literature survey</span>
-        </p>
-        <p class="feature__links">
-          <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish/FinalYearProject" rel="noopener">View the code</a>
-        </p>
+    <div class="flow" data-tilt="5">
+      <div class="flow__node"><b>NodeMCU + NEO-6M</b><span>in the van</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>WebSocket</b><span>persistent, not polled</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Node / Express</b><span>socket.io broadcast</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>MongoDB</b><span>positions, routes, complaints</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__group">
+        <div class="flow__node"><b>Admin</b><span>live fleet map</span></div>
+        <div class="flow__node"><b>Driver</b><span>route &amp; queue</span></div>
+        <div class="flow__node"><b>Citizen</b><span>file &amp; track</span></div>
       </div>
     </div>
+
+    <ul class="stats">
+      <li><b>17%</b>faster complaint handling</li>
+      <li><b>25%</b>better route efficiency</li>
+      <li><b>3</b>portals, one data model</li>
+    </ul>
 
     <div class="dash" id="wasteDash" aria-label="Live simulated dashboard for the city waste management project">
       <div class="dash__bar">
         <p class="dash__title">Live simulation <b>City Waste Collection: Fleet View</b></p>
         <p class="dash__live"><i></i> simulated data, updating now</p>
-        <p class="dash__note">This portfolio is static (GitHub Pages, no backend) so this is a self contained front end rebuild of the real dashboard's UI and logic, driven by simulated GPS and sensor data: same map, same charts, same route optimization idea, no server required. The real system additionally needs Node/Express, MongoDB and physical GPS hardware.</p>
+        <p class="dash__note">A front-end rebuild of the real dashboard, driven by simulated GPS and sensor data. The real system also needs Node/Express, MongoDB and GPS hardware.</p>
       </div>
       <div class="dash__body">
         <div class="dash__map" id="wasteMap" aria-label="Interactive map of simulated collection vans moving along routes, with bin fill level markers. Pannable and zoomable."></div>
@@ -358,64 +385,101 @@
         </div>
       </div>
     </div>
+
+    <p class="feature__links" style="margin-top:1.2rem;">
+      <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish/FinalYearProject" rel="noopener">View the code</a>
+    </p>
+
+    <details class="more">
+      <summary>Engineering details</summary>
+      <p class="feature__sub">Final year project at Marathwada Institute of Technology, Chh. Sambhajinagar, under Dr. Babasaheb Ambedkar Technological University. Submitted May 2024 under the guidance of Ms. Ankita Shewale, built by a team of four; my share was the hardware-to-backend link and the live tracking side of the web application.</p>
+      <div class="case">
+        <div class="case__block case__block--wide">
+          <span class="case__label">The three portals</span>
+          <div class="portals">
+            <div class="portal" data-tilt="5"><h4>Citizen</h4><p>Drops a pin on the map to mark exactly where the problem is, files a complaint against those coordinates, and watches its status and the assigned van live.</p></div>
+            <div class="portal" data-tilt="5"><h4>Van driver</h4><p>Sees the assigned route and the complaints along it, and resolves each one from the same screen, so a complaint closes when the work is done.</p></div>
+            <div class="portal" data-tilt="5"><h4>Municipal corporation</h4><p>Registers vans, watches the whole fleet on one map, assigns complaints to routes and reads collection efficiency per zone.</p></div>
+          </div>
+        </div>
+        <div class="case__block">
+          <span class="case__label">Key decisions</span>
+          <ul>
+            <li><b>WebSockets over HTTP polling.</b> One persistent socket per van, broadcast through socket.io, keeps the map live without thousands of near-empty requests an hour. <code>WebSocketClient.h</code> and <code>TinyGPS++</code> on the ESP8266.</li>
+            <li><b>OpenStreetMap and Leaflet over a paid maps API</b>, so it stays viable on a municipal budget.</li>
+            <li><b>Coordinates as the primary key of a complaint</b>, which is what lets complaints be assigned to routes automatically.</li>
+            <li><b>Built to run on simulated GPS</b> during development, the same approach the dashboard above uses.</li>
+          </ul>
+        </div>
+        <div class="case__block">
+          <span class="case__label">Challenges</span>
+          <ul>
+            <li><b>A GPS fix is not a position.</b> Raw fixes jitter by tens of metres while a van sits still, so points are filtered before they are trusted.</li>
+            <li><b>A moving fleet without melting the browser:</b> updates batched, markers grouped by zoom level.</li>
+            <li><b>Defining "route efficiency"</b> as distance covered against bins actually served, and time in the zone against time getting there.</li>
+          </ul>
+        </div>
+        <div class="case__block">
+          <span class="case__label">The hardware</span>
+          <p>A self-contained box: NodeMCU ESP8266, NEO-6M GPS and antenna, a LiPo battery with micro-USB charging, and a toggle switch. Nothing needs attention during a round, because a tracker that needs attention gets switched off.</p>
+        </div>
+        <div class="case__block">
+          <span class="case__label">Security</span>
+          <p>bcrypt-hashed passwords, explicit CORS, and each role reaching only its own endpoints. The system holds phone numbers next to home coordinates; treating that casually was not an option.</p>
+        </div>
+      </div>
+    </details>
   </article>
 
   <!-- ══ Großry ══ -->
-  <article class="feature__item" id="proj-grossry" style="margin-top:2.4rem;">
-    <h3>Großry: a student collective purchasing app</h3>
-    <p class="feature__meta">University project · Clickable prototype · HTML, CSS, vanilla JavaScript</p>
-    <p class="feature__sub">Get wholesale prices without having to buy wholesale quantities. Students enter their expected monthly groceries, Großry pools the demand to unlock bulk price tiers, buys once, and a student crew (a Runner who drives, a Distributor who hands out) brings it to campus for slot-based QR pickup.</p>
+  <article class="proj" id="proj-grossry" data-reveal>
+    <header class="proj__head">
+      <p class="feature__meta">University project · Clickable prototype · HTML, CSS, vanilla JavaScript</p>
+      <h3>Großry: a student collective purchasing app</h3>
+      <p class="proj__lede">Wholesale prices without wholesale quantities. Students pool their monthly groceries to unlock bulk price tiers, Großry buys once, and a student crew brings it to campus for QR pickup.</p>
+    </header>
 
-    <div class="case">
-      <div class="case__block">
-        <span class="case__label">The problem</span>
-        <p>Wholesale prices are far below supermarket shelf prices, but no student needs a 20 kg sack of rice or a case of twelve bottles of oil. The saving exists, but no single student can reach it.</p>
-      </div>
-      <div class="case__block">
-        <span class="case__label">What the prototype shows</span>
-        <p>The whole monthly cycle, clickable end to end: verified sign-up, a shop where every product shows its bulk-price progress bar, a transparent cost breakdown, demand lock at the cutoff, Runner and Distributor jobs with backups, automatic pickup slots, QR handover, a view of the month's complete bulk order, and an admin dashboard.</p>
-      </div>
+    <div class="flow" data-tilt="5">
+      <div class="flow__node"><b>Student demand</b><span>monthly basket</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Aggregation</b><span>price tiers unlock</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Bulk procurement</b><span>one supplier order</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Runner + Distributor</b><span>each with a backup</span></div>
+      <span class="flow__arrow" aria-hidden="true">→</span>
+      <div class="flow__node"><b>Slot + QR pickup</b><span>12 people / 15 min</span></div>
+    </div>
 
-      <div class="case__block case__block--wide">
-        <span class="case__label">The model</span>
-        <div class="flow">
-          <div class="flow__node"><b>Student demand</b><span>monthly basket</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Aggregation</b><span>price tiers unlock</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Bulk procurement</b><span>one supplier order</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Runner + Distributor</b><span>each with a backup</span></div>
-          <span class="flow__arrow" aria-hidden="true">→</span>
-          <div class="flow__node"><b>Slot + QR pickup</b><span>12 people / 15 min</span></div>
+    <p class="feature__links">
+      <a class="btn btn--outline btn--sm" href="grossy/">Open the prototype</a>
+    </p>
+
+    <details class="more">
+      <summary>Engineering details</summary>
+      <div class="case">
+        <div class="case__block">
+          <span class="case__label">Key decisions</span>
+          <ul>
+            <li><b>Savings defined, not asserted.</b> Saving = reference retail basket − actual landed cost. Großry takes 20% of that verified saving, and the cart shows every line of it.</li>
+            <li><b>No single point of failure.</b> Every crew job has a paid backup who takes over automatically.</li>
+            <li><b>Aggregated insights, not data selling.</b> Partners see totals only; products bought by fewer than 10 students are suppressed.</li>
+          </ul>
+        </div>
+        <div class="case__block">
+          <span class="case__label">Constraints taken seriously</span>
+          <ul>
+            <li>GDPR data minimisation, with export and deletion in the profile.</li>
+            <li>Food hygiene: everything handed out sealed as supplied; chilled and frozen goods stay out of student-run distribution.</li>
+            <li>Terms and Privacy ship as clearly marked drafts.</li>
+          </ul>
+        </div>
+        <div class="case__block case__block--wide">
+          <span class="case__label">Try it</span>
+          <p>Use the demo account, then press <b>Advance</b> to move the month from shopping to distribution day. All people, prices and suppliers are fictional.</p>
         </div>
       </div>
-
-      <div class="case__block">
-        <span class="case__label">Key decisions</span>
-        <ul>
-          <li><b>Savings defined, not asserted.</b> Saving = reference retail basket price − actual landed cost. Großry takes 20% of that verified saving, and the cart shows every line of it.</li>
-          <li><b>No single point of failure.</b> Every crew job has a backup who is paid a small reservation credit and takes over automatically if the primary cancels.</li>
-          <li><b>Aggregated insights, not data selling.</b> The admin view previews exactly what a partner would see: totals only, with any product bought by fewer than 10 students suppressed.</li>
-        </ul>
-      </div>
-      <div class="case__block">
-        <span class="case__label">Constraints taken seriously</span>
-        <ul>
-          <li>GDPR data minimisation: no photo required, data export and deletion in the profile.</li>
-          <li>Food hygiene: everything is handed out sealed, as supplied (nothing is opened or re-portioned), and chilled and frozen goods stay out of student-run distribution.</li>
-          <li>Terms and Privacy ship as clearly marked drafts, not as legal text.</li>
-        </ul>
-      </div>
-
-      <div class="case__block case__block--wide">
-        <span class="case__label">Try it</span>
-        <p>Runs entirely in the browser. Use the demo account, then press <b>Advance</b> to move the month forward from shopping to distribution day. All people, prices and suppliers are fictional.</p>
-        <p class="feature__links">
-          <a class="btn btn--outline btn--sm" href="grossy/">Open the prototype</a>
-        </p>
-      </div>
-    </div>
+    </details>
   </article>
 
   <p class="projects__more"><a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish" rel="noopener">More code on GitHub</a></p>
@@ -444,8 +508,6 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/leaflet.js" defer></script>
-<script src="assets/js/vendor/chart.umd.js" defer></script>
 <script src="assets/js/main.js" defer></script>
 <script src="assets/js/waste-dashboard.js" defer></script>
 </body>

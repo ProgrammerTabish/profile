@@ -3,10 +3,20 @@
    simulation of the final-year project's UI (Leaflet map +
    Chart.js), driven by synthetic GPS/fill-level data. No
    backend: this is a static GitHub Pages site.
+   Leaflet, Chart.js and the map tiles load only when the dashboard
+   comes near the screen, and the simulation pauses off screen.
    ========================================================= */
 (function () {
   const mapEl = $('#wasteMap');
-  if (!mapEl || typeof L === 'undefined') return;
+  if (!mapEl) return;
+  const css = document.createElement('link');
+  whenNear(mapEl, () => {
+    css.rel = 'stylesheet'; css.href = 'assets/js/vendor/leaflet.css';
+    document.head.appendChild(css);
+    Promise.all([loadScript('assets/js/vendor/leaflet.js'), loadScript('assets/js/vendor/chart.umd.js')]).then(start).catch(() => {});
+  }, '800px');
+
+  function start() {
 
   const CENTER = [49.4521, 11.0767]; // Nuremberg
 
@@ -133,7 +143,11 @@
     pushChart(bins.reduce((s, b) => s + b.fill, 0) / bins.length);
   }
 
-  setInterval(tick, 350);
+  let timer = 0;
+  new IntersectionObserver(([e]) => {
+    clearInterval(timer);
+    if (e.isIntersecting) timer = setInterval(tick, 350);
+  }).observe(mapEl);
   tick();
 
   setTimeout(() => map.invalidateSize(), 200);
@@ -141,4 +155,5 @@
   window.addEventListener('themechange', () => {
     bins.forEach(b => b.marker.setStyle({ fillColor: binColor(b.fill) }));
   });
+  }
 })();

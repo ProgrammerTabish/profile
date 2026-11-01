@@ -5,23 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Shaikh Zaka Tabish · AI Engineering for Industrial Systems</title>
 
-<meta name="description" content="Shaikh Zaka Tabish builds AI assisted tooling, anomaly detection and automation for industrial and hardware systems. MSc Artificial Intelligence for Industrial Applications at OTH Amberg; one year at Nokia Nuremberg, now looking for the next role. Includes live demos running in the browser: a neural network that learns to read handwriting, a reinforcement-learning agent that learns Pong, and how MCP connects AI models to real software.">
+<meta name="description" content="Shaikh Zaka Tabish builds AI tooling for industrial and hardware systems. MSc Artificial Intelligence for Industrial Applications at OTH Amberg, one year at Nokia Nuremberg, and a private RAG assistant for banks built at the Innovation Challenge 2026. Includes live 3D demos that run in your browser.">
 <meta name="author" content="Shaikh Zaka Tabish">
 <meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
 <link rel="canonical" href="https://www.zakatabish.online/">
 
 <meta property="og:type" content="profile">
+<meta property="og:site_name" content="Shaikh Zaka Tabish">
 <meta property="og:title" content="Shaikh Zaka Tabish · AI Engineering for Industrial Systems">
-<meta property="og:description" content="MSc student in AI for Industrial Applications, building neural networks, MCP tooling and anomaly detection. See live demos running in the browser of how they actually work.">
+<meta property="og:description" content="Private RAG for banking compliance, MCP tooling at Nokia, a machine built in a garage, and live 3D neural networks you can play with.">
 <meta property="og:url" content="https://www.zakatabish.online/">
+<meta property="og:image" content="https://www.zakatabish.online/assets/img/og/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Shaikh Zaka Tabish, AI engineering for industrial systems">
 <meta name="twitter:card" content="summary_large_image">
 
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="assets/img/icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<script>document.documentElement.classList.add('js');try{var t=JSON.parse(localStorage.getItem('zt.theme'));document.documentElement.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235645D6'/%3E%3Cpath d='M5 20 q4 -12 8 0 t8 0 t6 -6' fill='none' stroke='%233FE0D0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preload" as="image" href="assets/img/profile/zaka-tabish-avatar-160.webp" type="image/webp" fetchpriority="high">
+<script type="speculationrules">{"prefetch":[{"source":"document","where":{"href_matches":"/*.html"},"eagerness":"moderate"}]}</script>
 
 <script type="application/ld+json">
 {
@@ -30,12 +42,13 @@
   "name": "Shaikh Zaka Tabish",
   "jobTitle": "MSc Student, Artificial Intelligence for Industrial Applications",
   "url": "https://www.zakatabish.online/",
+  "image": "https://www.zakatabish.online/assets/img/profile/zaka-tabish-portrait-900.jpg",
   "sameAs": ["https://github.com/ProgrammerTabish", "https://www.linkedin.com/in/zakatabish"],
   "alumniOf": [
     {"@type": "CollegeOrUniversity", "name": "OTH Amberg-Weiden"},
     {"@type": "CollegeOrUniversity", "name": "Dr. Babasaheb Ambedkar Technological University"}
   ],
-  "knowsAbout": ["Machine Learning", "Neural Networks", "Reinforcement Learning", "Model Context Protocol", "Industrial AI Applications", "Anomaly Detection"],
+  "knowsAbout": ["Machine Learning", "Neural Networks", "Retrieval-Augmented Generation", "Reinforcement Learning", "Model Context Protocol", "Industrial AI Applications", "Anomaly Detection", "Embedded Systems"],
   "knowsLanguage": ["English", "German"],
   "address": {"@type": "PostalAddress", "addressLocality": "Nuremberg", "addressCountry": "DE"}
 }
@@ -83,80 +96,176 @@
 <!-- ══ hero ══ -->
 <section class="hero" id="top">
   <div class="hero__copy">
-    <p class="hero__id">Shaikh Zaka Tabish</p>
-    <h1 class="hero__line">I build the <em>intelligence layer</em> between industrial systems and the people who run them.</h1>
-    <p class="hero__sub">
-      MSc student in Artificial Intelligence for Industrial Applications at OTH Amberg. I spent the
-      past year applying that toward AI assisted tooling and anomaly detection at Nokia Nuremberg,
-      and I'm now looking for what's next. Below: a live neural network that is genuinely training
-      as you read this, three engineering case studies, and five small AI systems you can actually
-      play with.
-    </p>
-    <div class="hero__actions">
-      <a class="btn btn--solid" href="playground.html">Explore the playground</a>
-      <a class="btn btn--outline" href="contact.html">Get in touch</a>
+    <div class="hero__who">
+      <picture>
+        <source type="image/webp" srcset="assets/img/profile/zaka-tabish-avatar-160.webp 1x, assets/img/profile/zaka-tabish-avatar-320.webp 2x">
+        <img class="hero__avatar" src="assets/img/profile/zaka-tabish-avatar-160.jpg" srcset="assets/img/profile/zaka-tabish-avatar-320.jpg 2x"
+             width="76" height="76" alt="Portrait of Shaikh Zaka Tabish" fetchpriority="high" decoding="async">
+      </picture>
+      <div>
+        <p class="hero__id">Shaikh Zaka Tabish</p>
+        <p class="hero__role">AI engineer · MSc AI, OTH Amberg</p>
+      </div>
     </div>
+    <h1 class="hero__line">I build the <em>intelligence layer</em> between industrial systems and the people who run them.</h1>
+    <p class="hero__sub">A year at Nokia building AI tooling for hardware diagnostics. Most recently, a private AI assistant for banks, built in 24 hours.</p>
+    <div class="hero__actions">
+      <a class="btn btn--solid" href="#story">See the story</a>
+      <a class="btn btn--outline" href="playground.html">Try the live demos</a>
+    </div>
+    <a class="pressbadge" href="#ch-rag"><i aria-hidden="true"></i>In the regional press · Innovation Challenge 2026</a>
   </div>
 
-  <figure class="net" aria-labelledby="netCap">
-    <canvas id="heroNet" width="640" height="360" role="img"
-            aria-label="Animated neural network diagram that reacts to pointer movement."></canvas>
-    <figcaption class="net__readout" id="netCap">
+  <figure class="net">
+    <div class="net3d" id="heroNet" role="img" aria-label="A small neural network in 3D, training live. Your pointer is its input.">
+      <svg class="net3d__poster" viewBox="0 0 640 400" aria-hidden="true">
+        <g class="net3d__poster-edges">
+          <path d="M120 120L250 90M120 120L250 160M120 120L250 230M120 200L250 160M120 200L250 230M120 200L250 300M120 280L250 230M120 280L250 300M120 280L250 160M250 90L390 110M250 160L390 110M250 160L390 190M250 230L390 190M250 230L390 270M250 300L390 270M250 90L390 190M390 110L520 150M390 190L520 150M390 190L520 230M390 270L520 230M390 270L520 300"/>
+        </g>
+        <g class="net3d__poster-nodes">
+          <circle cx="120" cy="120" r="7"/><circle cx="120" cy="200" r="7"/><circle cx="120" cy="280" r="7"/>
+          <circle cx="250" cy="90" r="7"/><circle cx="250" cy="160" r="7"/><circle cx="250" cy="230" r="7"/><circle cx="250" cy="300" r="7"/>
+          <circle cx="390" cy="110" r="7"/><circle cx="390" cy="190" r="7"/><circle cx="390" cy="270" r="7"/>
+          <circle cx="520" cy="150" r="7"/><circle cx="520" cy="230" r="7"/><circle cx="520" cy="300" r="7"/>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="net__readout">
       <span class="rd"><b>shape</b><data id="rdLayers">…</data></span>
       <span class="rd"><b>activation</b><data id="rdAct">…</data></span>
       <span class="rd"><b>loss</b><data id="rdLoss">…</data></span>
       <span class="rd"><b>confidence</b><data id="rdConf">…</data></span>
       <span class="rd rd--state"><i class="led" data-state="boot"></i><data id="rdState">booting</data></span>
     </figcaption>
-    <p class="net__hint">
-      Move across the network to drive it — your pointer is the input vector.
-      <span>Five inputs, two dense hidden layers, a softmax output. It is really training
-      as you watch: forward pass, cross entropy against a rotating target class, gradients
-      back through the same layers, one weight update per cycle. The curve above each hidden
-      layer is its activation function, plotted from its own definition; it swaps every few
-      cycles and the weights start over, because they were fitted under the old one.</span>
-    </p>
-    <p class="net__quote" id="netQuote" aria-live="polite"></p>
+    <details class="net__about">
+      <summary>What am I looking at?</summary>
+      <p>A real network, training as you watch. Each ring is a layer: five inputs, two hidden layers of seven, four softmax outputs. Your pointer is the input vector. Cyan pulses are the forward pass; indigo pulses are the gradient flowing back, and one weight update lands per cycle. The curve over each hidden ring is its activation function, plotted from its own definition. It swaps every few cycles and the weights start over.</p>
+    </details>
   </figure>
 </section>
 
 <!-- ══ now ══ -->
-<section class="band" id="now" aria-labelledby="nowH">
-  <h2 class="sr-only" id="nowH">Current status</h2>
-  <dl class="status">
-    <div><dt>Looking for</dt><dd class="is-target">AI/ML working student, internship and graduate roles in industrial applications</dd></div>
-    <div><dt>Studying</dt><dd>MSc Artificial Intelligence for Industrial Applications, OTH Amberg</dd></div>
-    <div><dt>Most recent role</dt><dd>Working student, board bring up and diagnostics software, Nokia Nuremberg, Network Infrastructure / Optical Networks (Aug 2025 to Jul 2026)</dd></div>
-    <div><dt>Languages</dt><dd>English C1 (IELTS Academic 7.5) · German A2 certified (Goethe) plus the B1 Sprechen module, improving weekly</dd></div>
-  </dl>
+<section class="band" aria-label="Current status">
+  <ul class="pills">
+    <li class="is-target"><b>Open to</b>AI/ML working student, internship &amp; graduate roles</li>
+    <li><b>Studying</b>MSc AI for Industrial Applications</li>
+    <li><b>Last role</b>Nokia Nuremberg, Aug 2025 – Jul 2026</li>
+    <li><b>Languages</b>English C1 · German A2, B1 speaking</li>
+  </ul>
 </section>
 
-<!-- ══ hub ══ -->
-<section class="section" id="hub" aria-labelledby="hubH">
-  <div class="section__head">
-    <span class="section__eyebrow">Start here</span>
-    <h2 id="hubH">Three ways to get to know the work</h2>
-    <p>Pick a path: the detailed work history, the engineering behind real projects, or small AI systems running live in your browser right now.</p>
-  </div>
+<!-- ══ story ══ -->
+<div class="story" id="story">
 
-  <div class="hub">
-    <a class="hub__card" href="experience.html">
-      <h3>Experience</h3>
-      <p>Two years shipping AI assisted tooling and automation at Nokia, plus the education behind it and the full toolkit.</p>
-      <span>See the timeline →</span>
-    </a>
-    <a class="hub__card" href="projects.html">
-      <h3>Projects</h3>
-      <p>Real case studies covering the problem, the architecture and the trade offs, including a live simulated dashboard.</p>
-      <span>Read the case studies →</span>
-    </a>
-    <a class="hub__card" href="playground.html">
-      <h3>Playground</h3>
-      <p>A RAG assistant you can question in 3D, a neural net that learns your handwriting, live gradient descent, an MCP flow, and RL at Pong.</p>
-      <span>Try the demos →</span>
-    </a>
-  </div>
-</section>
+  <!-- 01 -->
+  <section class="chapter" id="ch-rag" aria-labelledby="chRagH" data-reveal>
+    <div class="chapter__text">
+      <span class="chapter__num">01 · Latest, October 2026</span>
+      <h2 id="chRagH">24 hours to build a private AI for banks</h2>
+      <p>At the Innovation Challenge 2026 I was on Specific-Group's team for Use Case 13: an assistant that answers compliance questions from 50 regulatory documents and cites the paragraph behind every statement, without a byte leaving the bank. The regional press covered it.</p>
+      <ul class="stats">
+        <li><b>50</b>regulatory PDFs</li>
+        <li><b>12,186</b>searchable chunks</li>
+        <li><b>[n]</b>a source on every statement</li>
+      </ul>
+      <p class="chapter__actions">
+        <a class="btn btn--solid btn--sm" href="playground.html#demo-rag">Ask it a question, in 3D</a>
+        <a class="btn btn--outline btn--sm" href="projects.html#proj-rag">Case study</a>
+        <a class="btn btn--ghost btn--sm" href="https://innovationchallenge2026.smart.niederbayern.de/events/innovation-challenge-2026/#usecases" rel="noopener">Use Case 13 ↗</a>
+      </p>
+    </div>
+    <div class="chapter__media">
+      <a class="press" data-tilt="7" data-lightbox href="assets/img/press/innovation-challenge-2026.jpg"
+         data-caption="<b>“Studierende tüfteln 24 Stunden an digitaler Zukunft”</b> — regional press, October 2026. Around 80 students solved 18 real tasks from industry and public administration in 24 hours at the Innovation Challenge 2026 of Ecosystem Smart Niederbayern. Specific-Group Germany hosted a team of seven in its Landshut office on two use cases, one of them the <i>AI Compliance Document Reader / Private RAG Assistant</i>. Landshut's Lord Mayor Thomas Haslinger visited the team.">
+        <picture>
+          <source type="image/webp" srcset="assets/img/press/innovation-challenge-2026.webp">
+          <img src="assets/img/press/innovation-challenge-2026.jpg" width="480" height="813" loading="lazy" decoding="async"
+               alt="Newspaper article: Innovation Challenge, Studierende tüfteln 24 Stunden an digitaler Zukunft, with a photo of the Specific-Group team in Landshut.">
+        </picture>
+        <span class="press__hint">Read the article</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="chapter chapter--flip" id="ch-machine" aria-labelledby="chMachineH" data-reveal>
+    <div class="chapter__text">
+      <span class="chapter__num">02 · Hands-on</span>
+      <h2 id="chMachineH">Not just software: I automated a machine in my garage</h2>
+      <p>A manual cone crimping machine, made automatic. Two IR sensors, an Arduino Nano, three relays and two motors now turn the table, crimp the lid and throw out each ice-cream cone on their own.</p>
+      <p class="chapter__actions">
+        <a class="btn btn--outline btn--sm" href="projects.html#proj-crimp">How it works</a>
+      </p>
+    </div>
+    <div class="chapter__media">
+      <figure class="vplayer" id="vpMachine" data-src="assets/video/cone-crimping-machine.mp4" data-teaser="assets/video/cone-crimping-machine-teaser.mp4">
+        <video muted loop playsinline preload="none" poster="assets/video/cone-crimping-machine-poster.jpg" aria-label="Automatic cone crimping machine: build, live demo, hardware and code review"></video>
+        <button class="vplayer__play" type="button"><i aria-hidden="true"></i>Watch the build <span>9:51 · with sound</span></button>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="chapter" id="ch-explain" aria-labelledby="chExplainH" data-reveal>
+    <div class="chapter__text">
+      <span class="chapter__num">03 · How I explain AI</span>
+      <h2 id="chExplainH">I make black boxes explain themselves</h2>
+      <p>Two silent minutes on how a neural network learns to read handwriting, step by step. Then draw your own digit on the playground and watch the same network think, in 3D.</p>
+      <p class="chapter__actions">
+        <a class="btn btn--solid btn--sm" href="playground.html#demo-digits">Draw a digit</a>
+        <a class="btn btn--outline btn--sm" href="playground.html">All five demos</a>
+      </p>
+    </div>
+    <div class="chapter__media">
+      <figure class="vportrait vportrait--sm">
+        <video data-autoplay data-src="assets/video/digit-network-explained.mp4" muted loop playsinline preload="none"
+               poster="assets/video/digit-network-explained-poster.jpg" aria-label="Silent explainer: how a neural network learns to read handwriting"></video>
+        <button class="vportrait__play" type="button" aria-label="Play or pause the explainer"></button>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section class="chapter chapter--wide" id="ch-work" aria-labelledby="chWorkH" data-reveal>
+    <div class="chapter__text">
+      <span class="chapter__num">04 · Where I've worked</span>
+      <h2 id="chWorkH">From Python scripts to AI that runs tests on real hardware</h2>
+    </div>
+    <ol class="minitrack">
+      <li data-tilt="5"><time>Oct 2026</time><b>Innovation Challenge 2026</b><span>Private RAG assistant · Specific-Group team, Landshut</span></li>
+      <li data-tilt="5"><time>2025 – 26</time><b>Nokia, Nuremberg</b><span>Working student · MCP server, anomaly detection</span></li>
+      <li data-tilt="5"><time>2025 – now</time><b>OTH Amberg-Weiden</b><span>MSc AI for Industrial Applications</span></li>
+      <li data-tilt="5"><time>2024 – 25</time><b>Integrated Computer Solutions</b><span>Software developer · Python automation</span></li>
+    </ol>
+    <p class="chapter__actions"><a class="linkbtn" href="experience.html">The full timeline and toolkit →</a></p>
+  </section>
+
+  <!-- go deeper -->
+  <section class="chapter chapter--wide" aria-labelledby="hubH" data-reveal>
+    <div class="chapter__text">
+      <span class="chapter__num">Go deeper</span>
+      <h2 id="hubH">Pick a path</h2>
+    </div>
+    <div class="hub">
+      <a class="hub__card" href="experience.html" data-tilt>
+        <h3>Experience</h3>
+        <p>The roles, the press coverage, and a 3D map of the toolkit.</p>
+        <span>See the timeline →</span>
+      </a>
+      <a class="hub__card" href="projects.html" data-tilt>
+        <h3>Projects</h3>
+        <p>Six case studies: the problem, the architecture, the trade-offs.</p>
+        <span>Read the case studies →</span>
+      </a>
+      <a class="hub__card" href="playground.html" data-tilt>
+        <h3>Playground</h3>
+        <p>Five AI systems running live in your browser, all in 3D.</p>
+        <span>Try the demos →</span>
+      </a>
+    </div>
+    <p class="cta">Like what you see? <a class="btn btn--solid btn--sm" href="contact.html">Let's talk</a></p>
+  </section>
+</div>
 
 <footer class="foot">
   <p>Nuremberg, Germany</p>
@@ -182,5 +291,6 @@
 </div>
 
 <script src="assets/js/main.js" defer></script>
+<script src="assets/js/hero3d.js" defer></script>
 </body>
 </html>

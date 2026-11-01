@@ -41,7 +41,7 @@
    ========================================================= */
 (function () {
   const canvas = $('#digitCanvas');
-  if (!canvas || typeof convnetjs === 'undefined') return;
+  if (!canvas) return;
 
   const clearBtn = $('#digitClear');
   const retrainBtn = $('#digitRetrain');
@@ -143,6 +143,7 @@
     }
     IDX.h1Act = relus[0];            // post-ReLU activations of hidden layer 1
     IDX.h2Act = relus[1];            // ... and of hidden layer 2
+    IDX.fcH1 = fcs[0];               // weights input -> H1
     IDX.fcH2 = fcs[1];               // weights H1 -> H2
     IDX.fcOut = fcs[2];              // weights H2 -> output
   }
@@ -191,143 +192,186 @@
     return top;
   }
 
-  /* ── network diagram: input thumbnail + weighted edges ── */
-  let thumbCv, netCv, netCtx, netW = 0, netH = 0, sweepRAF = null;
+  /* ── network diagram, in 3D ───────────────────────────
+     The layers are stacked like the explainer video: the 8×8 input
+     at the bottom, the two hidden layers above it, the ten outputs
+     on top. Each tile is one unit, lit by its real activation (cyan)
+     or, on the backward sweep, its real gradient (indigo). The lines
+     are the strongest real weights between layers, re-read from the
+     network as it trains. three.js arrives separately; until it does,
+     drawDiagram() and paintThumb() just remember what to show. */
+  const viz = { ready: false, st: null, layers: {}, edges: null, edgeList: [], edgeAt: 0, sizes: '', input: new Array(64).fill(0), last: { mode: null } };
+  const VIZ = { gap: 0.78, span: 1.5, base: 0x1a1f2e, edge: [0.23, 0.26, 0.38], fwd: 0x3fe0d0, bwd: 0x8b7dff };
 
   function buildNetviz() {
-    netvizEl.innerHTML = '';
-    const wrap = document.createElement('div');
-    wrap.className = 'netviz__thumbwrap';
-    thumbCv = document.createElement('canvas');
-    thumbCv.width = 8; thumbCv.height = 8;
-    wrap.appendChild(thumbCv);
-    const lbl = document.createElement('span');
-    lbl.className = 'netviz__label';
-    lbl.textContent = 'input 8×8';
-    wrap.appendChild(lbl);
-    netvizEl.appendChild(wrap);
+    if (!netvizEl || viz.st) return;
+    if (!hasWebGL()) { netvizEl.innerHTML = '<p class="stage3d__fallback">The 3D network view needs WebGL.</p>'; return; }
+    const st = createStage(netvizEl, { fov: 34, onFrame: vizFrame, onResize: vizFit });
+    viz.st = st;
+    const T = st.T;
+    viz.root = new T.Group();
+    st.scene.add(viz.root);
+    viz.tileGeo = new T.BoxGeometry(1, 1, 1);
+    viz.cBase = new T.Color(VIZ.base); viz.cFwd = new T.Color(VIZ.fwd); viz.cBwd = new T.Color(VIZ.bwd); viz.cInk = new T.Color(0xedeff7);
 
-    const arrow = document.createElement('span');
-    arrow.className = 'netviz__arrow';
-    arrow.textContent = '→';
-    arrow.setAttribute('aria-hidden', 'true');
-    netvizEl.appendChild(arrow);
+    const eg = new T.BufferGeometry();
+    viz.ePos = new Float32Array(900 * 6); viz.eCol = new Float32Array(900 * 8);
+    eg.setAttribute('position', new T.BufferAttribute(viz.ePos, 3));
+    eg.setAttribute('color', new T.BufferAttribute(viz.eCol, 4));
+    eg.setDrawRange(0, 0);
+    viz.edges = new T.LineSegments(eg, new T.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: T.AdditiveBlending }));
+    viz.root.add(viz.edges);
 
-    netCv = document.createElement('canvas');
-    netCv.id = 'digitNetCanvas';
-    netvizEl.appendChild(netCv);
-    sizeNetCanvas();
-    drawDiagram({ mode: null });
+    viz.labels = document.createElement('div');
+    viz.labels.className = 'net3d__labels';
+    viz.labels.setAttribute('aria-hidden', 'true');
+    netvizEl.appendChild(viz.labels);
+
+    viz.ready = true;
+    rebuildLayers();
+    st.start();
   }
 
-  function sizeNetCanvas() {
-    if (!netCv) return;
-    const w = netCv.clientWidth || 260;
-    const h = netCv.clientHeight || 168;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    netCv.width = Math.round(w * dpr);
-    netCv.height = Math.round(h * dpr);
-    netCtx = netCv.getContext('2d');
-    netCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    netW = w; netH = h;
+  /* a near-square grid of tiles for n units, centred, at height y */
+  function layerGrid(n, y, cols) {
+    cols = cols || Math.ceil(Math.sqrt(n));
+    const rows = Math.ceil(n / cols), s = VIZ.span / Math.max(cols, rows);
+    const T = viz.st.T, pts = [];
+    for (let i = 0; i < n; i++) {
+      const c = i % cols, r = Math.floor(i / cols);
+      pts.push(new T.Vector3((c - (cols - 1) / 2) * s, y, (r - (rows - 1) / 2) * s));
+    }
+    const mesh = new T.InstancedMesh(viz.tileGeo, new T.MeshBasicMaterial(), n);
+    const m = new T.Matrix4();
+    pts.forEach((p, i) => { m.makeScale(s * 0.82, 0.045, s * 0.82).setPosition(p); mesh.setMatrixAt(i, m); mesh.setColorAt(i, viz.cBase); });
+    viz.root.add(mesh);
+    return { mesh, pts, n, s };
   }
+
+  function rebuildLayers() {
+    if (!viz.ready) return;
+    Object.values(viz.layers).forEach(l => { viz.root.remove(l.mesh); l.mesh.dispose?.(); });
+    viz.layers = {
+      inp: layerGrid(64, 0, 8),
+      h1: layerGrid(H1, VIZ.gap),
+      h2: layerGrid(H2, VIZ.gap * 2),
+      out: layerGrid(OUT, VIZ.gap * 3, 10)
+    };
+    viz.sizes = H1 + '·' + H2;
+    viz.edgeAt = 0;
+    viz.labels.innerHTML = '';
+    viz.labels.classList.toggle('is-wide', !!viz.wide);
+    const T = viz.st.T;
+    viz.outLabels = viz.layers.out.pts.map((p, k) => {
+      const s = document.createElement('span'); s.className = 'net3d__digit'; s.textContent = k;
+      viz.labels.appendChild(s);
+      return { el: s, at: p.clone().add(new T.Vector3(0, 0.16, 0)) };
+    });
+    viz.capLabels = [['input 8×8', 0], [`hidden ${H1}`, 1], [`hidden ${H2}`, 2], ['output', 3]].map(([txt, i]) => {
+      const s = document.createElement('span'); s.className = 'net3d__cap net3d__cap--side'; s.textContent = txt;
+      viz.labels.appendChild(s);
+      return { el: s, at: new T.Vector3(-VIZ.span / 2 - 0.25, VIZ.gap * i, 0) };
+    });
+    paintThumb(viz.input);
+    drawDiagram(viz.last);
+  }
+
+  /* the strongest weights between consecutive layers, re-read from the net */
+  function collectEdges() {
+    const list = [];
+    const take = (layer, nIn, nOut, from, to, keep) => {
+      if (!layer || !layer.filters) return;
+      const all = [];
+      let max = 1e-6;
+      for (let j = 0; j < nOut; j++) for (let i = 0; i < nIn; i++) {
+        const w = Math.abs(layer.filters[j].w[i]);
+        if (w > max) max = w;
+        all.push([w, i, j]);
+      }
+      all.sort((a, b) => b[0] - a[0]);
+      all.slice(0, keep).forEach(([w, i, j]) => list.push({ a: from.pts[i], b: to.pts[j], ai: i, bj: j, from, to, w: w / max }));
+    };
+    const L = viz.layers;
+    take(net.layers[IDX.fcH1], 64, H1, L.inp, L.h1, 220);
+    take(net.layers[IDX.fcH2], H1, H2, L.h1, L.h2, 420);
+    take(net.layers[IDX.fcOut], H2, OUT, L.h2, L.out, 220);
+    viz.edgeList = list;
+    list.forEach((e, k) => { e.a.toArray(viz.ePos, k * 6); e.b.toArray(viz.ePos, k * 6 + 3); });
+    viz.edges.geometry.setDrawRange(0, list.length * 2);
+    viz.edges.geometry.attributes.position.needsUpdate = true;
+  }
+
+  function sizeNetCanvas() { /* the 3D stage sizes itself */ }
 
   function paintThumb(pixels64) {
-    if (!thumbCv) return;
-    const ctx = thumbCv.getContext('2d');
-    const img = ctx.createImageData(8, 8);
-    for (let i = 0; i < 64; i++) {
-      const v = Math.max(0, Math.min(1, pixels64[i])) * 255;
-      img.data[i * 4] = v; img.data[i * 4 + 1] = v; img.data[i * 4 + 2] = v; img.data[i * 4 + 3] = 255;
-    }
-    ctx.putImageData(img, 0, 0);
-  }
-
-  function nodePositions() {
-    const padX = netW * 0.09, padY = netH * 0.12;
-    const colX = [padX, netW / 2, netW - padX];
-    function col(n, x) {
-      const arr = [];
-      const gap = (netH - padY * 2) / Math.max(1, n - 1);
-      for (let i = 0; i < n; i++) arr.push({ x, y: n === 1 ? netH / 2 : padY + gap * i });
-      return arr;
-    }
-    return { h1: col(H1, colX[0]), h2: col(H2, colX[1]), out: col(OUT, colX[2]) };
+    viz.input = Array.from(pixels64);
+    if (!viz.ready) return;
+    const l = viz.layers.inp, c = new viz.st.T.Color();
+    for (let i = 0; i < 64; i++) l.mesh.setColorAt(i, c.copy(viz.cBase).lerp(viz.cInk, Math.max(0, Math.min(1, pixels64[i]))));
+    l.mesh.instanceColor.needsUpdate = true;
   }
 
   function drawDiagram(opts) {
-    if (!netCtx) return;
-    netCtx.clearRect(0, 0, netW, netH);
-    const pos = nodePositions();
-    const ruleColor = token('--rule') || '#232537';
-    const muteColor = token('--mute') || '#8991AC';
-    const accent = token('--accent') || '#8B7DFF';
-    const accent2 = token('--accent2') || '#3FE0D0';
-    const activeColor = opts.mode === 'backward' ? accent : accent2;
+    viz.last = opts;
+    if (!viz.ready || !net) return;
+    if (viz.sizes !== H1 + '·' + H2) { rebuildLayers(); return; }
+    const now = performance.now();
+    if (now - viz.edgeAt > 450) { viz.edgeAt = now; collectEdges(); }
 
-    if (net) {
-      const l2 = net.layers[IDX.fcH2], l3 = net.layers[IDX.fcOut];
-      // With H1 up to 128, drawing every H1xH2 edge is both slow and
-      // an unreadable smear, so only the strongest are kept.
-      const cutoff = H1 * H2 > 1600 ? 0.34 : 0.12;
-      let maxW1 = 1e-6;
-      for (let j = 0; j < H2; j++) for (let i = 0; i < H1; i++) maxW1 = Math.max(maxW1, Math.abs(l2.filters[j].w[i]));
-      for (let j = 0; j < H2; j++) {
-        for (let i = 0; i < H1; i++) {
-          const w = Math.abs(l2.filters[j].w[i]) / maxW1;
-          if (w < cutoff) continue;
-          netCtx.strokeStyle = ruleColor;
-          netCtx.globalAlpha = 0.05 + w * 0.32;
-          netCtx.lineWidth = 0.6 + w * 1.3;
-          netCtx.beginPath(); netCtx.moveTo(pos.h1[i].x, pos.h1[i].y); netCtx.lineTo(pos.h2[j].x, pos.h2[j].y); netCtx.stroke();
-        }
+    const active = opts.mode === 'backward' ? viz.cBwd : viz.cFwd;
+    const c = new viz.st.T.Color();
+    const L = viz.layers;
+    const light = (layer, vals) => {
+      for (let i = 0; i < layer.n; i++) layer.mesh.setColorAt(i, c.copy(viz.cBase).lerp(active, vals ? Math.max(0, Math.min(1, vals[i] || 0)) : 0));
+      layer.mesh.instanceColor.needsUpdate = true;
+    };
+    light(L.h1, opts.h1Vals); light(L.h2, opts.h2Vals); light(L.out, opts.outVals);
+    const valOf = (layer, idx) => layer === L.inp ? viz.input[idx] : layer === L.h1 ? (opts.h1Vals?.[idx] || 0)
+      : layer === L.h2 ? (opts.h2Vals?.[idx] || 0) : (opts.outVals?.[idx] || 0);
+
+    viz.edgeList.forEach((e, k) => {
+      const flow = Math.min(1, (valOf(e.from, e.ai) + valOf(e.to, e.bj)) / 2);
+      const hot = flow > 0.2;
+      const a = hot ? Math.min(0.9, 0.12 + flow * e.w) : 0.05 + e.w * 0.12;
+      for (let v = 0; v < 2; v++) {
+        const o = k * 8 + v * 4;
+        viz.eCol[o] = hot ? active.r : VIZ.edge[0]; viz.eCol[o + 1] = hot ? active.g : VIZ.edge[1]; viz.eCol[o + 2] = hot ? active.b : VIZ.edge[2];
+        viz.eCol[o + 3] = a;
       }
-      let maxW2 = 1e-6;
-      for (let k = 0; k < OUT; k++) for (let j = 0; j < H2; j++) maxW2 = Math.max(maxW2, Math.abs(l3.filters[k].w[j]));
-      for (let k = 0; k < OUT; k++) {
-        for (let j = 0; j < H2; j++) {
-          const w = Math.abs(l3.filters[k].w[j]) / maxW2;
-          if (w < 0.12) continue;
-          netCtx.strokeStyle = ruleColor;
-          netCtx.globalAlpha = 0.05 + w * 0.32;
-          netCtx.lineWidth = 0.6 + w * 1.3;
-          netCtx.beginPath(); netCtx.moveTo(pos.h2[j].x, pos.h2[j].y); netCtx.lineTo(pos.out[k].x, pos.out[k].y); netCtx.stroke();
-        }
-      }
-    }
-    netCtx.globalAlpha = 1;
-
-    function drawNodes(arr, vals, baseR) {
-      arr.forEach((p, idx) => {
-        const v = vals ? Math.max(0, Math.min(1, vals[idx] || 0)) : 0;
-        const r = baseR + v * baseR * 0.9;
-        netCtx.beginPath();
-        netCtx.fillStyle = v > 0.15 ? activeColor : ruleColor;
-        netCtx.globalAlpha = 0.4 + v * 0.6;
-        netCtx.arc(p.x, p.y, r, 0, Math.PI * 2);
-        netCtx.fill();
-      });
-      netCtx.globalAlpha = 1;
-    }
-    drawNodes(pos.h1, opts.h1Vals, H1 > 64 ? 1.5 : H1 > 24 ? 2.2 : 3.1);
-    drawNodes(pos.h2, opts.h2Vals, H2 > 32 ? 2.0 : H2 > 16 ? 2.8 : 3.8);
-
-    pos.out.forEach((p, k) => {
-      const v = opts.outVals ? Math.max(0, Math.min(1, opts.outVals[k] || 0)) : 0;
-      netCtx.beginPath();
-      netCtx.fillStyle = v > 0.15 ? activeColor : ruleColor;
-      netCtx.globalAlpha = 0.4 + v * 0.6;
-      netCtx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-      netCtx.fill();
-      netCtx.globalAlpha = 1;
-      netCtx.fillStyle = v > 0.3 ? '#05070C' : muteColor;
-      netCtx.font = '8px monospace';
-      netCtx.textAlign = 'center'; netCtx.textBaseline = 'middle';
-      netCtx.fillText(String(k), p.x, p.y);
     });
+    viz.edges.geometry.attributes.color.needsUpdate = true;
+    viz.outLabels?.forEach((o, k) => o.el.classList.toggle('is-on', !!(opts.outVals && opts.outVals[k] > 0.5)));
   }
 
-  let sweeping = false;
+  /* In a wide panel the stack lies on its side (input on the left, output
+     on the right); in a tall one it stands up, like the video. Either way
+     the camera backs off just far enough for the whole stack to fit. */
+  function vizFit(st) {
+    if (!viz.root) return;
+    const aspect = st.w / st.h, mid = VIZ.gap * 1.5;
+    viz.wide = aspect > 1.4;
+    viz.root.rotation.z = viz.wide ? -Math.PI / 2 : 0;
+    viz.root.position.set(viz.wide ? -mid : 0, viz.wide ? 0 : -mid, 0);
+    viz.root.updateMatrixWorld();
+    const tv = Math.tan(st.camera.fov * Math.PI / 360), th = tv * aspect;
+    const halfLong = mid + 0.45, halfShort = VIZ.span / 2 + 0.35;
+    const [hw, hh] = viz.wide ? [halfLong, halfShort] : [halfShort, halfLong];
+    viz.dist = Math.max(hw / th, hh / tv) * 1.06 + 0.4;
+  }
+  function vizFrame(dt, t, st) {
+    const base = viz.wide ? 0.62 : 0.5;
+    const az = base + (reduceMotion ? 0 : Math.sin(t * 0.18) * (viz.wide ? 0.35 : 0.55)) + (st.pointer.active ? st.pointer.x * 0.4 : 0);
+    const el = (viz.wide ? 0.28 : 0.42) + (st.pointer.active ? -st.pointer.y * 0.12 : 0);
+    const d = viz.dist || 5;
+    st.camera.position.set(Math.sin(az) * Math.cos(el) * d, Math.sin(el) * d, Math.cos(az) * Math.cos(el) * d);
+    st.camera.lookAt(0, 0, 0);
+    const v = new st.T.Vector3();
+    const place = (el_, p) => { const s = st.toScreen(v.copy(p).applyMatrix4(viz.root.matrixWorld)); el_.style.transform = `translate(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px)`; };
+    viz.outLabels?.forEach(o => place(o.el, o.at));
+    viz.capLabels?.forEach(o => place(o.el, o.at));
+  }
+
+  let sweeping = false, sweepRAF = null;
   function animateSweep(mode, snapshot, duration) {
     if (sweepRAF) cancelAnimationFrame(sweepRAF);
     sweeping = true;
@@ -492,8 +536,8 @@
 
   async function loadAndTrain() {
     buildBars();
-    buildNetviz();
     updateNetCtrlUI();
+    loadThree().then(buildNetviz).catch(() => {});
     if (typeof window.DIGITS_DATA === 'undefined') {
       if (statusEl) statusEl.textContent = 'Could not load the training data. assets/data/digits8x8.js did not load.';
       return;
@@ -675,5 +719,12 @@
   window.addEventListener('resize', () => { sizeNetCanvas(); drawDiagram({ mode: null }); }, { passive: true });
   window.addEventListener('themechange', () => drawDiagram({ mode: null }));
 
-  loadAndTrain();
+  // The dataset (117 KB) and ConvNetJS load when the demo is close to the
+  // screen; training then starts on its own.
+  buildBars();
+  whenNear(canvas, () => {
+    Promise.all([loadScript('assets/js/vendor/convnet.js'), loadScript('assets/data/digits8x8.js')])
+      .then(loadAndTrain)
+      .catch(() => { statusEl.textContent = 'Could not load the training data.'; });
+  });
 })();

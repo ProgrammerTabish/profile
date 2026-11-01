@@ -2,6 +2,9 @@
    MCP explainer — animates a request flowing from the user
    through an AI model, an MCP server, and two existing tools
    (Jira + a diagnostics suite), and a grounded answer back.
+   The nodes stand on a tilted 3D floor (pure CSS transforms), so
+   positions are measured in the floor's own layout coordinates,
+   not on screen, and the packet travels along the floor.
    ========================================================= */
 (function () {
   const stage = $('#mcpStage');
@@ -9,10 +12,11 @@
 
   const playBtn = $('#mcpPlay'), resetBtn = $('#mcpReset'), logEl = $('#mcpLog');
   const packet = $('#mcpPacket');
+  const floor = $('.mcpviz__floor', stage) || stage;
 
   let edge = document.createElement('div');
   edge.className = 'mcpedge';
-  stage.appendChild(edge);
+  floor.appendChild(edge);
 
   const STEPS = [
     { from: 'mcpUser', to: 'mcpModel', text: 'You ask: "Board B3 failed overnight, why?"' },
@@ -27,10 +31,9 @@
 
   let cancelToken = 0;
 
+  /* where a node touches the floor: its bottom centre, in floor coordinates */
   function centerOf(el) {
-    const s = stage.getBoundingClientRect();
-    const r = el.getBoundingClientRect();
-    return { x: r.left - s.left + r.width / 2, y: r.top - s.top + r.height / 2 };
+    return { x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop + el.offsetHeight };
   }
 
   function positionEdge(a, b) {
@@ -104,6 +107,16 @@
     packet.style.opacity = '0';
     if (logEl) logEl.innerHTML = '<li>Press play to send a request through the system.</li>';
     if (clearBtn !== false) { playBtn.disabled = false; playBtn.textContent = 'Play the flow'; }
+  }
+
+  // lean the floor toward the pointer
+  if (finePointer && !reduceMotion) {
+    stage.addEventListener('pointermove', e => {
+      const r = stage.getBoundingClientRect();
+      stage.style.setProperty('--rz', (((e.clientX - r.left) / r.width - 0.5) * -10).toFixed(2) + 'deg');
+      stage.style.setProperty('--tx', (40 + ((e.clientY - r.top) / r.height - 0.5) * -8).toFixed(2) + 'deg');
+    });
+    stage.addEventListener('pointerleave', () => { stage.style.removeProperty('--rz'); stage.style.removeProperty('--tx'); });
   }
 
   playBtn?.addEventListener('click', play);

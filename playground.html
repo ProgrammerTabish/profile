@@ -5,23 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Playground · Shaikh Zaka Tabish</title>
 
-<meta name="description" content="Live AI demos running in the browser: a private RAG assistant you can question while its retrieval pipeline runs in 3D, a neural network that learns to read handwriting, a live trained decision boundary visualizer, an animated explainer of how MCP connects AI models to real software, and a reinforcement learning agent that learns to play Pong.">
+<meta name="description" content="Live AI demos running in your browser, in 3D: a neural network that learns to read handwriting (with a step-by-step explainer video), a live decision boundary, a reinforcement learning agent playing Pong, how MCP connects AI models to real software, and a private RAG assistant whose retrieval pipeline you can watch.">
 <meta name="author" content="Shaikh Zaka Tabish">
 <meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
 <link rel="canonical" href="https://www.zakatabish.online/playground.html">
 
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Shaikh Zaka Tabish">
 <meta property="og:title" content="Playground · Shaikh Zaka Tabish">
-<meta property="og:description" content="Five small, real AI systems running live in your browser. Not screenshots.">
+<meta property="og:description" content="Five small, real AI systems running live in your browser, in 3D. Not screenshots.">
 <meta property="og:url" content="https://www.zakatabish.online/playground.html">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://www.zakatabish.online/assets/img/og/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="assets/img/icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<script>document.documentElement.classList.add('js');try{var t=JSON.parse(localStorage.getItem('zt.theme'));document.documentElement.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235645D6'/%3E%3Cpath d='M5 20 q4 -12 8 0 t8 0 t6 -6' fill='none' stroke='%233FE0D0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preload" as="image" href="assets/video/digit-network-explained-poster.webp" type="image/webp">
+<script type="speculationrules">{"prefetch":[{"source":"document","where":{"href_matches":"/*.html"},"eagerness":"moderate"}]}</script>
 </head>
 
 <body>
@@ -61,22 +72,176 @@
 
 <main id="main">
 
-<section class="section section--playground" id="playground" aria-labelledby="playH" style="padding-top:clamp(5.5rem,10vw,7rem)">
+<section class="section section--playground section--top" id="playground" aria-labelledby="playH">
   <div class="section__head">
     <span class="section__eyebrow">Playground</span>
     <h2 id="playH">Watch the models think</h2>
-    <p>Five small, real systems running live in your browser right now. Not screenshots. This is the same instinct I bring to the job: don't just ship the black box, show the people who rely on it how it actually works.</p>
+    <p>Five real AI systems running in your browser, in 3D. They go from one network reading one digit to a full retrieval pipeline over 50 legal documents. Start at the top.</p>
   </div>
+
+  <a class="featured" href="#demo-rag">
+    <span class="featured__tag">New</span>
+    <span><b>Private RAG assistant in 3D</b> · built at the Innovation Challenge 2026</span>
+    <span class="featured__go" aria-hidden="true">Jump to it →</span>
+  </a>
+
+  <nav class="jump" aria-label="Demos on this page">
+    <a href="#demo-digits"><i>1</i>Read handwriting</a>
+    <a href="#demo-boundary"><i>2</i>Learn a boundary</a>
+    <a href="#demo-pong"><i>3</i>Learn from reward</a>
+    <a href="#demo-mcp"><i>4</i>Use real tools</a>
+    <a href="#demo-rag"><i>5</i>Answer from documents</a>
+  </nav>
 
   <div class="demos">
 
-    <!-- private RAG assistant -->
-    <article class="demo" id="demo-rag" aria-labelledby="demoRagH">
+    <!-- 1 · digit recognizer -->
+    <article class="demo" id="demo-digits" aria-labelledby="demoDigitsH">
       <div class="demo__head">
-        <span class="demo__tag">Retrieval-augmented generation · 3D</span>
+        <span class="demo__tag">1 · See it, then try it</span>
+        <h3 id="demoDigitsH">A neural network that learns to read your handwriting</h3>
+        <p>The video explains it step by step in two silent minutes. Meanwhile the same network is training next to it, live, on 1,797 real handwritten digits. When the bar fills, draw one.</p>
+      </div>
+
+      <div class="digitlab">
+        <figure class="vportrait">
+          <video data-autoplay src="assets/video/digit-network-explained.mp4" autoplay muted loop playsinline preload="auto"
+                 poster="assets/video/digit-network-explained-poster.webp" aria-label="Silent explainer: how this neural network learns to read handwriting, step by step"></video>
+          <button class="vportrait__play" type="button" aria-label="Play or pause the explainer"></button>
+          <figcaption>Explainer · 1:51 · no sound</figcaption>
+        </figure>
+
+        <div class="digitpad">
+          <div class="digitpad__canvas-wrap">
+            <p class="digitpad__hint">Draw big, filling the box.</p>
+            <canvas id="digitCanvas" width="240" height="240" role="img" aria-label="Drawing pad. Draw a digit from 0 to 9 with your mouse or finger, as large as the canvas allows."></canvas>
+            <div class="digitpad__acts">
+              <button class="btn btn--outline btn--sm" id="digitClear">Clear</button>
+              <button class="btn btn--outline btn--sm" id="digitRetrain" disabled>Retrain</button>
+            </div>
+            <div class="netctrl" aria-label="Edit the hidden layers">
+              <div class="netctrl__row">
+                <span>Hidden layer 1</span>
+                <button type="button" class="netctrl__btn" id="h1Minus" aria-label="Remove a perceptron from hidden layer 1">−</button>
+                <b id="h1Count">64</b>
+                <button type="button" class="netctrl__btn" id="h1Plus" aria-label="Add a perceptron to hidden layer 1">+</button>
+              </div>
+              <div class="netctrl__row">
+                <span>Hidden layer 2</span>
+                <button type="button" class="netctrl__btn" id="h2Minus" aria-label="Remove a perceptron from hidden layer 2">−</button>
+                <b id="h2Count">32</b>
+                <button type="button" class="netctrl__btn" id="h2Plus" aria-label="Add a perceptron to hidden layer 2">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="digitpad__result">
+            <p class="digitpad__status" id="digitStatus">Getting the training data…</p>
+            <div class="trainbar">
+              <div class="trainbar__track"><i class="trainbar__fill" id="trainFill"></i></div>
+              <span class="trainbar__val" id="trainVal">0% · loss …</span>
+            </div>
+            <div class="digitbars" id="digitBars" aria-label="Prediction confidence for each digit 0 to 9"></div>
+          </div>
+        </div>
+
+        <div class="netviz stage3d" id="digitNetviz" aria-label="The network in 3D: input pixels at the bottom, two hidden layers, ten outputs on top"></div>
+      </div>
+
+      <details class="more">
+        <summary>How it learned to read your handwriting, not just the dataset's</summary>
+        <p>Three things, none of them a bigger network. Every training digit is shifted, rotated and rescaled afresh on each pass, so thirty epochs are thirty different views. Your drawing is framed on its centre of mass, the way the training images were. And each prediction is averaged over seven small variations of your drawing, which stops it flickering mid-stroke.</p>
+        <p>Measured against the previous version of this demo: <b>93.3% → 96.7%</b> on clean held-out digits, and <b>44.8% → 82.3%</b> on the same digits shifted and rotated the way a hand would. Press <b>Retrain</b> to re-split the data and see the number move by a point or two: the honest answer to "how good is this model" is a range.</p>
+      </details>
+    </article>
+
+    <!-- 2 · decision boundary -->
+    <article class="demo" id="demo-boundary" aria-labelledby="demoBoundaryH">
+      <div class="demo__head">
+        <span class="demo__tag">2 · Live training · 3D</span>
+        <h3 id="demoBoundaryH">How a network learns: it bends a sheet through the points</h3>
+        <p>The sheet's height is the network's confidence in class B. Press train and watch gradient descent pull it down to the A points and up to the B points. The glowing line is the decision boundary.</p>
+      </div>
+
+      <div class="dbplay">
+        <div class="stage3d stage3d--sq" id="dbStage" aria-label="3D view of a neural network's output surface training live on points you place. Drag to orbit, click to add a point."></div>
+        <div class="dbplay__side">
+          <div class="dbplay__row" role="group" aria-label="Dataset preset">
+            <button class="chip" type="button" data-ds="blobs" aria-pressed="true">Two blobs</button>
+            <button class="chip" type="button" data-ds="spiral" aria-pressed="false">Spiral</button>
+            <button class="chip" type="button" data-ds="xor" aria-pressed="false">XOR</button>
+          </div>
+          <div class="dbplay__row" role="group" aria-label="Class to place on click">
+            <button class="chip chip--a" type="button" id="dbClassA" aria-pressed="true">● Class A</button>
+            <button class="chip chip--b" type="button" id="dbClassB" aria-pressed="false">● Class B</button>
+          </div>
+          <div class="dbplay__row">
+            <button class="btn btn--solid btn--sm" id="dbTrain">Train</button>
+            <button class="btn btn--outline btn--sm" id="dbReset">Reset</button>
+            <button class="btn btn--ghost btn--sm" id="dbView" aria-pressed="false">Top view</button>
+          </div>
+          <p class="dbplay__stat">Epoch <b id="dbEpoch">0</b> · Loss <b id="dbLoss">…</b></p>
+          <p class="dbplay__hint">Drag to orbit. Click to drop a point of the selected class, then train again.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- 3 · RL pong -->
+    <article class="demo" id="demo-pong" aria-labelledby="demoPongH">
+      <div class="demo__head">
+        <span class="demo__tag">3 · Reinforcement learning · 3D</span>
+        <h3 id="demoPongH">From flailing to winning, checkpoint by checkpoint</h3>
+        <p>A tiny policy network learned Pong from nothing but win or lose, over 30,000 rallies of REINFORCE. These are the real saved checkpoints. Pick one and watch the same network at that point in its training.</p>
+      </div>
+
+      <div class="pong">
+        <div class="stage3d stage3d--pong" id="pongStage" aria-label="3D Pong table. The cyan paddle is controlled by the reinforcement-learning policy at the selected checkpoint."></div>
+        <div class="pong__side">
+          <div class="pong__stages" id="pongStages" role="group" aria-label="Training checkpoint"></div>
+          <div class="pong__score">
+            <span><b id="pongWin">…</b><small>win rate</small></span>
+            <span><b id="pongEp">…</b><small>rallies trained</small></span>
+          </div>
+          <div class="pong__curve"><canvas id="pongCurve" role="img" aria-label="Win rate over the course of training"></canvas></div>
+          <p class="pong__readout" id="pongReadout">Pick a checkpoint to watch the trained policy play.</p>
+          <button class="btn btn--outline btn--sm" id="pongToggle">Pause</button>
+        </div>
+      </div>
+    </article>
+
+    <!-- 4 · MCP explainer -->
+    <article class="demo" id="demo-mcp" aria-labelledby="demoMcpH">
+      <div class="demo__head">
+        <span class="demo__tag">4 · Connecting AI to real tools</span>
+        <h3 id="demoMcpH">What MCP actually does with your existing software</h3>
+        <p>I built one of these for Nokia's diagnostics lab. Press play to watch a question travel from you, through the model and an MCP server, into Jira and a test rig, and back as a grounded answer.</p>
+      </div>
+
+      <div class="mcpviz">
+        <div class="mcpviz__stage" id="mcpStage" role="img" aria-label="Animated 3D diagram: a request flowing from a user through an AI model, an MCP server, and connected tools, and a result flowing back.">
+          <div class="mcpviz__floor">
+            <div class="mcpnode" id="mcpUser" style="top:0%;left:4%;"><b>You</b><span>ask a question</span></div>
+            <div class="mcpnode" id="mcpModel" style="top:0%;left:40%;"><b>AI model</b><span>Claude in Cursor</span></div>
+            <div class="mcpnode" id="mcpResult" style="top:0%;left:76%;"><b>Answer</b><span>grounded in real data</span></div>
+            <div class="mcpnode" id="mcpServer" style="top:40%;left:40%;"><b>MCP server</b><span>translates the call</span></div>
+            <div class="mcpnode" id="mcpJira" style="top:72%;left:6%;"><b>Jira</b><span>existing tickets</span></div>
+            <div class="mcpnode" id="mcpDiag" style="top:72%;left:74%;"><b>Diagnostics</b><span>real hardware</span></div>
+            <div class="mcppacket" id="mcpPacket"></div>
+          </div>
+        </div>
+        <div class="mcpviz__ctrl">
+          <button class="btn btn--solid btn--sm" id="mcpPlay">Play the flow</button>
+          <button class="btn btn--outline btn--sm" id="mcpReset">Reset</button>
+        </div>
+        <ol class="mcpviz__log" id="mcpLog"></ol>
+      </div>
+    </article>
+
+    <!-- 5 · private RAG assistant -->
+    <article class="demo demo--finale" id="demo-rag" aria-labelledby="demoRagH">
+      <div class="demo__head">
+        <span class="demo__tag">5 · The finale · Retrieval-augmented generation · 3D</span>
         <h3 id="demoRagH">Ask a banking regulator's question, then watch the answer get built</h3>
-        <p>This is the compliance assistant I built for the SPG Innovation Challenge 2026: a private RAG system that answers questions about GwG, KWG, MaRisk, DORA and 46 other regulatory texts, and has to cite the paragraph behind every statement. Type a question and follow it through the pipeline in 3D: a German rewrite, keyword and vector search across <b>12,186 real chunks</b>, rank fusion, the prompt, the model, the citation checks and the audit trail.</p>
-        <p>The retrieval is real. Your browser loads the project's actual index and BGE-M3 vectors and runs the same tokenizer, BM25 scoring and fusion as the Python backend. The <b>LLM is simulated</b>, because a 24-billion-parameter model doesn't fit on GitHub Pages. The page builds the exact prompt the backend would send, then animates how the model answers it.</p>
+        <p>The compliance assistant I built at the Innovation Challenge 2026. Your question travels through a German rewrite, keyword and vector search over <b>12,186 real chunks</b>, rank fusion, the prompt, the model and the citation checks. The retrieval is real; the <b>LLM step is simulated</b>, because a 24-billion-parameter model doesn't fit on GitHub Pages.</p>
       </div>
 
       <div class="ragembed" id="ragEmbed">
@@ -92,158 +257,7 @@
         </div>
       </div>
 
-      <p class="demo__note">Try <b>“When is an ICT-related incident classified as major?”</b>, then ask <b>“What is the current EUR/USD exchange rate?”</b> to watch it refuse instead of making up an answer. The <b>Retrieval</b>, <b>Prompt</b>, <b>Checks</b> and <b>Audit trail</b> tabs under the 3D view show what each step actually produced. <a class="linkbtn" href="projects.html#proj-rag">Read the case study →</a></p>
-
-      <blockquote class="demo__quote">
-        In a bank, the answer is only half the job. The other half is being able to show exactly where it came from, and saying "not in the sources" when that's the truth.
-        <cite>On trustworthy AI in regulated industries</cite>
-      </blockquote>
-    </article>
-
-    <!-- digit recognizer -->
-    <article class="demo" id="demo-digits" aria-labelledby="demoDigitsH">
-      <div class="demo__head">
-        <span class="demo__tag">Draw &amp; predict</span>
-        <h3 id="demoDigitsH">A neural network that learns to read your handwriting while you watch</h3>
-        <p>This trains a small neural network on 1,797 real handwritten digits, live, in your browser, using <b>ConvNetJS</b>, the same library behind Adam Harley's well known MNIST visualizer. Watch the layers light up on every forward pass, then watch the gradient sweep back through them on every backward pass. The hidden layers are editable: add or remove perceptrons and the network rebuilds and retrains from scratch.</p>
-        <p>Getting this to read <em>your</em> handwriting, rather than just the dataset's, took the three things that usually matter more than network size. Every digit is randomly shifted, rotated and rescaled before each pass, so thirty epochs means thirty different views of it rather than the same one thirty times. What you draw is framed on its <b>centre of mass</b>, the way the training images were, so the answer doesn't depend on where or how big you drew. And each prediction is averaged over seven small variations of your drawing, which stops the answer flickering between two digits while you are still mid-stroke.</p>
-        <p>Those changes are measured, not assumed. Against the previous version of this demo &mdash; 32&nbsp;&rarr;&nbsp;16 units, plain SGD, fourteen epochs, no augmentation &mdash; accuracy on clean held-out digits went from <b>93.3%</b> to <b>96.7%</b>. On the same held-out digits shifted, rotated and rescaled the way a hand would, it went from <b>44.8%</b> to <b>82.3%</b>. Almost all of that comes from the augmentation; the averaging earns its place on steadiness rather than on accuracy.</p>
-      </div>
-
-      <div class="digitpad">
-        <div class="digitpad__canvas-wrap">
-          <p style="font-size:.82rem;color:var(--mute);margin:0 0 .2rem;">Draw as big as you can, filling most of the canvas.</p>
-          <canvas id="digitCanvas" width="240" height="240" role="img" aria-label="Drawing pad. Draw a digit from 0 to 9 with your mouse or finger, as large as the canvas allows."></canvas>
-          <div class="digitpad__acts">
-            <button class="btn btn--outline btn--sm" id="digitClear">Clear</button>
-            <button class="btn btn--outline btn--sm" id="digitRetrain" disabled>Retrain</button>
-          </div>
-          <div class="netctrl" aria-label="Edit the hidden layers">
-            <div class="netctrl__row">
-              <span>Hidden layer 1</span>
-              <button type="button" class="netctrl__btn" id="h1Minus" aria-label="Remove a perceptron from hidden layer 1">−</button>
-              <b id="h1Count">64</b>
-              <button type="button" class="netctrl__btn" id="h1Plus" aria-label="Add a perceptron to hidden layer 1">+</button>
-            </div>
-            <div class="netctrl__row">
-              <span>Hidden layer 2</span>
-              <button type="button" class="netctrl__btn" id="h2Minus" aria-label="Remove a perceptron from hidden layer 2">−</button>
-              <b id="h2Count">32</b>
-              <button type="button" class="netctrl__btn" id="h2Plus" aria-label="Add a perceptron to hidden layer 2">+</button>
-            </div>
-          </div>
-        </div>
-        <div class="digitpad__result">
-          <p class="digitpad__status" id="digitStatus">Training on 1,797 handwritten digits…</p>
-          <div class="trainbar">
-            <div class="trainbar__track"><i class="trainbar__fill" id="trainFill"></i></div>
-            <span class="trainbar__val" id="trainVal">0% · loss …</span>
-          </div>
-          <div class="digitbars" id="digitBars" aria-label="Prediction confidence for each digit 0 to 9"></div>
-          <div class="netviz" id="digitNetviz" aria-label="Diagram of the hidden layers and their connection weights"></div>
-        </div>
-      </div>
-
-      <p class="demo__note">Press <b>Retrain</b> to re-split the data and train a fresh network from new random weights. The held-out accuracy moves by a point or two each time, which is the honest answer to &ldquo;how good is this model&rdquo;: a range, not a number.</p>
-
-      <blockquote class="demo__quote">
-        This is how I'd bring a black box model into a form your team can actually inspect. I show it thinking, not just its answer.
-        <cite>On interpretability and trust</cite>
-      </blockquote>
-    </article>
-
-    <!-- decision boundary -->
-    <article class="demo" id="demo-boundary" aria-labelledby="demoBoundaryH">
-      <div class="demo__head">
-        <span class="demo__tag">Live training</span>
-        <h3 id="demoBoundaryH">How a neural network actually learns</h3>
-        <p>Pick a dataset, then press train and watch a tiny network reshape its decision boundary in real time. Gradient descent, visualized on a problem simple enough to see all of it at once.</p>
-      </div>
-
-      <div class="dbplay">
-        <canvas id="dbCanvas" width="360" height="360" role="img" aria-label="Decision boundary of a neural network training live on points you place."></canvas>
-        <div class="dbplay__side">
-          <div class="dbplay__row" role="group" aria-label="Dataset preset">
-            <button class="chip" type="button" data-ds="blobs" aria-pressed="true">Two blobs</button>
-            <button class="chip" type="button" data-ds="spiral" aria-pressed="false">Spiral</button>
-            <button class="chip" type="button" data-ds="xor" aria-pressed="false">XOR</button>
-          </div>
-          <div class="dbplay__row" role="group" aria-label="Class to place on click">
-            <button class="chip" type="button" id="dbClassA" aria-pressed="true">● Class A</button>
-            <button class="chip" type="button" id="dbClassB" aria-pressed="false">● Class B</button>
-          </div>
-          <div class="dbplay__row">
-            <button class="btn btn--solid btn--sm" id="dbTrain">Train</button>
-            <button class="btn btn--outline btn--sm" id="dbReset">Reset</button>
-          </div>
-          <p class="dbplay__stat">Epoch <b id="dbEpoch">0</b> · Loss <b id="dbLoss">…</b></p>
-          <p style="font-size:.82rem;color:var(--mute);margin:0;">Click the canvas to drop a point of the selected class, then train again.</p>
-        </div>
-      </div>
-
-      <blockquote class="demo__quote">
-        That's how I'd approach optimizing your workflows too, one measured update at a time, watching the fit improve until the boundary is right.
-        <cite>On iterative optimization</cite>
-      </blockquote>
-    </article>
-
-    <!-- MCP explainer -->
-    <article class="demo" id="demo-mcp" aria-labelledby="demoMcpH">
-      <div class="demo__head">
-        <span class="demo__tag">How it works</span>
-        <h3 id="demoMcpH">What MCP actually does with your existing software</h3>
-        <p>I built one of these for Nokia's diagnostics lab. See the full case study on the Projects page. Press play to see how a Model Context Protocol server lets an AI model call your real tools (Jira, test pipelines, a database) without you rewriting any of them.</p>
-      </div>
-
-      <div class="mcpviz">
-        <div class="mcpviz__stage" id="mcpStage" role="img" aria-label="Animated diagram: a request flowing from a user through an AI model, an MCP server, and connected tools, and a result flowing back.">
-          <div class="mcpnode" id="mcpUser" style="top:6%;left:2%;"><b>You</b><span>ask a question</span></div>
-          <div class="mcpnode" id="mcpModel" style="top:6%;left:36%;"><b>AI model</b><span>Claude in Cursor</span></div>
-          <div class="mcpnode" id="mcpResult" style="top:6%;left:70%;"><b>Answer</b><span>grounded in real data</span></div>
-          <div class="mcpnode" id="mcpServer" style="top:46%;left:36%;"><b>MCP server</b><span>translates the call</span></div>
-          <div class="mcpnode" id="mcpJira" style="top:78%;left:2%;"><b>Jira</b><span>existing ticket system</span></div>
-          <div class="mcpnode" id="mcpDiag" style="top:78%;left:70%;"><b>Diagnostics suite</b><span>runs on real hardware</span></div>
-          <div class="mcppacket" id="mcpPacket"></div>
-        </div>
-        <div class="mcpviz__ctrl">
-          <button class="btn btn--solid btn--sm" id="mcpPlay">Play the flow</button>
-          <button class="btn btn--outline btn--sm" id="mcpReset">Reset</button>
-        </div>
-        <ol class="mcpviz__log" id="mcpLog"></ol>
-      </div>
-
-      <blockquote class="demo__quote">
-        This is exactly the pattern I'd use to wire your team's AI tools into the systems you already run. No rebuild required.
-        <cite>On integrating AI into existing software</cite>
-      </blockquote>
-    </article>
-
-    <!-- RL pong -->
-    <article class="demo" id="demo-pong" aria-labelledby="demoPongH">
-      <div class="demo__head">
-        <span class="demo__tag">Reinforcement learning</span>
-        <h3 id="demoPongH">From flailing to winning: reinforcement learning, checkpoint by checkpoint</h3>
-        <p>A tiny policy network learned to play Pong from nothing but a win/lose signal, trained offline with policy gradient RL (REINFORCE) over 30,000 rallies. These are genuine saved checkpoints from that training run, not a scripted animation. Pick one and watch the same network at different points in its training.</p>
-      </div>
-
-      <div class="pong">
-        <canvas id="pongCanvas" width="500" height="300" role="img" aria-label="Pong, controlled by a reinforcement-learning policy at the selected training checkpoint."></canvas>
-        <div class="pong__side">
-          <div class="pong__stages" id="pongStages" role="group" aria-label="Training checkpoint"></div>
-          <div class="pong__score">
-            <span><b id="pongWin">…</b><small>win rate</small></span>
-            <span><b id="pongEp">…</b><small>rallies trained</small></span>
-          </div>
-          <div class="pong__curve"><canvas id="pongCurve" role="img" aria-label="Win rate over the course of training"></canvas></div>
-          <p class="pong__readout" id="pongReadout">Pick a checkpoint to watch the trained policy play.</p>
-          <button class="btn btn--outline btn--sm" id="pongToggle">Pause</button>
-        </div>
-      </div>
-
-      <blockquote class="demo__quote">
-        That's the same arc I'd want for your process, rough and manual on day one, measurably better on every iteration after.
-        <cite>On continuous improvement</cite>
-      </blockquote>
+      <p class="demo__note">Try <b>“When is an ICT-related incident classified as major?”</b>, then ask <b>“What is the current EUR/USD exchange rate?”</b> and watch it refuse instead of making something up. <a class="linkbtn" href="projects.html#proj-rag">Read the case study →</a></p>
     </article>
 
   </div>
@@ -272,15 +286,12 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/convnet.js" defer></script>
-<script src="assets/js/vendor/chart.umd.js" defer></script>
-<script src="assets/data/digits8x8.js" defer></script>
-<script src="assets/data/pong-checkpoints.js" defer></script>
+<!-- Libraries and data load on demand, as each demo nears the screen. -->
 <script src="assets/js/main.js" defer></script>
 <script src="assets/js/playground/digit-recognizer.js" defer></script>
 <script src="assets/js/playground/nn-decision-boundary.js" defer></script>
-<script src="assets/js/playground/mcp-explainer.js" defer></script>
 <script src="assets/js/playground/rl-pong.js" defer></script>
+<script src="assets/js/playground/mcp-explainer.js" defer></script>
 <script src="assets/js/playground/rag-embed.js" defer></script>
 </body>
 </html>

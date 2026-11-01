@@ -1,14 +1,16 @@
 /* =========================================================
    zakatabish.online — site behaviour
    ---------------------------------------------------------
-   Shared helpers ($, $$, store, fitCanvas, token, reduceMotion)
-   are declared at top level so the playground scripts loaded
-   after this file (see index.html) can reuse them directly.
+   Shared helpers ($, $$, store, fitCanvas, token, reduceMotion,
+   loadScript, whenNear, loadThree, createStage) are declared at
+   top level so the page scripts loaded after this file (hero3d.js,
+   the playground demos) can reuse them directly.
    ========================================================= */
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 const store = {
   get(k, fb = null) { try { const v = localStorage.getItem(k); return v === null ? fb : JSON.parse(v); } catch { return fb; } },
@@ -95,456 +97,307 @@ function token(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-/* ── hero neural network ─────────────────────────────
-   Not a decorative loop: this is a real 5→7→7→4 network doing
-   real arithmetic every frame. The pointer (or a slow drift when
-   you aren't touching it) is the input vector, a forward pass runs
-   through the chosen activation function, cross-entropy against a
-   rotating target class gives real gradients, and a small SGD step
-   is actually applied — so the loss readout genuinely falls and the
-   confidence genuinely climbs. The activation function cycles, and
-   the little curve drawn above each hidden layer is that function
-   plotted from its own definition, not an illustration of one.
-   ─────────────────────────────────────────────────── */
-(function heroNet() {
-  const cv = $('#heroNet');
-  if (!cv) return;
+/* ── loading on demand ───────────────────────────────
+   Nothing heavy is fetched with the page. Libraries, datasets and
+   3D scenes load when the part of the page that needs them comes
+   near the viewport, and each script is only ever requested once. */
+const loadScript = (() => {
+  const cache = {};
+  return src => cache[src] || (cache[src] = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = resolve;
+    s.onerror = () => { delete cache[src]; reject(new Error('Could not load ' + src)); };
+    document.head.appendChild(s);
+  }));
+})();
 
-  const rdAct = $('#rdAct'), rdConf = $('#rdConf'), rdLayers = $('#rdLayers'),
-        rdLoss = $('#rdLoss'), rdState = $('#rdState'), led = $('.led'),
-        quoteEl = $('#netQuote');
+function whenNear(el, fn, margin = '600px') {
+  if (!el) return;
+  if (!('IntersectionObserver' in window)) { fn(); return; }
+  const io = new IntersectionObserver(entries => {
+    if (entries.some(e => e.isIntersecting)) { io.disconnect(); fn(); }
+  }, { rootMargin: margin });
+  io.observe(el);
+}
 
-  /* ── activation functions ──────────────────────────
-     f is applied to the pre-activation z; df takes both z and the
-     already-computed a = f(z), since tanh' and sigmoid' are cheaper
-     to express in terms of a. */
-  const ACTS = [
-    {
-      name: 'ReLU',
-      note: 'passes what is positive, silences the rest',
-      f: z => (z > 0 ? z : 0),
-      df: z => (z > 0 ? 1 : 0)
-    },
-    {
-      name: 'tanh',
-      note: 'squashes every signal into −1 … 1',
-      f: z => Math.tanh(z),
-      df: (z, a) => 1 - a * a
-    },
-    {
-      name: 'sigmoid',
-      note: 'turns any number into a probability',
-      f: z => 1 / (1 + Math.exp(-z)),
-      df: (z, a) => a * (1 - a)
-    },
-    {
-      name: 'leaky ReLU',
-      note: 'never lets a neuron go fully dark',
-      f: z => (z > 0 ? z : 0.1 * z),
-      df: z => (z > 0 ? 1 : 0.1)
-    },
-    {
-      name: 'GELU',
-      note: 'a smooth ReLU, the one transformers use',
-      f: z => 0.5 * z * (1 + Math.tanh(0.7978845608 * (z + 0.044715 * z * z * z))),
-      df: z => {
-        const h = 0.001;
-        const g = x => 0.5 * x * (1 + Math.tanh(0.7978845608 * (x + 0.044715 * x * x * x)));
-        return (g(z + h) - g(z - h)) / (2 * h);
-      }
-    }
-  ];
-  let actIdx = 0;
-  const act = () => ACTS[actIdx];
+/* Runs fn once the browser is idle after load, so first paint never waits on it. */
+function afterLoad(fn, timeout = 900) {
+  const go = () => ('requestIdleCallback' in window) ? requestIdleCallback(fn, { timeout }) : setTimeout(fn, 60);
+  document.readyState === 'complete' ? go() : window.addEventListener('load', go, { once: true });
+}
 
-  const QUOTES = [
-    'Learning is just pattern adaptation, written in arithmetic.',
-    'A weight is the memory of every mistake it has already made.',
-    'No single neuron knows what the network knows.',
-    'Intelligence here is a curve, bent until it fits the world.',
-    'Every gradient is a small, precise confession of being wrong.',
-    'Understanding is compression you can run backwards.',
-    'The model does not think. It leans, very carefully, in a direction.',
-    'Nothing inside a layer is intelligent. Everything between them is.',
-    'Given enough examples, arithmetic starts to look like intuition.',
-    'The network never learns the answer, only how wrong it just was.'
-  ];
-  let quoteIdx = Math.floor(Math.random() * QUOTES.length);
+const hasWebGL = (() => {
+  let ok = null;
+  return () => {
+    if (ok !== null) return ok;
+    try { const c = document.createElement('canvas'); ok = !!(c.getContext('webgl2') || c.getContext('webgl')); }
+    catch { ok = false; }
+    return ok;
+  };
+})();
 
-  /* Layer sizes, and how each layer is labelled under the diagram. */
-  const LAYERS = [5, 7, 7, 4];
-  const SHAPE = LAYERS.join('·');
+/* One copy of three.js (r149) serves every 3D scene on the site,
+   including the RAG demo, so it is cached after the first page. */
+const loadThree = () => window.THREE ? Promise.resolve(window.THREE)
+  : loadScript('assets/js/vendor/three.min.js').then(() => window.THREE);
 
-  let W = 0, H = 0, ctx = null;
-  let nodes = [];
-  let weights = [], biases = [];     // weights[l][i][j]: unit i of layer l → unit j of layer l+1
-  let zs = [], as = [], deltas = []; // per-layer pre-activations, activations, gradients
-  let colAccent, colAccent2, colRule, colMute, colInk;
-  let started = performance.now(), locked = false, pulseT = 0;
-  let target = 0, lossEMA = null, stepCount = 0;
-  const pointer = { x: -999, y: -999, active: false };
+/* ── 3D stage ────────────────────────────────────────
+   A three.js renderer bound to a host element. It sizes itself with a
+   ResizeObserver, caps the pixel ratio, and only runs its frame loop
+   while the host is on screen and the tab is visible, so a page with
+   four scenes costs about as much as the one you are looking at. */
+function createStage(host, { fov = 36, near = 0.05, far = 60, onFrame, onResize } = {}) {
+  const T = THREE;
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+  const renderer = new T.WebGLRenderer({ antialias: dpr < 2, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(dpr);
+  renderer.setClearColor(0x000000, 0);
+  const canvas = renderer.domElement;
+  canvas.className = 'stage3d__canvas';
+  host.appendChild(canvas);
 
-  const readColors = () => {
-    colAccent = token('--accent') || '#5645D6';
-    colAccent2 = token('--accent2') || '#0C8C86';
-    colRule = token('--rule') || '#DBDEEA';
-    colMute = token('--mute') || '#5B6076';
-    colInk = token('--ink') || '#12131C';
+  const scene = new T.Scene();
+  const camera = new T.PerspectiveCamera(fov, 1, near, far);
+  const st = { T, renderer, scene, camera, host, canvas, w: 1, h: 1, onScreen: false, running: false,
+               pointer: { x: 0, y: 0, px: -999, py: -999, active: false }, onFrame, onResize };
+
+  const resize = () => {
+    const w = host.clientWidth, h = host.clientHeight;
+    if (!w || !h) return;
+    st.w = w; st.h = h;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    st.onResize?.(st);
+    if (st.started && !st.running) st.render(0);
   };
 
-  const normalize = arr => {
-    const m = Math.max(1e-6, ...arr.map(Math.abs));
-    return arr.map(v => Math.abs(v) / m);
+  let last = performance.now(), t = 0, raf = 0;
+  st.render = (dt) => { st.onFrame?.(dt, t, st); renderer.render(scene, camera); };
+  const loop = (now) => {
+    const dt = Math.min((now - last) / 1000, 0.05); last = now; t += dt;
+    st.render(dt);
+    raf = requestAnimationFrame(loop);
   };
-
-  /* Kaiming-ish init, so the forward pass doesn't saturate or die
-     immediately whichever activation is currently selected. */
-  function initWeights() {
-    weights = []; biases = [];
-    for (let l = 0; l < LAYERS.length - 1; l++) {
-      const scale = Math.sqrt(2 / LAYERS[l]);
-      const mat = [];
-      for (let i = 0; i < LAYERS[l]; i++) {
-        const row = [];
-        for (let j = 0; j < LAYERS[l + 1]; j++) row.push((Math.random() * 2 - 1) * scale);
-        mat.push(row);
-      }
-      weights.push(mat);
-      biases.push(new Array(LAYERS[l + 1]).fill(0));
-    }
-    zs = LAYERS.map(n => new Array(n).fill(0));
-    as = LAYERS.map(n => new Array(n).fill(0));
-    deltas = LAYERS.map(n => new Array(n).fill(0));
-    lossEMA = null; stepCount = 0;
-  }
-
-  function layout() {
-    nodes = [];
-    // Asymmetric: the output column carries its softmax percentage to the
-    // right of each node, so it needs more room on that side than the
-    // input column does on its own.
-    const padL = W * 0.09, padR = W * 0.17;
-    const topPad = H * 0.24;               // room for the activation curves
-    const botPad = H * 0.2;                // room for the layer captions
-    const innerW = W - padL - padR;
-    LAYERS.forEach((count, li) => {
-      const x = padL + (innerW * li) / (LAYERS.length - 1);
-      const usable = H - topPad - botPad;
-      const gap = usable / Math.max(1, count - 1);
-      for (let i = 0; i < count; i++) {
-        const y = count === 1 ? topPad + usable / 2 : topPad + gap * i;
-        nodes.push({ x, y, layer: li, idx: i, act: 0.06, gate: 0, glow: 0, colorMode: 'forward' });
-      }
-    });
-    if (rdLayers) rdLayers.textContent = SHAPE;
-  }
-
-  const size = () => { const r = fitCanvas(cv, 16 / 9); ctx = r.ctx; W = r.w; H = r.h; layout(); };
-  readColors(); initWeights(); size();
-  window.addEventListener('resize', size, { passive: true });
-  window.addEventListener('themechange', readColors);
-
-  const onMove = (x, y) => {
-    const r = cv.getBoundingClientRect();
-    pointer.x = x - r.left; pointer.y = y - r.top; pointer.active = true;
+  const sync = () => {
+    const want = st.started && st.onScreen && !document.hidden;
+    if (want && !st.running) { st.running = true; last = performance.now(); raf = requestAnimationFrame(loop); }
+    if (!want && st.running) { st.running = false; cancelAnimationFrame(raf); }
   };
-  cv.addEventListener('pointermove', e => onMove(e.clientX, e.clientY));
-  cv.addEventListener('pointerleave', () => { pointer.active = false; });
-  cv.addEventListener('touchmove', e => {
-    if (e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
+  new IntersectionObserver(([e]) => { st.onScreen = e.isIntersecting; sync(); }, { rootMargin: '80px' }).observe(host);
+  document.addEventListener('visibilitychange', sync);
+  new ResizeObserver(resize).observe(host);
 
-  function byLayer(li) { return nodes.filter(n => n.layer === li); }
+  const setPointer = (cx, cy) => {
+    const r = host.getBoundingClientRect();
+    st.pointer.px = cx - r.left; st.pointer.py = cy - r.top;
+    st.pointer.x = (st.pointer.px / r.width) * 2 - 1;
+    st.pointer.y = (st.pointer.py / r.height) * 2 - 1;
+    st.pointer.active = true;
+  };
+  host.addEventListener('pointermove', e => setPointer(e.clientX, e.clientY));
+  host.addEventListener('pointerleave', () => { st.pointer.active = false; });
 
-  /* ── the actual maths ──────────────────────────────── */
+  /* project a world position to host pixels, for HTML labels */
+  const v = new T.Vector3();
+  st.toScreen = (p) => { v.copy(p).project(camera); return { x: (v.x + 1) / 2 * st.w, y: (1 - v.y) / 2 * st.h, z: v.z }; };
 
-  /* The input vector. With the pointer down it's a real function of
-     where you are on the canvas; otherwise it drifts on its own so
-     the network still has something to chew on. */
-  function readInput(t) {
-    const px = pointer.active ? pointer.x / W : 0.5 + Math.sin(t * 0.31) * 0.34;
-    const py = pointer.active ? pointer.y / H : 0.5 + Math.cos(t * 0.23) * 0.3;
-    const v = [];
-    for (let i = 0; i < LAYERS[0]; i++) {
-      const phase = (i / LAYERS[0]) * Math.PI * 2;
-      v.push(Math.sin(px * 3.1 + phase) * 0.9 + Math.cos(py * 2.7 - phase) * 0.6);
-    }
-    return v;
-  }
+  /* call once the scene is built: draws a first frame, then animates while visible */
+  st.start = () => { st.started = true; resize(); st.render(0); sync(); };
 
-  function forward(x) {
-    as[0] = x.slice(); zs[0] = x.slice();
-    const A = act();
-    for (let l = 0; l < LAYERS.length - 1; l++) {
-      const last = l === LAYERS.length - 2;
-      const z = new Array(LAYERS[l + 1]).fill(0);
-      for (let j = 0; j < LAYERS[l + 1]; j++) {
-        let s = biases[l][j];
-        for (let i = 0; i < LAYERS[l]; i++) s += as[l][i] * weights[l][i][j];
-        z[j] = s;
-      }
-      zs[l + 1] = z;
-      // Hidden layers use the selected activation; the output layer is
-      // always softmax, which is what makes "confidence" a real number.
-      as[l + 1] = last ? softmax(z) : z.map(A.f);
-    }
-    return as[LAYERS.length - 1];
-  }
+  resize();
+  return st;
+}
 
-  function softmax(z) {
-    const m = Math.max(...z);
-    const e = z.map(v => Math.exp(v - m));
-    const s = e.reduce((a, b) => a + b, 0) || 1;
-    return e.map(v => v / s);
-  }
+/* A soft round sprite texture, shared by every glow on the site. */
+let _glowTex = null;
+function glowTexture() {
+  if (_glowTex) return _glowTex;
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grd.addColorStop(0, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.25, 'rgba(255,255,255,.55)');
+  grd.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 64, 64);
+  _glowTex = new THREE.CanvasTexture(c);
+  return _glowTex;
+}
 
-  /* Cross-entropy against the current target class, then plain SGD.
-     Softmax + cross-entropy collapses to (a − onehot) at the output,
-     which is why there's no separate softmax derivative here. */
-  function backward(targetIdx, lr) {
-    const L = LAYERS.length - 1;
-    const A = act();
-    const out = as[L];
-    deltas[L] = out.map((v, k) => v - (k === targetIdx ? 1 : 0));
+const isDark = () => document.documentElement.dataset.theme === 'dark';
 
-    for (let l = L - 1; l >= 1; l--) {
-      const d = new Array(LAYERS[l]).fill(0);
-      for (let i = 0; i < LAYERS[l]; i++) {
-        let s = 0;
-        for (let j = 0; j < LAYERS[l + 1]; j++) s += weights[l][i][j] * deltas[l + 1][j];
-        d[i] = s * A.df(zs[l][i], as[l][i]);
-      }
-      deltas[l] = d;
-    }
+/* ── scroll reveal ───────────────────────────────────
+   Chapters rise in with a little 3D tilt as you reach them, so the
+   page tells you one thing at a time instead of everything at once. */
+(function reveal() {
+  const els = $$('[data-reveal]');
+  if (!els.length) return;
+  if (reduceMotion || !('IntersectionObserver' in window)) { els.forEach(e => e.classList.add('is-in')); return; }
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+  }), { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+  els.forEach(e => io.observe(e));
+})();
 
-    for (let l = 0; l < L; l++) {
-      for (let j = 0; j < LAYERS[l + 1]; j++) {
-        const dj = deltas[l + 1][j];
-        for (let i = 0; i < LAYERS[l]; i++) {
-          weights[l][i][j] -= lr * as[l][i] * dj;
-          // Light weight decay keeps a long-running page from drifting
-          // into ever-larger weights and saturating the activation.
-          weights[l][i][j] *= 0.9999;
-        }
-        biases[l][j] -= lr * dj;
-      }
-    }
-    return -Math.log(Math.max(1e-9, out[targetIdx]));
-  }
-
-  /* ── activation curve glyph ────────────────────────── */
-  function drawActCurve(cx, cy, w, h, alpha) {
-    const A = act();
-    const xs = [];
-    for (let i = 0; i <= 28; i++) xs.push(-3 + (6 * i) / 28);
-    const ys = xs.map(A.f);
-    const lo = Math.min(...ys), hi = Math.max(...ys);
-    const span = Math.max(1e-6, hi - lo);
-
-    ctx.save();
-    ctx.globalAlpha = alpha * 0.5;
-    ctx.strokeStyle = colRule;
-    ctx.lineWidth = 1;
-    ctx.beginPath();                                  // baseline at f = 0 (or the floor)
-    const zeroY = cy + h / 2 - ((0 - lo) / span) * h;
-    const clampY = Math.max(cy - h / 2, Math.min(cy + h / 2, zeroY));
-    ctx.moveTo(cx - w / 2, clampY); ctx.lineTo(cx + w / 2, clampY); ctx.stroke();
-
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = colAccent2;
-    ctx.lineWidth = 1.6;
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    xs.forEach((x, i) => {
-      const px = cx - w / 2 + ((x + 3) / 6) * w;
-      const py = cy + h / 2 - ((ys[i] - lo) / span) * h;
-      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
-    });
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawCaption(x, y, main, sub, alpha) {
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillStyle = colInk;
-    ctx.font = '500 10px ' + (getComputedStyle(document.documentElement).getPropertyValue('--f-mono') || 'monospace');
-    ctx.fillText(main, x, y);
-    if (sub) {
-      ctx.globalAlpha = alpha * 0.72;
-      ctx.fillStyle = colMute;
-      ctx.font = '400 9px ' + (getComputedStyle(document.documentElement).getPropertyValue('--f-mono') || 'monospace');
-      ctx.fillText(sub, x, y + 12);
-    }
-    ctx.restore();
-  }
-
-  /* ── frame ─────────────────────────────────────────── */
-  let last = performance.now();
-  function frame(now) {
-    const dt = Math.min((now - last) / 1000, 0.05); last = now;
-    pulseT += dt * (reduceMotion ? 0.35 : 1);
-
-    // One cycle = forward pass, pause, backward pass. The weight update
-    // is applied once per cycle, at the moment the backward sweep lands.
-    const cycle = 3.6;
-    const prevCycle = Math.floor((pulseT - dt * (reduceMotion ? 0.35 : 1)) / cycle);
-    const thisCycle = Math.floor(pulseT / cycle);
-    const u = (pulseT % cycle) / cycle;
-
-    let waveMode = null, localT = 0;
-    if (u < 0.46) { waveMode = 'forward'; localT = u / 0.46; }
-    else if (u < 0.52) { waveMode = null; }
-    else { waveMode = 'backward'; localT = (u - 0.52) / 0.48; }
-    const phase = localT * (LAYERS.length + 1);
-
-    // New cycle: rotate the target class, and every few cycles rotate
-    // the activation function too (which resets the weights, since the
-    // old ones were fitted under a different non-linearity).
-    if (thisCycle !== prevCycle) {
-      target = (target + 1) % LAYERS[LAYERS.length - 1];
-      if (thisCycle % 4 === 0) {
-        actIdx = (actIdx + 1) % ACTS.length;
-        initWeights();
-      }
-      if (quoteEl) {
-        quoteIdx = (quoteIdx + 1) % QUOTES.length;
-        quoteEl.textContent = QUOTES[quoteIdx];
-      }
-    }
-
-    const out = forward(readInput(pulseT));
-    const conf = Math.max(...out);
-    const loss = -Math.log(Math.max(1e-9, out[target]));
-    lossEMA = lossEMA === null ? loss : lossEMA * 0.96 + loss * 0.04;
-
-    // The weight update fires once per cycle, as the gradient sweep
-    // reaches the input side — so what you see is what just happened.
-    if (waveMode === 'backward' && localT > 0.9 && stepCount < thisCycle + 1) {
-      stepCount = thisCycle + 1;
-      backward(target, 0.06);
-    } else {
-      backward(target, 0);   // gradients only, no step, for the display
-    }
-
-    const actNorm = LAYERS.map((_, l) => normalize(as[l]));
-    const gradNorm = LAYERS.map((_, l) => normalize(deltas[l] || []));
-
-    nodes.forEach(n => {
-      const layerIndex = waveMode === 'backward' ? (LAYERS.length - 1 - n.layer) : n.layer;
-      const lp = phase - layerIndex;
-      let gateTarget = 0;
-      if (waveMode && lp > 0 && lp < 1.3) gateTarget = Math.sin(Math.min(lp, 1) * Math.PI);
-      n.gate += (gateTarget - n.gate) * 0.16;
-
-      let glowTarget = 0;
-      if (pointer.active) {
-        const d = Math.hypot(n.x - pointer.x, n.y - pointer.y);
-        glowTarget = Math.max(0, 1 - d / (W * 0.18));
-      }
-      n.glow += (glowTarget - n.glow) * 0.15;
-
-      const src = waveMode === 'backward' ? gradNorm : actNorm;
-      const real = (src[n.layer] && src[n.layer][n.idx]) || 0;
-      n.act = Math.max(0.06, real * n.gate, n.glow);
-      n.colorMode = n.glow >= real * n.gate ? 'forward' : (waveMode || 'forward');
-    });
-
-    ctx.clearRect(0, 0, W, H);
-
-    /* edges — thickness from the real |weight|, colour from the pass */
-    for (let li = 0; li < LAYERS.length - 1; li++) {
-      const from = byLayer(li), to = byLayer(li + 1);
-      let maxW = 1e-6;
-      for (let i = 0; i < LAYERS[li]; i++)
-        for (let j = 0; j < LAYERS[li + 1]; j++) maxW = Math.max(maxW, Math.abs(weights[li][i][j]));
-      from.forEach((a, i) => {
-        to.forEach((b, j) => {
-          const flow = (a.act + b.act) / 2;
-          const hot = flow > 0.3;
-          const wAbs = Math.abs(weights[li][i][j]) / maxW;
-          const mode = a.colorMode === 'backward' || b.colorMode === 'backward' ? 'backward' : 'forward';
-          ctx.strokeStyle = hot ? (mode === 'backward' ? colAccent : colAccent2) : colRule;
-          ctx.globalAlpha = hot ? Math.min(0.62, flow * wAbs + 0.12) : 0.08 + wAbs * 0.14;
-          ctx.lineWidth = hot ? 0.8 + wAbs * 1.8 : 0.5 + wAbs * 0.7;
-          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-        });
+/* ── 3D tilt ─────────────────────────────────────────
+   Cards lean toward the pointer, with a soft highlight where it is.
+   Only on a real mouse, never under reduced motion. */
+(function tilt() {
+  if (!finePointer || reduceMotion) return;
+  $$('[data-tilt]').forEach(el => {
+    const max = parseFloat(el.dataset.tilt) || 6;
+    let raf = 0, tx = 0, ty = 0;
+    el.addEventListener('pointermove', e => {
+      const r = el.getBoundingClientRect();
+      tx = (e.clientX - r.left) / r.width; ty = (e.clientY - r.top) / r.height;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        el.style.setProperty('--ry', ((tx - 0.5) * 2 * max).toFixed(2) + 'deg');
+        el.style.setProperty('--rx', ((0.5 - ty) * 2 * max).toFixed(2) + 'deg');
+        el.style.setProperty('--gx', (tx * 100).toFixed(1) + '%');
+        el.style.setProperty('--gy', (ty * 100).toFixed(1) + '%');
+        el.classList.add('is-tilting');
       });
-    }
-    ctx.globalAlpha = 1;
-
-    /* nodes */
-    nodes.forEach(n => {
-      const r = 3 + n.act * 4.2;
-      const nodeColor = n.colorMode === 'backward' ? colAccent : colAccent2;
-      ctx.beginPath();
-      ctx.fillStyle = n.act > 0.4 ? nodeColor : colRule;
-      ctx.globalAlpha = 0.35 + n.act * 0.65;
-      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-      ctx.fill();
-      if (n.act > 0.55) {
-        ctx.beginPath();
-        ctx.strokeStyle = nodeColor;
-        ctx.globalAlpha = (n.act - 0.55) * 0.9;
-        ctx.lineWidth = 1.5;
-        ctx.arc(n.x, n.y, r + 3, 0, Math.PI * 2);
-        ctx.stroke();
-      }
     });
-    ctx.globalAlpha = 1;
-
-    /* the winning output class gets its index drawn in it */
-    const outNodes = byLayer(LAYERS.length - 1);
-    let topK = 0;
-    for (let k = 1; k < out.length; k++) if (out[k] > out[topK]) topK = k;
-    outNodes.forEach((n, k) => {
-      ctx.save();
-      ctx.globalAlpha = k === topK ? 0.95 : 0.4;
-      ctx.fillStyle = colMute;
-      ctx.font = '400 8px ' + (getComputedStyle(document.documentElement).getPropertyValue('--f-mono') || 'monospace');
-      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      ctx.fillText(`${(out[k] * 100).toFixed(0)}%`, n.x + 11, n.y);
-      ctx.restore();
+    el.addEventListener('pointerleave', () => {
+      el.classList.remove('is-tilting');
+      el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg');
     });
+  });
+})();
 
-    /* activation curves above the two hidden layers */
-    const A = act();
-    const cw = Math.min(46, W * 0.09), ch = cw * 0.5;
-    [1, 2].forEach(li => {
-      const col = byLayer(li);
-      const cx = col[0].x;
-      drawActCurve(cx, H * 0.11, cw, ch, 0.9);
-      drawCaption(cx, H * 0.11 + ch / 2 + 5, A.name, null, 0.85);
+/* ── lightbox ────────────────────────────────────────
+   <a href="big.jpg" data-lightbox data-caption="…"> opens the image in
+   a native <dialog> instead of navigating away. */
+(function lightbox() {
+  const links = $$('a[data-lightbox]');
+  if (!links.length || typeof HTMLDialogElement === 'undefined') return;
+  const dlg = document.createElement('dialog');
+  dlg.className = 'lightbox';
+  dlg.innerHTML = '<button class="lightbox__close" type="button" aria-label="Close">×</button><figure><img alt=""><figcaption></figcaption></figure>';
+  document.body.appendChild(dlg);
+  const img = $('img', dlg), cap = $('figcaption', dlg);
+  links.forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    img.src = a.href;
+    img.alt = a.querySelector('img')?.alt || '';
+    cap.innerHTML = a.dataset.caption || '';
+    dlg.showModal();
+  }));
+  $('.lightbox__close', dlg).addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+})();
+
+/* ── videos ──────────────────────────────────────────
+   .vplayer: a muted teaser loops once it scrolls into view; pressing
+   play (or a chapter) swaps in the full video with sound. Nothing but
+   the poster is downloaded until then.
+   video[data-autoplay]: a silent explainer that plays by itself, and
+   pauses whenever it is off screen so it never costs CPU unseen. */
+(function videos() {
+  $$('.vplayer').forEach(box => {
+    const video = $('video', box), playBtn = $('.vplayer__play', box);
+    const full = box.dataset.src, teaser = box.dataset.teaser;
+    const chapters = $$(`[data-video="${box.id}"] [data-t]`);
+    let isFull = false;
+
+    if (teaser && !reduceMotion) {
+      whenNear(box, () => { if (!isFull) { video.src = teaser; video.play().catch(() => {}); } }, '100px');
+    }
+    const start = (t = 0) => {
+      const seek = () => { try { video.currentTime = t; } catch {} video.play().catch(() => {}); };
+      if (!isFull) {
+        // switching from the teaser: wait for the full video's metadata before seeking
+        isFull = true;
+        box.classList.add('is-playing');
+        video.loop = false; video.muted = false; video.controls = true;
+        video.preload = 'auto';
+        video.addEventListener('loadedmetadata', seek, { once: true });
+        video.src = full;
+      } else seek();
+      video.focus({ preventScroll: true });
+    };
+    playBtn?.addEventListener('click', () => start(0));
+    chapters.forEach(b => b.addEventListener('click', () => {
+      start(parseFloat(b.dataset.t) || 0);
+      box.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+    }));
+    video.addEventListener('timeupdate', () => {
+      if (!isFull || !chapters.length) return;
+      let cur = chapters[0];
+      chapters.forEach(b => { if (video.currentTime >= parseFloat(b.dataset.t)) cur = b; });
+      chapters.forEach(b => b.classList.toggle('is-now', b === cur));
     });
+  });
 
-    /* layer captions along the bottom */
-    const capY = H - H * 0.14;
-    drawCaption(byLayer(0)[0].x, capY, `input ${LAYERS[0]}`, 'your pointer', 0.9);
-    drawCaption(byLayer(1)[0].x, capY, `dense ${LAYERS[1]}`, 'hidden', 0.9);
-    drawCaption(byLayer(2)[0].x, capY, `dense ${LAYERS[2]}`, 'hidden', 0.9);
-    drawCaption(byLayer(3)[0].x, capY, `softmax ${LAYERS[3]}`, 'output', 0.9);
+  $$('video[data-autoplay]').forEach(v => {
+    const box = v.closest('.vportrait') || v.parentElement;
+    const btn = $('.vportrait__play', box);
+    if (reduceMotion) { v.removeAttribute('autoplay'); v.pause(); box.classList.add('is-paused'); }
+    // A lazily loaded copy (data-src) only starts fetching when it is near.
+    if (v.dataset.src) whenNear(v, () => { v.src = v.dataset.src; if (!reduceMotion) v.play().catch(() => {}); }, '300px');
+    let userPaused = reduceMotion;
+    new IntersectionObserver(([e]) => {
+      if (!v.src && !v.currentSrc) return;
+      if (e.isIntersecting && !userPaused) v.play().catch(() => {});
+      else v.pause();
+    }, { threshold: 0.15 }).observe(v);
+    const toggle = () => {
+      if (v.paused) { userPaused = false; if (!v.src && v.dataset.src) v.src = v.dataset.src; v.play().catch(() => {}); }
+      else { userPaused = true; v.pause(); }
+    };
+    v.addEventListener('play', () => box.classList.remove('is-paused'));
+    v.addEventListener('pause', () => box.classList.add('is-paused'));
+    v.addEventListener('click', toggle);
+    btn?.addEventListener('click', toggle);
+  });
+})();
 
-    /* readouts */
-    if (rdAct) rdAct.textContent = A.name;
-    if (rdConf) rdConf.textContent = (conf * 100).toFixed(0) + '%';
-    if (rdLoss) rdLoss.textContent = lossEMA.toFixed(3);
-
-    if (!locked && now - started > 1600) {
-      locked = true;
-      led?.setAttribute('data-state', 'lock');
-    }
-    if (rdState) {
-      rdState.textContent = !locked ? 'booting'
-        : waveMode === 'forward' ? 'forward pass'
-        : waveMode === 'backward' ? 'backprop'
-        : 'weights updated';
-    }
-    requestAnimationFrame(frame);
-  }
-  if (quoteEl) quoteEl.textContent = QUOTES[quoteIdx];
-  requestAnimationFrame(frame);
+/* ── skill sphere ────────────────────────────────────
+   The toolkit as a sphere of tags (CSS 3D, no WebGL): each tag sits on
+   a Fibonacci point, the sphere turns slowly and leans toward the
+   pointer, and nearer tags are larger and brighter. It only animates
+   while it is on screen. The plain grouped list sits underneath it. */
+(function orb() {
+  const box = $('.orb');
+  if (!box) return;
+  const items = $$('.orb__tag', box);
+  const n = items.length;
+  const pts = items.map((_, i) => {
+    const y = 1 - (i + 0.5) * 2 / n, r = Math.sqrt(1 - y * y), a = i * Math.PI * (3 - Math.sqrt(5));
+    return [Math.cos(a) * r, y, Math.sin(a) * r];
+  });
+  let rx = 0.3, ry = 0, vx = 0.0016, vy = 0.0042, raf = 0, on = false, R = 150;
+  const fit = () => { R = box.clientWidth * (box.clientWidth < 420 ? 0.31 : 0.4); };
+  fit();
+  new ResizeObserver(fit).observe(box);
+  box.addEventListener('pointermove', e => {
+    const r = box.getBoundingClientRect();
+    vy = ((e.clientX - r.left) / r.width - 0.5) * 0.02;
+    vx = -((e.clientY - r.top) / r.height - 0.5) * 0.014;
+  });
+  box.addEventListener('pointerleave', () => { vx = 0.0016; vy = 0.0042; });
+  const draw = () => {
+    if (!reduceMotion) { rx += vx; ry += vy; }
+    const cx = Math.cos(rx), sx = Math.sin(rx), cy = Math.cos(ry), sy = Math.sin(ry);
+    pts.forEach(([x, y, z], i) => {
+      const x1 = x * cy + z * sy, z1 = -x * sy + z * cy;
+      const y2 = y * cx - z1 * sx, z2 = y * sx + z1 * cx;
+      const k = (z2 + 1.6) / 2.6;
+      const el = items[i];
+      el.style.transform = `translate(-50%, -50%) translate3d(${(x1 * R).toFixed(1)}px, ${(y2 * R).toFixed(1)}px, 0) scale(${(0.55 + k * 0.55).toFixed(3)})`;
+      el.style.opacity = (0.1 + k * k * 0.9).toFixed(2);
+      el.style.zIndex = String(Math.round(k * 100));
+    });
+    if (on && !reduceMotion) raf = requestAnimationFrame(draw);
+  };
+  new IntersectionObserver(([e]) => {
+    on = e.isIntersecting;
+    cancelAnimationFrame(raf);
+    draw();
+  }).observe(box);
 })();
 
 /* ── email reveal ────────────────────────────────────── */
@@ -620,6 +473,7 @@ function token(name) {
 
   const PROJECTS = [
     { name: 'private-rag-assistant', label: 'Private RAG assistant for banking compliance', page: 'projects.html#proj-rag', url: 'https://github.com/ProgrammerTabish/private-rag-assistant' },
+    { name: 'cone-crimping-machine', label: 'Automatic cone crimping machine (Arduino, built in a garage)', page: 'projects.html#proj-crimp' },
     { name: 'mcp-diagnostics-server', label: 'MCP server for hardware diagnostics', page: 'projects.html#proj-mcp' },
     { name: 'lab-network-monitor', label: 'Lab network monitoring & anomaly alerting', page: 'projects.html#proj-monitoring' },
     { name: 'finalyearproject', label: 'City waste management (GPS tracking)', page: 'projects.html#proj-waste', url: 'https://github.com/ProgrammerTabish/FinalYearProject' },
@@ -645,7 +499,7 @@ function token(name) {
       write('Shaikh Zaka Tabish, AI engineering for industrial systems.\nMSc student at OTH Amberg, one year as a working student at Nokia Nuremberg.\nI make black box systems explain themselves, to engineers and to models.');
     },
     now() {
-      write('OTH Amberg       MSc Artificial Intelligence for Industrial Applications\nNokia Nuremberg  board bring up and diagnostics software, Aug 2025 to Jul 2026\nLooking for      AI/ML working student, internship and graduate roles');
+      write('OTH Amberg       MSc Artificial Intelligence for Industrial Applications\nLatest           Innovation Challenge 2026, private RAG assistant for Specific-Group (Oct 2026)\nNokia Nuremberg  board bring up and diagnostics software, Aug 2025 to Jul 2026\nLooking for      AI/ML working student, internship and graduate roles');
     },
     work() { write('Opening the experience page.', 'dim'); go('experience.html#work'); },
     skills() {
