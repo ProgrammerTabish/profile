@@ -1,281 +1,135 @@
 [
 {
-"id": "Q01",
-"topic": "Money laundering / KYC",
-"q": "Under the German Money Laundering Act, in which situations must a bank carry out customer due diligence?",
-"type": "Fact",
-"answer": "1) When establishing a business relationship. 2) For transactions outside an existing business relationship from EUR 15,000 (lower thresholds apply to transfers of funds). 3) When facts indicate money laundering or terrorist financing. 4) When there are doubts about the identity information provided.",
-"sources": "01_GwG.pdf, section 10(3)",
-"de": "Allgemeine Sorgfaltspflichten, Geschäftsbeziehung, Transaktion"
+"id": "E01",
+"topic": "AML / KYC",
+"q": "When does a bank have to identify the beneficial owner of a company customer?",
+"type": "Example",
+"de": "wirtschaftlich Berechtigter Identifizierung Sorgfaltspflichten"
 },
 {
-"id": "Q02",
-"topic": "Money laundering / KYC",
-"q": "When is a natural person considered the beneficial owner of a company under the GwG?",
-"type": "Fact",
-"answer": "A natural person who directly or indirectly holds more than 25% of the capital or voting rights, or exercises control in a comparable way. If no such person can be identified, the legal representative or managing director is treated as fictitious beneficial owner.",
-"sources": "01_GwG.pdf, section 3(2)",
-"de": "wirtschaftlich Berechtigter, fiktiver wirtschaftlich Berechtigter"
+"id": "E02",
+"topic": "AML / KYC",
+"q": "What does the GwG require a bank to do when it suspects money laundering?",
+"type": "Example",
+"de": "Verdachtsmeldung Geldwäsche Meldepflicht Zentralstelle"
 },
 {
-"id": "Q03",
-"topic": "Money laundering / KYC",
-"q": "How long must a bank retain the records it collects under its due diligence obligations?",
-"type": "Fact",
-"answer": "At least five years, and destroyed no later than ten years. The period starts at the end of the calendar year in which the business relationship ends (or the transaction is carried out).",
-"sources": "01_GwG.pdf, section 8(4)",
-"de": "Aufzeichnungs- und Aufbewahrungspflicht"
+"id": "E03",
+"topic": "AML / KYC",
+"q": "Under which conditions may a bank apply simplified due diligence?",
+"type": "Example",
+"de": "vereinfachte Sorgfaltspflichten geringes Risiko"
 },
 {
-"id": "Q04",
-"topic": "Money laundering / KYC",
-"q": "A bank employee suspects that a customer payment is linked to money laundering. To whom must the bank report, and how quickly?",
-"type": "Multi-document",
-"answer": "Report to the Financial Intelligence Unit (FIU) without delay (unverzüglich), regardless of the amount involved. BaFin/FIU guidance explains that the report must be filed promptly once the facts indicating suspicion are known, and must be complete.",
-"sources": "01_GwG.pdf, section 43(1); 10_BaFin_FIU_Verdachtsmeldungen.pdf",
-"de": "Verdachtsmeldung, unverzüglich, FIU"
+"id": "E04",
+"topic": "AML / KYC",
+"q": "What are the requirements for identifying customers by video?",
+"type": "Example",
+"de": "Videoidentifizierung Identifizierung Anforderungen"
 },
 {
-"id": "Q05",
-"topic": "Money laundering / KYC",
-"q": "After filing a suspicious activity report, may the bank execute the reported transaction straight away?",
-"type": "Fact",
-"answer": "No. The transaction may only be executed with the consent of the FIU or the public prosecutor, or once the third working day after the report was sent has passed without the transaction being prohibited (Saturdays do not count as working days). Exception: if postponing is impossible or would hinder the investigation, the bank may execute and report immediately afterwards.",
-"sources": "01_GwG.pdf, section 46",
-"de": "Fristfall, dritter Werktag, Durchführung von Transaktionen"
-},
-{
-"id": "Q06",
-"topic": "Money laundering / KYC",
-"q": "May a bank tell its customer that it has filed a suspicious activity report about them?",
-"type": "Fact",
-"answer": "No. The prohibition of disclosure (tipping off) forbids informing the customer or third parties about a planned or filed report or a resulting investigation. Narrow exceptions exist, e.g. for information to authorities and certain information sharing within the group.",
-"sources": "01_GwG.pdf, section 47",
-"de": "Verbot der Informationsweitergabe"
-},
-{
-"id": "Q07",
-"topic": "Money laundering / KYC",
-"q": "Which enhanced due diligence measures apply when the customer is a politically exposed person (PEP)?",
-"type": "Multi-document",
-"answer": "1) Approval by senior management to establish or continue the relationship. 2) Measures to establish the source of wealth and source of funds. 3) Enhanced ongoing monitoring of the business relationship. EBA risk factor guidelines describe further risk factors and measures.",
-"sources": "01_GwG.pdf, section 15(3) and (4); 04_EBA_Risikofaktoren.pdf",
-"de": "politisch exponierte Person, verstärkte Sorgfaltspflichten, Herkunft der Vermögenswerte"
-},
-{
-"id": "Q08",
-"topic": "Money laundering / KYC",
-"q": "Which document determines whether a country is a high-risk third country, and what does that mean for a German bank?",
-"type": "Multi-document",
-"answer": "The EU list in Delegated Regulation (EU) 2016/1675 (latest consolidated version, the list changes over time). For business relationships or transactions involving such countries, the GwG requires enhanced due diligence measures.",
-"sources": "12_EU_Hochrisikodrittstaaten.pdf; 01_GwG.pdf, section 15(3) and (5)",
-"de": "Drittstaat mit hohem Risiko, verstärkte Sorgfaltspflichten"
-},
-{
-"id": "Q09",
-"topic": "Money laundering / KYC",
-"q": "Who in a bank must be responsible for AML/CFT, and at which level?",
-"type": "Multi-document",
-"answer": "A money laundering officer (Geldwäschebeauftragter) at management level plus a deputy must be appointed (GwG). EBA guidelines additionally require a member of the management body to be responsible for AML/CFT and an AML/CFT compliance officer with sufficient seniority, resources and direct reporting line.",
-"sources": "01_GwG.pdf, section 7(1); 05_EBA_AML_Compliance_Officer.pdf",
-"de": "Geldwäschebeauftragter, Führungsebene, Stellvertreter"
-},
-{
-"id": "Q10",
-"topic": "Money laundering / KYC",
-"q": "What must a bank do before it starts using a remote customer onboarding solution?",
-"type": "Fact",
-"answer": "Have documented policies and procedures for remote onboarding and carry out a pre-implementation assessment of the solution (adequacy, reliability of data and documents, risks). After going live the solution must be monitored and reviewed on an ongoing basis.",
-"sources": "06_EBA_Remote_Onboarding.pdf",
-"de": "Fernidentifizierung, Bewertung vor Einführung"
-},
-{
-"id": "Q11",
-"topic": "Money laundering / KYC",
-"q": "Which information about the payer and the payee must accompany a transfer of funds?",
-"type": "Fact",
-"answer": "Payer: name, payment account number, address including country, official personal document number, customer identification number or date and place of birth, and the LEI where available. Payee: name, payment account number and LEI where available. Simplified rules apply within the EU.",
-"sources": "09_EU_Geldtransfer_2023_1113.pdf, Article 4 (and 5, 6)",
-"de": "Angaben zum Auftraggeber, Angaben zum Begünstigten"
-},
-{
-"id": "Q12",
+"id": "E05",
 "topic": "Sanctions",
-"q": "What does an asset freeze under the EU Russia/Ukraine sanctions mean for a bank holding an account of a listed person?",
-"type": "Fact",
-"answer": "All funds and economic resources belonging to, owned, held or controlled by the listed person must be frozen. In addition, no funds or economic resources may be made available to the listed person, directly or indirectly.",
-"sources": "14_EU_Sanktionen_269_2014.pdf, Article 2",
-"de": "Einfrieren, Bereitstellungsverbot"
+"q": "Which payments to foreign countries have to be reported to the Bundesbank?",
+"type": "Example",
+"de": "Meldepflicht Zahlungsverkehr Ausland Zahlungen"
 },
 {
-"id": "Q13",
+"id": "E06",
 "topic": "Sanctions",
-"q": "A company is 60% owned by a sanctioned person but is not listed itself. May the bank pay out funds to the company?",
-"type": "Multi-document",
-"answer": "Generally no. If a listed person owns more than 50% of an entity, the entity is presumed to be owned or controlled by that person, and making funds available to it counts as indirectly making funds available to the listed person. Control can also exist without majority ownership.",
-"sources": "13_Bundesbank_Finanzsanktionen_FAQ.pdf; 18_EU_Kommission_Sanktions_FAQ.pdf; 14_EU_Sanktionen_269_2014.pdf",
-"de": "Eigentum und Kontrolle, mittelbare Bereitstellung"
+"q": "What must a bank do with the funds of a person on an EU sanctions list?",
+"type": "Example",
+"de": "Einfrieren Gelder wirtschaftliche Ressourcen Bereitstellungsverbot"
 },
 {
-"id": "Q15",
-"topic": "Sanctions",
-"q": "Which authority is responsible for financial sanctions in Germany, and what must a bank report to it?",
-"type": "Multi-document",
-"answer": "The Deutsche Bundesbank (Servicezentrum Finanzsanktionen). The bank must provide information that facilitates compliance, in particular on frozen accounts and amounts, within the deadline set in the sanctions regulation.",
-"sources": "13_Bundesbank_Finanzsanktionen_FAQ.pdf; 14_EU_Sanktionen_269_2014.pdf, Article 8",
-"de": "zuständige Behörde, Meldung eingefrorener Gelder"
+"id": "E07",
+"topic": "Governance",
+"q": "What is the role of internal audit under MaRisk?",
+"type": "Example",
+"de": "Interne Revision Prüfung Aufgaben"
 },
 {
-"id": "Q16",
-"topic": "Sanctions",
-"q": "Which payments with foreign counterparties must be reported to the Deutsche Bundesbank?",
-"type": "Fact",
-"answer": "Residents must report payments they receive from or make to foreign parties exceeding EUR 12,500 (or the equivalent). Certain payments are exempt, e.g. payments for the import or export of goods.",
-"sources": "20_AWV.pdf, section 67",
-"de": "Meldepflicht im Zahlungsverkehr, 12.500 Euro"
+"id": "E08",
+"topic": "Governance",
+"q": "Which outsourcings does a bank have to report to BaFin?",
+"type": "Example",
+"de": "Auslagerung Anzeige wesentliche Auslagerung"
 },
 {
-"id": "Q17",
-"topic": "Sanctions",
-"q": "What do the EBA guidelines on restrictive measures require from banks, and since when do they apply?",
-"type": "Fact",
-"answer": "Applicable since 30 December 2025. Banks need policies, procedures and governance for compliance with restrictive measures (including a responsible member of the management body), a sanctions exposure assessment, and screening of customers. The second set of guidelines covers screening of transfers of funds.",
-"sources": "17_EBA_Sanktionsleitlinien.pdf",
-"de": "restriktive Maßnahmen, Screening"
+"id": "E09",
+"topic": "Data & whistleblowing",
+"q": "Which rights does a customer have to get information about their personal data?",
+"type": "Example",
+"de": "Auskunftsrecht betroffene Person personenbezogene Daten"
 },
 {
-"id": "Q18",
-"topic": "Organisation / data protection",
-"q": "On which legal provision is MaRisk based, and does it apply equally to all banks?",
-"type": "Multi-document",
-"answer": "MaRisk specifies the requirements for proper business organisation and risk management in section 25a KWG. It follows the principle of proportionality: requirements are applied according to size, complexity and risk profile of the institution.",
-"sources": "21_MaRisk_06_2026.pdf, AT 1; 22_KWG.pdf, section 25a",
-"de": "Proportionalität, ordnungsgemäße Geschäftsorganisation"
+"id": "E10",
+"topic": "Data & whistleblowing",
+"q": "Who is protected under the Whistleblower Protection Act?",
+"type": "Example",
+"de": "hinweisgebende Person Schutz Repressalien"
 },
 {
-"id": "Q19",
-"topic": "Organisation / data protection",
-"q": "What are the tasks of the compliance function under MaRisk?",
-"type": "Fact",
-"answer": "Identify material legal rules whose non-compliance could endanger the institution's assets, work towards effective procedures and controls to comply with them, and report to management at least annually and ad hoc.",
-"sources": "21_MaRisk_06_2026.pdf, AT 4.4.2",
-"de": "Compliance-Funktion, wesentliche rechtliche Regelungen"
+"id": "E11",
+"topic": "DORA / ICT",
+"q": "What must a bank's ICT risk management framework include under DORA?",
+"type": "Example",
+"de": "IKT-Risikomanagementrahmen Strategien Leitlinien"
 },
 {
-"id": "Q20",
-"topic": "Organisation / data protection",
-"q": "Which provision obliges banks to operate IT systems that detect suspicious transactions?",
-"type": "Fact",
-"answer": "Section 25h(2) KWG: institutions must operate data processing systems that identify business relationships and transactions which are unusual or suspicious with regard to money laundering or terrorist financing.",
-"sources": "22_KWG.pdf, section 25h",
-"de": "Datenverarbeitungssysteme, Monitoring"
+"id": "E12",
+"topic": "DORA / ICT",
+"q": "When is an ICT-related incident classified as major?",
+"type": "Example",
+"de": "schwerwiegender IKT-bezogener Vorfall Klassifizierung Kriterien"
 },
 {
-"id": "Q21",
-"topic": "Organisation / data protection",
-"q": "A small bank has 30 employees. Does it have to set up an internal whistleblowing channel?",
-"type": "Fact",
-"answer": "Yes. The 50-employee threshold does not apply to credit institutions; they must set up an internal reporting office regardless of size. Receipt must be confirmed within 7 days, feedback given within 3 months.",
-"sources": "24_HinSchG.pdf, sections 12 and 17",
-"de": "interne Meldestelle, Beschäftigte"
+"id": "E13",
+"topic": "Securities",
+"q": "Which information must a bank collect before giving investment advice?",
+"type": "Example",
+"de": "Geeignetheit Kenntnisse Erfahrungen Anlageziele finanzielle Verhältnisse"
 },
 {
-"id": "Q22",
-"topic": "Organisation / data protection",
-"q": "Within what time frame must a bank notify a personal data breach to the supervisory authority?",
-"type": "Fact",
-"answer": "Without undue delay and, where feasible, within 72 hours after becoming aware of it, unless the breach is unlikely to result in a risk. If the risk to data subjects is high, they must also be informed.",
-"sources": "25_DSGVO.pdf, Articles 33 and 34",
-"de": "Verletzung des Schutzes personenbezogener Daten, 72 Stunden"
+"id": "E14",
+"topic": "Securities",
+"q": "What is insider dealing under the Market Abuse Regulation?",
+"type": "Example",
+"de": "Insidergeschäft Insiderinformation Verbot"
 },
 {
-"id": "Q23",
-"topic": "DORA / IT service providers",
-"q": "Since when does DORA apply, and is a German savings bank in scope?",
-"type": "Fact",
-"answer": "DORA applies from 17 January 2025. Credit institutions, including savings banks, are financial entities within its scope.",
-"sources": "27_DORA_2022_2554.pdf, Articles 2 and 64",
-"de": "Geltungsbeginn, Finanzunternehmen"
-},
-{
-"id": "Q24",
-"topic": "DORA / IT service providers",
-"q": "What are the deadlines for reporting a major ICT-related incident?",
-"type": "Fact",
-"answer": "Initial notification within 4 hours after classifying the incident as major, at the latest 24 hours after becoming aware of it. Intermediate report within 72 hours of the initial notification. Final report within one month of the latest intermediate report.",
-"sources": "32_DORA_Meldefristen.pdf; 27_DORA_2022_2554.pdf, Article 19",
-"de": "schwerwiegender IKT-bezogener Vorfall, Erstmeldung"
-},
-{
-"id": "Q25",
-"topic": "DORA / IT service providers",
-"q": "Can a mid-sized German credit institution use the simplified ICT risk management framework under Article 16 DORA?",
-"type": "Distinction",
-"answer": "No, as a rule. Article 16 is limited to specific small entities (e.g. small and non-interconnected investment firms, exempted payment and e-money institutions, institutions exempted under the CRD, small pension funds). BaFin's supervisory notes confirm it is not a general option for banks.",
-"sources": "27_DORA_2022_2554.pdf, Article 16; 35_BaFin_DORA_Artikel_16.pdf",
-"de": "vereinfachter IKT-Risikomanagementrahmen"
-},
-{
-"id": "Q26",
-"topic": "DORA / IT service providers",
-"q": "Which key contractual provisions must a contract with an ICT third-party provider contain under DORA?",
-"type": "Multi-document",
-"answer": "Among others: clear description of services, locations of service provision and data processing, provisions on data protection, availability, integrity and confidentiality, access and recovery of data in case of insolvency, service levels, cooperation with authorities, termination rights. For critical or important functions additionally: detailed service levels, notice periods, exit strategies, audit and access rights, participation in TLPT.",
-"sources": "27_DORA_2022_2554.pdf, Article 30; 30_DORA_Vertragsleitlinie.pdf",
-"de": "vertragliche Vereinbarungen, kritische oder wichtige Funktionen, Ausstiegsstrategie"
-},
-{
-"id": "Q27",
-"topic": "Securities / client protection",
-"q": "What is the difference between the suitability test, the appropriateness test and execution-only?",
-"type": "Distinction",
-"answer": "Suitability applies to investment advice and portfolio management: knowledge and experience, financial situation including ability to bear losses, and investment objectives including risk tolerance. Appropriateness applies to other non-advised services: only knowledge and experience. Execution-only: no test, only for non-complex instruments at the client's initiative, with a warning to the client.",
-"sources": "37_WpHG.pdf, sections 63(10), 63(11), 64(3); 42_ESMA_Geeignetheit.pdf; 43_ESMA_Angemessenheit.pdf",
-"de": "Geeignetheit, Angemessenheit, beratungsfreies Geschäft"
-},
-{
-"id": "Q28",
-"topic": "Securities / client protection",
-"q": "Must a bank record telephone calls with clients about securities orders, and how long must it keep the recordings?",
-"type": "Fact",
-"answer": "Yes, conversations that relate to orders must be recorded, and clients must be informed in advance. Recordings must be kept for five years (up to seven years at the request of the authority).",
-"sources": "37_WpHG.pdf, section 83",
-"de": "Aufzeichnungspflicht, Telefongespräche"
-},
-{
-"id": "Q29",
-"topic": "Securities / client protection",
-"q": "What is the difference between a suspicious activity report under the GwG and a STOR under MAR?",
-"type": "Distinction",
-"answer": "GwG report: suspicion of money laundering or terrorist financing, filed with the FIU. STOR: suspicion of insider dealing or market manipulation in orders or transactions, filed with the competent authority (BaFin) without delay, using the template of Delegated Regulation 2016/957. Both may be required for the same case.",
-"sources": "01_GwG.pdf, section 43; 40_MAR_596_2014.pdf, Article 16; 41_MAR_STOR_2016_957.pdf",
-"de": "Verdachtsmeldung, Marktmissbrauch, Verdachtsanzeige"
-},
-{
-"id": "Q30",
+"id": "E15",
 "topic": "Payments",
-"q": "A customer reports an unauthorised card payment. What must the bank do, and how far is the customer liable?",
-"type": "Fact",
-"answer": "The bank must refund the amount immediately, at the latest by the end of the business day after notification (unless it has reasonable grounds to suspect fraud and reports them). The customer is liable up to EUR 50 for lost, stolen or misused instruments, fully only in case of fraud or gross negligence. The customer must report within 13 months.",
-"sources": "49_BGB.pdf, sections 675u, 675v, 676b",
-"de": "nicht autorisierter Zahlungsvorgang, Erstattung, 50 Euro"
+"q": "Does a consumer have a right to a basic payment account?",
+"type": "Example",
+"de": "Basiskonto Anspruch Zahlungskonto Verbraucher"
 },
 {
-"id": "Q31",
+"id": "E16",
+"topic": "Payments",
+"q": "How long may an instant credit transfer in euro take?",
+"type": "Example",
+"de": "Echtzeitüberweisung Sekunden Zahlungsdienstleister"
+},
+{
+"id": "E17",
+"topic": "Payments",
+"q": "Wer haftet bei einer nicht autorisierten Kartenzahlung?",
+"type": "Example",
+"de": "nicht autorisierter Zahlungsvorgang Haftung Zahler Erstattung"
+},
+{
+"id": "E18",
 "topic": "Out of scope",
-"q": "What is the ECB's current deposit facility rate?",
+"q": "What is today's interest rate on a 10-year German government bond?",
 "type": "Out of scope",
-"answer": "Not covered by the corpus. The assistant must say it cannot answer from the available documents and must not state a rate.",
-"sources": "None",
 "de": ""
 },
 {
-"id": "Q32",
+"id": "E19",
 "topic": "Out of scope",
-"q": "What lending approval limits apply to branch managers at our bank?",
+"q": "How much can our branch managers approve for a single loan?",
 "type": "Out of scope",
-"answer": "Institution-specific, not covered by the corpus. The assistant should say so, may point out that MaRisk requires a clear allocation of competences, but must not invent limits.",
-"sources": "None (optional reference: 21_MaRisk_06_2026.pdf)",
 "de": ""
 }
 ]

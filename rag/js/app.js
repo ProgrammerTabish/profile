@@ -176,7 +176,7 @@ Rules:
   });
 
   function renderPresets() {
-    const feat = ['Q22', 'Q24', 'Q21', 'Q05', 'Q13', 'Q31'];
+    const feat = ['E12', 'E17', 'E10', 'E02', 'E06', 'E18'];
     const btn = (p) => `<button type="button" class="preset" data-id="${p.id}"><small>${esc(p.id)} · ${esc(p.topic)}${p.type === 'Out of scope' ? ' · should refuse' : ''}</small>${esc(p.q)}</button>`;
     $('#presets').innerHTML = feat.map((id) => state.presets.find((p) => p.id === id)).filter(Boolean).map(btn).join('');
     $('#presetsAll').innerHTML = state.presets.map(btn).join('');
@@ -363,46 +363,17 @@ Rules:
     const idf = r.idf || {};
     const meaningful = r.qKnown.filter((t) => (idf[t] || 0) > 2.2);
     const refused = (preset && preset.type === 'Out of scope') || OOS_RE.test(question) || (meaningful.length === 0 && r.deTokens.length === 0) || r.bestSparse < 6;
-    if (refused) return { text: NOT_IN_SOURCES, refused: true, mode: preset ? 'reference' : 'extractive' };
-
-    const tokSets = top.map((c) => new Set(T.tokenize(`${c.title} ${c.section || ''} ${c.text}`)));
-    const bestFor = (txt, used) => {
-      const ts = new Set([...T.tokenize(txt), ...T.tokenize(T.glossaryTerms(txt).terms.join(' '))]);
-      let best = 0, bs = -1;
-      top.forEach((c, k) => {
-        let s = 0; for (const t of ts) if (tokSets[k].has(t)) s += Math.min(idf[t] || 3, 8);
-        s += (top.length - k) * 0.15 + (used.has(k) ? -0.8 : 0);
-        if (s > bs) { bs = s; best = k; }
-      });
-      return best;
-    };
-
-    if (preset && preset.answer) {
-      // reference answer of the evaluation set, cited against what was actually retrieved
-      const points = preset.answer.split(/\s(?=\d\)\s)|(?<=[.!?])\s+(?=[A-Z])/).map((s) => s.trim()).filter(Boolean);
-      const used = new Set(), lines = [];
-      const de = preset.de || '';
-      points.forEach((p) => {
-        const k = bestFor(p + ' ' + de, used); used.add(k);
-        lines.push({ text: p.replace(/^\d\)\s*/, ''), cite: [k + 1] });
-      });
-      if (used.size < 2 && top.length > 1) {
-        const k2 = [...Array(top.length).keys()].find((k) => !used.has(k) && top[k].doc !== top[[...used][0]].doc) ?? 1;
-        lines[lines.length - 1].cite.push(k2 + 1);
-      }
-      const numbered = /\b1\)\s/.test(preset.answer);
-      const body = numbered || lines.length > 2
-        ? lines.map((l) => `- ${l.text} ${l.cite.map((n) => `[${n}]`).join('')}`).join('\n')
-        : lines.map((l) => `${l.text} ${l.cite.map((n) => `[${n}]`).join('')}`).join(' ');
-      return { text: body, refused: false, mode: 'reference' };
-    }
+    if (refused) return { text: NOT_IN_SOURCES, refused: true };
 
     // extractive stand-in: best-supported source sentences, each cited
     const cands = [];
     top.forEach((c, k) => {
       // undo PDF line wraps, keep list items / paragraphs apart, then cut into whole sentences
       const flat = c.text.replace(/-\n(?=[a-zäöüß])/g, '').replace(/\n(?=\(\d+[a-z]?\)|\d+\.\s|[a-z]\)\s|[-–•]\s)/g, '\u2029').replace(/\n/g, ' ');
-      flat.split(/\u2029|(?<=[.!?;])\s+(?=[„"(A-ZÄÖÜ])/).forEach((s) => {
+      // a chunk that starts mid-sentence (a long section split in two) has a fragment first
+      const cleanStart = /^(§|Art|\(|\d|[A-ZÄÖÜ]{2,}|Erwägungsgr|Kapitel|Abschnitt|Section|Title|Guideline)/.test(flat);
+      flat.split(/\u2029|(?<=[.!?;])\s+(?=[„"(A-ZÄÖÜ])/).forEach((s, si) => {
+        if (si === 0 && !cleanStart) return;
         s = s.trim().replace(/^(\(\d+[a-z]?\)|\d+\.|[a-z]\)|[-–•])\s*/, '');
         if (s.length < 45 || s.length > 420 || /^[\d\s.,;:()§-]+$/.test(s)) return;
         if (!/^[„"(A-ZÄÖÜ]/.test(s) || !/[.!?;:)]$/.test(s)) return;
@@ -425,14 +396,14 @@ Rules:
       const other = cands.find((c) => c.k !== pick[0].k && c.sc > pick[0].sc * 0.3);
       if (other) { if (pick.length >= 4) pick.pop(); pick.push(other); }
     }
-    if (!pick.length) return { text: NOT_IN_SOURCES, refused: true, mode: 'extractive' };
+    if (!pick.length) return { text: NOT_IN_SOURCES, refused: true };
     pick.sort((a, b) => a.k - b.k);
     const provisions = [...new Set(pick.map((p) => top[p.k].section).filter(Boolean))].slice(0, 3);
     const intro = provisions.length
       ? `The sources address this in ${provisions.map((s) => s.split(/\s+/).slice(0, 3).join(' ')).join(', ')}:`
       : 'The sources address this as follows:';
     const body = pick.map((p) => `- <q>${p.s.replace(/[;:]$/, '.')}</q> [${p.k + 1}]`).join('\n');
-    return { text: `${intro}\n${body}`, refused: false, mode: 'extractive' };
+    return { text: `${intro}\n${body}`, refused: false };
   }
 
   async function streamAnswer(el, text, refused) {
@@ -497,9 +468,7 @@ Rules:
     if (v.status !== 'answered') {
       ansEl.innerHTML = `<p>${esc(v.text)}</p><p class="answer__note">The model replied <code>NOT_IN_SOURCES</code>. Rule 6 of the system prompt forbids answering market-data or internal-policy questions, or anything the 8 sources don't cover, so the backend returns an honest refusal instead of a guess. The retrieved chunks are still listed in the Retrieval tab.</p>`;
     } else {
-      ansEl.innerHTML = renderMarkup(v.display) + `<p class="answer__note">${draft.mode === 'reference'
-        ? 'Answer text: the challenge\'s reference answer for this question. Each <span class="cite" style="cursor:default">n</span> points to a chunk your browser actually retrieved. In production, the LLM writes this text itself from the same prompt.'
-        : 'Answer text: the extractive stand-in, which quotes the best-supported sentences from the retrieved German sources. In production, Mistral Small 3.1 writes an English answer from the same prompt, with the same <span class="cite" style="cursor:default">n</span> citations.'}</p>`;
+      ansEl.innerHTML = renderMarkup(v.display) + `<p class="answer__note">Answer text: the extractive stand-in, which quotes the best-supported sentences from the retrieved sources (mostly German). In production, Mistral Small 3.1 writes the answer in the question's language from the same prompt, with the same <span class="cite" style="cursor:default">n</span> citations.</p>`;
       const srcs = document.createElement('div');
       srcs.className = 'srcs';
       srcs.innerHTML = v.cited.map((c, k) => `<button type="button" class="src" data-i="${c.i}" data-n="${k + 1}">

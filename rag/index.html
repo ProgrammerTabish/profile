@@ -65,7 +65,7 @@
         <span class="eyebrow">Try one</span>
         <div class="presets" id="presets"></div>
         <details class="more">
-          <summary>All 31 questions from the challenge's evaluation set</summary>
+          <summary>More example questions</summary>
           <div class="presets presets--all" id="presetsAll"></div>
         </details>
       </div>
@@ -151,7 +151,7 @@
               <li><b>Same data.</b> The texts and BGE-M3 vectors come from the repo's prebuilt <code>rag_db</code>. The vectors are PCA-compressed 1024 → 96 dimensions (int8), which keeps about 75% of each chunk's true top-20 neighbours.</li>
               <li><b>Same keyword search.</b> The tokenizer is ported line by line, so <code>§ 25h</code>, <code>Art. 5b</code> and <code>AT 4.4.2</code> stay single tokens. Scoring is BM25 with Qdrant's IDF.</li>
               <li><b>Approximate question vector.</b> Your browser can't run BGE-M3 (2.2 GB), so the question's vector is the average of its top keyword hits (pseudo-relevance feedback). The cosine search over all 12,186 real vectors is real.</li>
-              <li><b>Simulated LLM.</b> For the evaluation-set questions, the answer text is the challenge's reference answer (its expected key points). For your own questions, it's built from the best-matching source sentences, the same deterministic stand-in the repo's test suite uses. Either way, the citations point to the chunks that were actually retrieved, and the confidence score is computed from them.</li>
+              <li><b>Simulated LLM.</b> The answer is built from the best-matching sentences of the retrieved sources, like the deterministic stand-in the repo's test suite uses. The citations point to the chunks that were actually retrieved, and the confidence score is computed from them. The example questions add hand-written German search terms in place of the LLM's German rewrite.</li>
               <li>On the 30 in-scope evaluation questions, this browser retrieval puts an expected source document in the top 8 for <b>26 of 30</b>.</li>
             </ul>
           </div>
