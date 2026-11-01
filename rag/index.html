@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Private RAG Assistant</title>
+<meta name="description" content="Ask banking-regulation questions and watch a real retrieval-augmented generation pipeline work in 3D: hybrid BM25 + BGE-M3 search over 12,186 chunks of 50 regulatory PDFs, RRF fusion, a cited answer and an audit trail. Retrieval runs live in your browser; the LLM step is a simulation.">
+<meta name="author" content="Shaikh Zaka Tabish">
+<link rel="canonical" href="https://www.zakatabish.online/rag/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Private RAG Assistant · live 3D demo">
+<meta property="og:description" content="A citation-backed compliance assistant for banks. Watch your question travel through hybrid search, fusion and the LLM, in 3D.">
+<meta property="og:url" content="https://www.zakatabish.online/rag/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230A0C13'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%233FE0D0'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%238B7DFF' stroke-width='2'/%3E%3C/svg%3E">
+<script>
+  // Saved theme before paint, shared with the portfolio (main.js stores it JSON-encoded).
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('zt.theme'); t = t && t.charAt(0) === '"' ? JSON.parse(t) : t; } catch (e) {}
+    if (t !== 'dark' && t !== 'light') t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+    if (/[?&]embed=1/.test(location.search)) document.documentElement.classList.add('is-embed');
+  })();
+</script>
+</head>
+<body>
+
+<header class="top">
+  <a class="top__brand" href="../projects.html#proj-rag" target="_top" title="Back to the portfolio">
+    <span class="top__logo" aria-hidden="true"><i></i></span>
+    <span class="top__name"><b>Private RAG Assistant</b><small>live demo · ← portfolio</small></span>
+  </a>
+  <div class="top__status" id="status" role="status" aria-live="polite">
+    <span class="dot"></span><span id="statusText">Loading the index…</span>
+    <span class="top__bar"><i id="statusBar"></i></span>
+  </div>
+  <div class="top__acts">
+    <div class="seg" role="group" aria-label="Animation speed">
+      <button type="button" data-speed="1" aria-pressed="true">Cinematic</button>
+      <button type="button" data-speed="3" aria-pressed="false">Quick</button>
+    </div>
+    <button type="button" class="tbtn" id="themeBtn">Dark</button>
+    <a class="tbtn top__wide" href="https://github.com/ProgrammerTabish/private-rag-assistant" target="_blank" rel="noopener">Code</a>
+    <a class="tbtn top__fs" href="./" target="_blank" rel="noopener" title="Open full screen">Full screen ↗</a>
+  </div>
+</header>
+
+<main class="app" id="app">
+
+  <!-- ══ chat ══ -->
+  <section class="chat" aria-label="Chat">
+    <div class="chat__scroll" id="chatScroll">
+      <div class="intro" id="intro">
+        <span class="eyebrow">Compliance assistant · 50 regulatory PDFs</span>
+        <h1>Ask a question about banking regulation, then watch how the answer gets made.</h1>
+        <p>Your question goes through the same pipeline as the self-hosted system I built for the SPG Innovation Challenge 2026: a German rewrite, hybrid keyword and vector search over <b>12,186 real chunks</b> of GwG, KWG, MaRisk, DORA, DSGVO and EBA/ESMA texts, rank fusion, and an LLM that has to cite its sources.</p>
+        <p class="intro__honest"><b>What's real:</b> the corpus, the BGE-M3 vectors, and the retrieval, fusion, citation checks and confidence score. All of it runs in your browser. <b>What's simulated:</b> the LLM. GitHub Pages can't host a 24B model, so the page builds the exact prompt and then shows how the model would answer it.</p>
+        <span class="eyebrow">Try one</span>
+        <div class="presets" id="presets"></div>
+        <details class="more">
+          <summary>All 31 questions from the challenge's evaluation set</summary>
+          <div class="presets presets--all" id="presetsAll"></div>
+        </details>
+      </div>
+      <ol class="msgs" id="msgs" aria-live="polite"></ol>
+    </div>
+
+    <form class="composer" id="composer">
+      <div class="composer__row">
+        <label class="sr-only" for="q">Your question</label>
+        <textarea id="q" rows="1" maxlength="400" placeholder="e.g. When must a data breach be reported?" autocomplete="off"></textarea>
+        <button class="send" id="send" type="submit" aria-label="Ask">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h13M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="composer__meta">
+        <label class="filter">
+          <span>Topic</span>
+          <select id="filter"><option value="-1">All 50 documents</option></select>
+        </label>
+        <span class="composer__hint">English or German · <kbd>Enter</kbd> to ask</span>
+      </div>
+    </form>
+  </section>
+
+  <!-- ══ 3D stage ══ -->
+  <section class="stage" aria-label="3D view of the retrieval pipeline">
+    <div class="stage__gl" id="gl"></div>
+    <div class="stage__hud">
+      <ol class="steps" id="steps" aria-label="Pipeline progress">
+        <li data-step="rewrite"><i></i><span>Rewrite</span><small>EN → DE</small></li>
+        <li data-step="sparse"><i></i><span>BM25</span><small>keywords</small></li>
+        <li data-step="dense"><i></i><span>Dense</span><small>BGE-M3</small></li>
+        <li data-step="fuse"><i></i><span>Fuse</span><small>RRF · top 8</small></li>
+        <li data-step="prompt"><i></i><span>Prompt</span><small>8 sources</small></li>
+        <li data-step="llm"><i></i><span>LLM</span><small>simulated</small></li>
+        <li data-step="check"><i></i><span>Verify</span><small>citations</small></li>
+        <li data-step="audit"><i></i><span>Audit</span><small>logged</small></li>
+      </ol>
+    </div>
+    <div class="legend" id="legend" aria-label="Colour legend"></div>
+    <div class="stage__help">Each dot is one chunk of a PDF, placed by its BGE-M3 embedding, so chunks that mean similar things sit close together. Drag to orbit, scroll to zoom, click a dot to read it.</div>
+    <div class="tip" id="tip" hidden></div>
+    <div class="stage__keys">
+      <span><i class="k k--sparse"></i>keyword hit</span>
+      <span><i class="k k--dense"></i>vector hit</span>
+      <span><i class="k k--fused"></i>sent to LLM</span>
+      <button type="button" class="tbtn tbtn--sm" id="homeBtn">Re-centre</button>
+    </div>
+  </section>
+
+  <!-- ══ inspector ══ -->
+  <section class="insp" aria-label="Under the hood">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="retrieval">Retrieval</button>
+      <button role="tab" aria-selected="false" data-tab="prompt">Prompt</button>
+      <button role="tab" aria-selected="false" data-tab="checks">Checks</button>
+      <button role="tab" aria-selected="false" data-tab="audit">Audit trail</button>
+      <button role="tab" aria-selected="false" data-tab="chunk">Chunk</button>
+      <button role="tab" aria-selected="false" data-tab="about">How it works</button>
+    </div>
+    <div class="panes">
+      <div class="pane" data-pane="retrieval" id="paneRetrieval"><p class="empty">Ask something and this tab shows every ranked list: BM25 on your words, BM25 on the German rewrite, the vector search, and the fused top 8 that go to the LLM.</p></div>
+      <div class="pane" data-pane="prompt" id="panePrompt" hidden><p class="empty">The exact prompt the backend sends to the model, with the system rules from <code>generate/prompts.py</code> and the eight numbered sources.</p></div>
+      <div class="pane" data-pane="checks" id="paneChecks" hidden><p class="empty">Citation validation and the confidence score, using the same formula as <code>generate/answer.py</code>.</p></div>
+      <div class="pane" data-pane="audit" id="paneAudit" hidden><p class="empty">Every request is written to an append-only audit trail. In production that's PostgreSQL; here it's this list, and it disappears when you close the tab.</p></div>
+      <div class="pane" data-pane="chunk" id="paneChunk" hidden><p class="empty">Click any dot in the 3D view, or any source under an answer, to read the full chunk.</p></div>
+      <div class="pane pane--about" data-pane="about" hidden>
+        <div class="about">
+          <div>
+            <h3>The pipeline</h3>
+            <ol>
+              <li><b>Ingest.</b> 50 PDFs (3,387 pages) are parsed with Docling and cut into 12,186 chunks that never cross a § / Artikel / AT boundary, so every citation can say <code>01_GwG.pdf | § 10 | p. 17-18</code>.</li>
+              <li><b>Embed + index.</b> BGE-M3 (1024-d) dense vectors plus BM25 sparse vectors go into Qdrant.</li>
+              <li><b>Retrieve.</b> Most questions are in English and most of the law is in German, so each question also gets a German query (an LLM rewrite plus an EN→DE compliance glossary). Four ranked lists, fused with weighted Reciprocal Rank Fusion, capped at 4 chunks per document.</li>
+              <li><b>Generate.</b> Mistral Small 3.1 24B (Ollama) or Llama 3.3 70B (vLLM), inside the bank's tenant. It must cite <code>[n]</code> after every statement.</li>
+              <li><b>Verify.</b> Citations to sources that don't exist are removed. Fewer than 2 citations triggers a retry. <code>NOT_IN_SOURCES</code> produces an honest refusal.</li>
+              <li><b>Audit.</b> Every question, source and answer is logged under its request id.</li>
+            </ol>
+          </div>
+          <div>
+            <h3>What this page does differently</h3>
+            <ul>
+              <li><b>Same data.</b> The texts and BGE-M3 vectors come from the repo's prebuilt <code>rag_db</code>. The vectors are PCA-compressed 1024 → 96 dimensions (int8), which keeps about 75% of each chunk's true top-20 neighbours.</li>
+              <li><b>Same keyword search.</b> The tokenizer is ported line by line, so <code>§ 25h</code>, <code>Art. 5b</code> and <code>AT 4.4.2</code> stay single tokens. Scoring is BM25 with Qdrant's IDF.</li>
+              <li><b>Approximate question vector.</b> Your browser can't run BGE-M3 (2.2 GB), so the question's vector is the average of its top keyword hits (pseudo-relevance feedback). The cosine search over all 12,186 real vectors is real.</li>
+              <li><b>Simulated LLM.</b> For the evaluation-set questions, the answer text is the challenge's reference answer (its expected key points). For your own questions, it's built from the best-matching source sentences, the same deterministic stand-in the repo's test suite uses. Either way, the citations point to the chunks that were actually retrieved, and the confidence score is computed from them.</li>
+              <li>On the 30 in-scope evaluation questions, this browser retrieval puts an expected source document in the top 8 for <b>26 of 30</b>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<noscript><p class="nojs">This demo needs JavaScript and WebGL.</p></noscript>
+
+<script src="vendor/three.min.js"></script>
+<script src="js/textproc.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

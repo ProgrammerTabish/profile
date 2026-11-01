@@ -619,6 +619,7 @@ function token(name) {
   const go = (url) => { close(); window.location.href = url; };
 
   const PROJECTS = [
+    { name: 'private-rag-assistant', label: 'Private RAG assistant for banking compliance', page: 'projects.html#proj-rag', url: 'https://github.com/ProgrammerTabish/private-rag-assistant' },
     { name: 'mcp-diagnostics-server', label: 'MCP server for hardware diagnostics', page: 'projects.html#proj-mcp' },
     { name: 'lab-network-monitor', label: 'Lab network monitoring & anomaly alerting', page: 'projects.html#proj-monitoring' },
     { name: 'finalyearproject', label: 'City waste management (GPS tracking)', page: 'projects.html#proj-waste', url: 'https://github.com/ProgrammerTabish/FinalYearProject' },

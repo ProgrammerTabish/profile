@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Projects · Shaikh Zaka Tabish</title>
 
-<meta name="description" content="Case studies: an MCP server connecting AI models to Jira and hardware diagnostics at Nokia, a lab network anomaly detection system, a real time IoT waste collection tracker with a live simulated dashboard, and Großry, a clickable prototype of a student collective purchasing app.">
+<meta name="description" content="Case studies: a private, citation-backed RAG assistant for banking compliance with a live 3D demo, an MCP server connecting AI models to Jira and hardware diagnostics at Nokia, a lab network anomaly detection system, a real time IoT waste collection tracker with a live simulated dashboard, and Großry, a clickable prototype of a student collective purchasing app.">
 <meta name="author" content="Shaikh Zaka Tabish">
 <meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
@@ -68,6 +68,73 @@
     <h2 id="projH">Projects</h2>
     <p>Pieces of work I'd most want to walk you through: the problem, what I actually built, the trade offs, and what it took to get there. Several have a live simulation running in the browser below them.</p>
   </div>
+
+  <!-- ══ private RAG assistant ══ -->
+  <article class="feature__item" id="proj-rag" style="margin-bottom:2.4rem;">
+    <h3>Private RAG Assistant: a compliance document reader for banks</h3>
+    <p class="feature__meta">SPG Innovation Challenge 2026, Use Case 13 · Python, FastAPI, Qdrant, BGE-M3, BM25, Docling, Ollama / vLLM, Go</p>
+    <p class="feature__sub">Built for Specific-Group GmbH at the Innovation Challenge &amp; Fair 2026 (Ecosystem Smart Niederbayern, Landau an der Isar, 8&ndash;10 October 2026). This is Variant B of the brief: the fully self-hosted, open-source pipeline, from PDF ingestion to the chat UI and a one-click installer.</p>
+
+    <div class="case">
+      <div class="case__block">
+        <span class="case__label">The problem</span>
+        <p>Compliance, risk and audit teams at German banks spend hours searching and quoting BaFin circulars, MaRisk, EBA guidelines and laws like the GwG and KWG. ChatGPT is off the table: the questions and documents fall under banking secrecy. They need answers they can verify, from a model that never leaves the bank's own infrastructure.</p>
+      </div>
+      <div class="case__block">
+        <span class="case__label">What I built</span>
+        <p>A citation-backed assistant over 50 regulatory PDFs (3,387 pages, 12,186 chunks). It takes a natural-language question in English or German and returns an answer in which every statement carries a <code>[n]</code> pointing to a file, section and page, plus a confidence score, a status and an audit-trail entry. Every component is open source and runs inside the tenant: documents, embeddings, model weights, prompts and answers never leave it.</p>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">Architecture</span>
+        <div class="flow">
+          <div class="flow__node"><b>50 PDFs</b><span>Docling, § / Art. / AT-aware chunks</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>Qdrant</b><span>BGE-M3 dense + BM25 sparse</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__group">
+            <div class="flow__node"><b>Question + German rewrite</b><span>4 ranked lists</span></div>
+            <div class="flow__node"><b>RRF fusion</b><span>top 8, max 4 per doc</span></div>
+          </div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>Open-source LLM</b><span>Mistral Small 3.1 / Llama 3.3, in-tenant</span></div>
+          <span class="flow__arrow" aria-hidden="true">→</span>
+          <div class="flow__node"><b>Verified answer</b><span>citations, confidence, audit</span></div>
+        </div>
+        <p style="margin:0;"><a class="linkbtn" href="playground.html#demo-rag">Ask it a question and watch this pipeline run in 3D in the Playground →</a></p>
+      </div>
+
+      <div class="case__block">
+        <span class="case__label">Key decisions</span>
+        <ul>
+          <li><b>Hybrid search, because the questions are English and the law is German.</b> Measured on the challenge's question set: plain dense + keyword search found an expected document for 5 of 31 questions. Adding a German query (an LLM rewrite plus an EN&rarr;DE compliance glossary) to both the dense and the keyword side raised that to 20 of 31 with the local stand-in models.</li>
+          <li><b>Chunks never cross a legal boundary.</b> A chunker that knows <code>§ 10</code>, <code>Artikel 19</code> and <code>AT 4.4.2</code> means every citation can read <code>01_GwG.pdf | § 10 | p. 17-18</code>, which is how a compliance officer actually checks a source.</li>
+          <li><b>Distrust the model's citations.</b> Markers that point to sources that were never shown are removed, fewer than 2 citations triggers one retry, and <code>NOT_IN_SOURCES</code> produces an honest refusal. That covers market data, the bank's internal limits, and anything the corpus doesn't cover.</li>
+          <li><b>No Docker, no admin rights.</b> Two shell scripts and a Go launcher for Windows install everything in user space, restore a prebuilt vector database and start the API and chat UI. A bank's IT can run it on one GPU machine.</li>
+        </ul>
+      </div>
+      <div class="case__block">
+        <span class="case__label">Challenges</span>
+        <ul>
+          <li>Parsing PDFs the way lawyers cite them. A non-breaking space in <code>§&nbsp;10</code>, cross-references like <code>§ 46 Abs. 1</code> that look like headings, table-of-contents pages and EU recitals all broke section detection until they were handled one by one.</li>
+          <li>A stale checkpoint bug: re-ingesting after a chunker change silently kept the old chunks. The checkpoint fingerprint now includes a hash of the ingestion code itself.</li>
+          <li>Small models sometimes loop on citation markers or answer <code>NOT_IN_SOURCES</code> and then answer anyway. Both are detected and cleaned up in post-processing.</li>
+          <li>113 tests cover the failure paths a bank's IT will hit: corrupt or encrypted PDFs, the embedding endpoint or LLM going down mid-request, a database failing during an audit write, and 16 concurrent requests.</li>
+        </ul>
+      </div>
+
+      <div class="case__block case__block--wide">
+        <span class="case__label">Result</span>
+        <p>A working self-hosted assistant: 50 of 50 PDFs ingested with no failures, 12,186 chunks embedded with BGE-M3 on a single RTX 2080 SUPER, and Mistral Small 3.1 24B serving answers through Ollama on hardware the bank controls. It ships as one install script (or one double-click on Windows) with the prebuilt index included, so a CPU-only machine can run it without re-embedding anything.</p>
+        <p>The Playground demo runs that same index in your browser. It ports the tokenizer, BM25 scoring, fusion, citation checks and confidence formula from the Python code, and on the 30 in-scope evaluation questions it retrieves an expected source document for 26. The LLM step there is simulated, and the demo says so.</p>
+        <p class="feature__links">
+          <a class="btn btn--solid btn--sm" href="playground.html#demo-rag">Try the live demo</a>
+          <a class="btn btn--outline btn--sm" href="rag/">Open full screen</a>
+          <a class="btn btn--outline btn--sm" href="https://github.com/ProgrammerTabish/private-rag-assistant" rel="noopener">View the code</a>
+        </p>
+      </div>
+    </div>
+  </article>
 
   <!-- ══ MCP server ══ -->
   <article class="feature__item" id="proj-mcp" style="margin-bottom:2.4rem;">

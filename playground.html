@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Playground · Shaikh Zaka Tabish</title>
 
-<meta name="description" content="Live AI demos running in the browser: a neural network that learns to read handwriting, a live trained decision boundary visualizer, an animated explainer of how MCP connects AI models to real software, and a reinforcement learning agent that learns to play Pong.">
+<meta name="description" content="Live AI demos running in the browser: a private RAG assistant you can question while its retrieval pipeline runs in 3D, a neural network that learns to read handwriting, a live trained decision boundary visualizer, an animated explainer of how MCP connects AI models to real software, and a reinforcement learning agent that learns to play Pong.">
 <meta name="author" content="Shaikh Zaka Tabish">
 <meta name="theme-color" content="#F5F6FA" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0A0C13" media="(prefers-color-scheme: dark)">
@@ -13,7 +13,7 @@
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Playground · Shaikh Zaka Tabish">
-<meta property="og:description" content="Four small, real AI systems running live in your browser. Not screenshots.">
+<meta property="og:description" content="Five small, real AI systems running live in your browser. Not screenshots.">
 <meta property="og:url" content="https://www.zakatabish.online/playground.html">
 <meta name="twitter:card" content="summary">
 
@@ -65,10 +65,40 @@
   <div class="section__head">
     <span class="section__eyebrow">Playground</span>
     <h2 id="playH">Watch the models think</h2>
-    <p>Four small, real systems running live in your browser right now. Not screenshots. This is the same instinct I bring to the job: don't just ship the black box, show the people who rely on it how it actually works.</p>
+    <p>Five small, real systems running live in your browser right now. Not screenshots. This is the same instinct I bring to the job: don't just ship the black box, show the people who rely on it how it actually works.</p>
   </div>
 
   <div class="demos">
+
+    <!-- private RAG assistant -->
+    <article class="demo" id="demo-rag" aria-labelledby="demoRagH">
+      <div class="demo__head">
+        <span class="demo__tag">Retrieval-augmented generation · 3D</span>
+        <h3 id="demoRagH">Ask a banking regulator's question, then watch the answer get built</h3>
+        <p>This is the compliance assistant I built for the SPG Innovation Challenge 2026: a private RAG system that answers questions about GwG, KWG, MaRisk, DORA and 46 other regulatory texts, and has to cite the paragraph behind every statement. Type a question and follow it through the pipeline in 3D: a German rewrite, keyword and vector search across <b>12,186 real chunks</b>, rank fusion, the prompt, the model, the citation checks and the audit trail.</p>
+        <p>The retrieval is real. Your browser loads the project's actual index and BGE-M3 vectors and runs the same tokenizer, BM25 scoring and fusion as the Python backend. The <b>LLM is simulated</b>, because a 24-billion-parameter model doesn't fit on GitHub Pages. The page builds the exact prompt the backend would send, then animates how the model answers it.</p>
+      </div>
+
+      <div class="ragembed" id="ragEmbed">
+        <div class="ragembed__poster" aria-hidden="true">
+          <i style="--x:22%;--y:38%;--c:#8B7DFF"></i><i style="--x:30%;--y:62%;--c:#FF7A90"></i><i style="--x:41%;--y:30%;--c:#4AA8FF"></i>
+          <i style="--x:47%;--y:55%;--c:#7EE081"></i><i style="--x:36%;--y:46%;--c:#3FE0D0"></i><i style="--x:52%;--y:70%;--c:#E58BFF"></i>
+          <span class="ragembed__core"></span>
+        </div>
+        <div class="ragembed__cta">
+          <button class="btn btn--solid" type="button" id="ragStart">Start the live demo</button>
+          <a class="btn btn--outline" href="rag/">Open full screen</a>
+          <small>Loads about 4 MB: the 3D map, the chunk texts and the vectors</small>
+        </div>
+      </div>
+
+      <p class="demo__note">Try <b>“Within what time frame must a bank notify a personal data breach?”</b>, then ask <b>“What is the current EUR/USD exchange rate?”</b> to watch it refuse instead of making up an answer. The <b>Retrieval</b>, <b>Prompt</b>, <b>Checks</b> and <b>Audit trail</b> tabs under the 3D view show what each step actually produced. <a class="linkbtn" href="projects.html#proj-rag">Read the case study →</a></p>
+
+      <blockquote class="demo__quote">
+        In a bank, the answer is only half the job. The other half is being able to show exactly where it came from, and saying "not in the sources" when that's the truth.
+        <cite>On trustworthy AI in regulated industries</cite>
+      </blockquote>
+    </article>
 
     <!-- digit recognizer -->
     <article class="demo" id="demo-digits" aria-labelledby="demoDigitsH">
@@ -251,5 +281,6 @@
 <script src="assets/js/playground/nn-decision-boundary.js" defer></script>
 <script src="assets/js/playground/mcp-explainer.js" defer></script>
 <script src="assets/js/playground/rl-pong.js" defer></script>
+<script src="assets/js/playground/rag-embed.js" defer></script>
 </body>
 </html>
